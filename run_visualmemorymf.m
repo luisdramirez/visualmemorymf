@@ -1,11 +1,11 @@
 % run_visualmemorymf.m
-% Written by JS and LR
+% Written by JS and LR June 2018
 close all; clear all; clc;
 Screen('Preference', 'SkipSyncTests', 1);
 load('visualmemory_condition_order')
 load('visualmemory_subjectsRan')
 %% PREPARE
-p.repetitions = 150; % for 'test_HC' do 150
+p.repetitions = 1; % for 'test_HC' do 150
 p.numBlocks = p.repetitions;
 
 % Subject Name
@@ -28,7 +28,7 @@ if exist(['run_visualmemorymf_' p.subject '.mat'],'file') ~= 0
 elseif strcmp(p.subject,'test') 
     p.testCondition_curr = randi(1:2);
 elseif strcmp(p.subject,'test_HC')
-    p.testCondition_curr = 1; % fixed to perception condition for hard coded testing
+    p.testCondition_curr = randi(1:2); % fixed to perception condition for hard coded testing
 else 
     p.runNumber = 1;
     p.orderRow = length(subjectsRan)+1;
@@ -73,7 +73,7 @@ PsychPowerMate('SetBrightness', powermate, 20);
 % 
 while 1
     [pmbutton, ~] = PsychPowerMate('Get', powermate);
-    if pmbutton == 1;
+    if pmbutton == 1
         break;
     end
 end
@@ -145,13 +145,21 @@ p.surroundPhase = p.centerPhase;
 %--------------------%
 %    Conditions      %
 %--------------------%
-% Baseline number of trials based on the number of center grating contrasts
-p.stimConfigurations = 1:length(p.centerContrast);
-[configs] = BalanceFactors(p.numBlocks,0,p.stimConfigurations);
 % 1 - perception: center and surround, mask, blank, mask
 % 2 - working memory: center, mask, surround, mask
-col1 = repmat(p.testCondition_curr,length(configs),1);
+% 3 - baseline: center, mask, blank, mask
 
+% Baseline number of trials based on the number of center grating contrasts
+if strcmp(p.subject,'test_HC')
+    p.stimConfigurations = 1:p.numConditions;
+    [configs] = BalanceFactors(p.numBlocks,0,p.stimConfigurations);
+    col1a = ones(length(configs)/2,1); col1b = 3*ones(length(configs)/2,1);
+    col1 = [col1a;col1b];
+else
+    p.stimConfigurations = 1:length(p.centerContrast);
+    [configs] = BalanceFactors(p.numBlocks,0,p.stimConfigurations);
+    col1 = repmat(p.testCondition_curr,length(configs),1);
+end
 p.numTrials = size(col1,1);
 p.numTrialsPerBlock = p.numContrasts;
 p.numTrialsPerSet = 30;
