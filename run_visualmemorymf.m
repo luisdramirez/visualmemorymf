@@ -2,13 +2,14 @@
 % Written by JS and LR
 close all; clear all; clc;
 Screen('Preference', 'SkipSyncTests', 1);
-
+load('visualmemory_condition_order')
+load('visualmemory_subjectsRan')
 %% PREPARE
-p.repetitions = 1;
+p.repetitions = 150; % for 'test_HC' do 150
 p.numBlocks = p.repetitions;
 
 % Subject Name
-p.subject = 'test';
+p.subject = 'test_HC'; % 'test' = 5 contrasts ; 'test_HC' = 1 contrast
 
 % Set directories
 expDir = pwd; % set the experimental directory to the current directory 'pwd'
@@ -19,17 +20,25 @@ t.theDate = datestr(now, 'yymmdd'); %collect todays date
 t.timeStamp = datestr(now,'HHMM'); %collect timestamp
 
 p.numConditions = 2;
-p.trialSchedule = Shuffle(repmat(1:p.numConditions,1,2));
-
 
 if exist(['run_visualmemorymf_' p.subject '.mat'],'file') ~= 0
     load(['run_visualmemorymf_' p.subject '.mat']);
     p.runNumber = length(theData)+1;
-    p.testCondition_curr = theData{1}.p.trialSchedule(p.runNumber);
+    p.testCondition_curr = theData{1}.p.trialSchedule(p.orderRow,p.runNumber);
+elseif strcmp(p.subject,'test') 
+    p.testCondition_curr = randi(1:2);
+elseif strcmp(p.subject,'test_HC')
+    p.testCondition_curr = 1; % fixed to perception condition for hard coded testing
 else 
     p.runNumber = 1;
+    p.orderRow = length(subjectsRan)+1;
+    if p.orderRow > length(visualmemory_condition_order)
+       p.orderRow = p.orderRow - length(visualmemory_condition_order); 
+    end
+    subjectsRan{end+1} = p.subject;
+    p.trialSchedule = visualmemory_condition_order(p.orderRow,:);
     % Which Test condition, run these test conditions on different days
-    p.testCondition_curr = p.trialSchedule(1); %1=perception, 2=memory
+    p.testCondition_curr = p.trialSchedule(1); 
 end
 cd(expDir);
 
@@ -88,7 +97,11 @@ colors.dimgrey = [105 105 105]; colors.yellow = [255 255 0]; colors.magenta = [2
 % grating contrast for center and surround
 p.minContrast = 0.1;
 p.maxContrast = 0.75;
-p.numContrasts = 5;
+if strcmp(p.subject,'test_HC')
+    p.numContrasts = 1;
+else
+    p.numContrasts = 5;
+end
 p.centerContrast = [10.^linspace(log10(p.minContrast),log10(p.maxContrast),p.numContrasts)];
 p.surroundContrast = 1;
 
@@ -140,11 +153,11 @@ p.stimConfigurations = 1:length(p.centerContrast);
 col1 = repmat(p.testCondition_curr,length(configs),1);
 
 p.numTrials = size(col1,1);
-p.numBlocksPerBreak = 6;
-if p.numBlocks > p.numBlocksPerBreak
-    p.numTrialsPerSet = p.numContrasts*p.numBlocksPerBreak; 
-    p.numSets = p.numTrials/p.numTrialsPerSet;
-end
+p.numTrialsPerBlock = p.numContrasts;
+p.numTrialsPerSet = 30;
+p.numBlocksPerSet = p.numTrialsPerSet/p.numContrasts;
+p.numSets = p.numTrials/p.numTrialsPerSet;
+
 %--------------------%
 %     Location       %
 %--------------------%
@@ -156,19 +169,20 @@ col4 =  randi(360,length(col1),1); %probe grating location
 %      Contrast      %
 %--------------------%
 %5 different contrast levels
-col3 = repmat(p.centerContrast',p.numBlocks,1);
-col5 = rand(length(col3),1);
+col3 = repmat(p.centerContrast',p.numBlocks,1); % center grating contrast
+col5 = rand(length(col3),1); % probe grating contrast
+col5(col5>p.maxContrast)=p.maxContrast; col5(col5<p.minContrast)=p.minContrast;
 
 % bring all 3 together
 p.trialEvents = [col1 col2 col3 col4 col5 configs]; %[condition targetLocation targetContrast probeLocation probeContrast configuration]
 
-if strcmp(p.subject,'test')
+if strcmp(p.subject,'test') || strcmp(p.subject,'test_HC')
     test = 1;
 else
     test = 0;
 end
 shuffled = 0;
-% p.trialEvents = Shuffle(p.trialEvents,2); shuffled = 1;
+p.trialEvents = Shuffle(p.trialEvents,2); shuffled = 1;
 p.trialEvents % [condition targetLocation targetContrast probeLocation probeContrast configuration]
 
 %% TIMING PARAMETERS
@@ -181,9 +195,13 @@ t.responseTime = []; t.responseTime_est = 5;
 t.flickerTime = 0.4; 
 t.flicker = 0.04;
 
-t.trialDur = sum(t.stimOn + t.flickerTime + t.stimOn + t.flickerTime + t.responseTime_est + t.iti) % (s)
-t.runDur = t.trialDur*size(p.trialEvents,1) + t.startTime*p.numBlocks % (s)
-
+t.trialDur = sum(t.stimOn + t.flickerTime + t.stimOn + t.flickerTime + t.responseTime_est + t.iti); % (s)
+t.runDur = t.trialDur*size(p.trialEvents,1) + t.startTime*p.numBlocks; % (s)
+if t.runDur/60 >= 1
+    disp(['Total run duration: ' num2str(t.runDur/60) ' min(s).'])
+else
+    disp(['Total run duration: ' num2str(t.runDur) ' s.'])
+end
 %% CREATE STIMULI
 
 %%Center
@@ -248,7 +266,8 @@ end
 %% WINDOW SETUP
 
 if shuffled == 1 || test == 1
-    [window,rect] = Screen('OpenWindow', useScreen, colors.black, [0 0 700 500]);
+    [window,rect] = Screen('OpenWindow', useScreen, colors.black, []); %test screen size [0 0 700 500]
+    
     OriginalCLUT = Screen('ReadNormalizedGammaTable', window);
     
     % Enable alpha blending
@@ -267,7 +286,7 @@ elseif shuffled == 0 && test == 0
     error('Trials not shuffled!')
 end
 %% EXPERIMENT LOOP
-
+HideCursor;
 % Esc to quit
 StartKey=zeros(1,256); StartKey(KbName({'ESCAPE'})) = 1;
 PsychHID('KbQueueCreate', deviceNumber, StartKey);
@@ -280,7 +299,18 @@ for m = 1:round(t.flickerTime/t.flicker)
 end
 
 % Welcome Screen
-welcomeText = [];
+Screen('TextStyle', window, 1);
+Screen('TextSize', window, 16);
+welcomeText = ['Hello' '\n' ...
+    'Click powermate to start experiment.'];
+DrawFormattedText(window, welcomeText, 'center', 'center', 255);
+Screen('Flip', window);
+while 1
+    [pmbutton, ~] = PsychPowerMate('Get', powermate);
+    if pmbutton == 1
+        break;
+    end
+end
 
 % Starting Screen
 Screen('FillOval', window, colors.grey,  [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
@@ -289,6 +319,7 @@ Screen('FillOval' , window, colors.green, [CenterX-p.innerFixation CenterY-p.inn
 Screen('Flip',window);
 WaitSecs(t.startTime);
 
+nSet = 1;
 for nTrial = 1:size(p.trialEvents,1)
     
     %--------------------%
@@ -405,14 +436,14 @@ for nTrial = 1:size(p.trialEvents,1)
       
 %     Allow for dial rotation for location update
     [~, startangle] = PsychPowerMate('Get',powermate);
-% 
+ 
     while 1 %start inf loop
-%        Query PowerMate button state and rotation angle in "clicks"
+        % Query PowerMate button state and rotation angle in "clicks"
         [pmbutton, angle] = PsychPowerMate('Get', powermate);
-%         1st button is the "or" of the 1st mouse button and the actual PowerMate button
+        % 1st button is the "or" of the 1st mouse button and the actual PowerMate button
         if startangle ~= angle
-%             
-% %             % Convert turn of dial first to degrees and then to contrast:
+             
+            % Convert turn of dial first to degrees and then to contrast:
             Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
             
             angles = ((startangle-angle)*3.8298);
@@ -496,7 +527,24 @@ for nTrial = 1:size(p.trialEvents,1)
     %--------------------%
     %       Break        %
     %--------------------%  
-    breakText = [];
+    if mod(nTrial,p.numTrialsPerSet) == 0 && nTrial == p.numTrialsPerSet*nSet
+        rest = GetSecs;        
+        Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
+
+        RestText = ['You can take a short break now, ' '' '\n' ...
+            'or press the dial to continue' '\n' '\n' ];
+        DrawFormattedText(window, RestText, 'center', 'center', white);
+        Screen('Flip', window);
+        pmbuttonbreak = 0;        
+        while 1
+            [pmbuttonbreak, a] = PsychPowerMate('Get', powermate);
+            if pmbuttonbreak == 1
+                break;
+            end
+        end
+        t.restTime(nSet) = (GetSecs-rest)/60;
+        nSet = nSet + 1;
+    end
 
     % ITI
     Screen('FillOval', window, colors.grey,  [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
@@ -517,11 +565,13 @@ WaitSecs(3);
 
 Screen('LoadNormalizedGammaTable', window, OriginalCLUT);
 Screen('CloseAll')
-
+ShowCursor;
 %% SAVE OUT THE DATA FILE
-cd(dataDir);
-theData(p.runNumber).t = t;
-theData(p.runNumber).p = p;
-theData(p.runNumber).data = data;
-save(['run_visualmemeorymf_' p.subject '.mat'], 'theData')
-cd(expDir);
+if ~strcmp(p.subject,'test') && ~strcmp(p.subject,'test_HC')
+    cd(dataDir);
+    theData(p.runNumber).t = t;
+    theData(p.runNumber).p = p;
+    theData(p.runNumber).data = data;
+    save(['data_visualmemorymf_' p.subject '.mat'], 'theData')
+    cd(expDir);
+end
