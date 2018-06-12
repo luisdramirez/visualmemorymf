@@ -1,5 +1,5 @@
 % run_visualmemorymf.m
-% Written by JS and LR 2018
+% Written by JS and LR June 2018
 close all; clear all; clc;
 Screen('Preference', 'SkipSyncTests', 1);
 load('visualmemory_condition_order')
