@@ -82,8 +82,8 @@ end
 screens=Screen('Screens');
 useScreen=max(screens);
 p.screenWidthPixels = Screen('Rect', useScreen);
-screenWidth = 51; %cm
-viewingDistance = 50; %cm
+screenWidth = 33; %cm
+viewingDistance = 57; %cm
 visAngle = (2*atan2(screenWidth/2, viewingDistance))*(180/pi);
 
 
