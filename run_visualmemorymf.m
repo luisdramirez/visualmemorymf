@@ -5,7 +5,7 @@ Screen('Preference', 'SkipSyncTests', 1);
 load('visualmemory_condition_order')
 load('visualmemory_subjectsRan')
 %% PREPARE
-p.repetitions = 1; % for 'test_HC' do 150
+p.repetitions = 5; % for 'test_HC' do 75
 p.numBlocks = p.repetitions;
 
 % Subject Name
@@ -28,7 +28,7 @@ if exist(['run_visualmemorymf_' p.subject '.mat'],'file') ~= 0
 elseif strcmp(p.subject,'test') 
     p.testCondition_curr = randi(1:2);
 elseif strcmp(p.subject,'test_HC')
-    p.testCondition_curr = randi(1:2); % fixed to perception condition for hard coded testing
+    p.testCondition_curr = 1; % fixed to perception condition for hard coded testing
 else 
     p.runNumber = 1;
     p.orderRow = length(subjectsRan)+1;
@@ -85,7 +85,6 @@ p.screenWidthPixels = Screen('Rect', useScreen);
 screenWidth = 33; %cm
 viewingDistance = 57; %cm
 visAngle = (2*atan2(screenWidth/2, viewingDistance))*(180/pi);
-
 
 p.pixPerDeg = round(p.screenWidthPixels(3)/visAngle);
 p.fixation=round(0.085 * p.pixPerDeg);
@@ -151,10 +150,11 @@ p.surroundPhase = p.centerPhase;
 
 % Baseline number of trials based on the number of center grating contrasts
 if strcmp(p.subject,'test_HC')
-    p.stimConfigurations = 1:p.numConditions;
+    p.stimConfigurations = 1:2; %1:2 because of perception and baseline
     [configs] = BalanceFactors(p.numBlocks,0,p.stimConfigurations);
-    col1a = ones(length(configs)/2,1); col1b = 3*ones(length(configs)/2,1);
-    col1 = [col1a;col1b];
+    col1 = repmat([1;3],length(configs)/2,1);
+%     col1a = ones(length(configs)/2,1); col1b = 3*ones(length(configs)/2,1);
+%     col1 = [col1a;col1b];
 else
     p.stimConfigurations = 1:length(p.centerContrast);
     [configs] = BalanceFactors(p.numBlocks,0,p.stimConfigurations);
@@ -176,8 +176,11 @@ col4 =  randi(360,length(col1),1); %probe grating location
 %--------------------%
 %      Contrast      %
 %--------------------%
-%5 different contrast levels
-col3 = repmat(p.centerContrast',p.numBlocks,1); % center grating contrast
+if strcmp(p.subject,'test_HC')
+    col3 = repmat(p.centerContrast,length(col1),1);
+else
+    col3 = repmat(p.centerContrast',p.numBlocks,1); % center grating contrast
+end
 col5 = rand(length(col3),1); % probe grating contrast
 col5(col5>p.maxContrast)=p.maxContrast; col5(col5<p.minContrast)=p.minContrast;
 
@@ -190,8 +193,8 @@ else
     test = 0;
 end
 shuffled = 0;
-p.trialEvents = Shuffle(p.trialEvents,2); shuffled = 1;
-p.trialEvents % [condition targetLocation targetContrast probeLocation probeContrast configuration]
+% p.trialEvents = Shuffle(p.trialEvents,2); shuffled = 1;
+p.trialEvents; % [condition targetLocation targetContrast probeLocation probeContrast configuration]
 
 %% TIMING PARAMETERS
 % timing is in seconds
