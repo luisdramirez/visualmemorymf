@@ -5,11 +5,12 @@ Screen('Preference', 'SkipSyncTests', 1);
 load('visualmemory_condition_order')
 load('visualmemory_subjectsRan')
 %% PREPARE
-p.repetitions = 30; % for 'test_HC' do 75
+p.repetitions = 30; % data will be saved if > 5
 p.numBlocks = p.repetitions;
 
 % Subject Name
-p.subject = 'test'; % 'test' = 5 contrasts ; 'test_HC' = 1 contrast, w/ sca
+p.experiment = 'test'; % 'test' = 5 contrasts ; 'test_HC' = 1 contrast, w/ sca
+p.subject = 'JS';
 %baseline condition
 
 % Set directories
@@ -22,24 +23,27 @@ t.timeStamp = datestr(now,'HHMM'); %collect timestamp
 
 p.numConditions = 2;
 
-if exist(['run_visualmemorymf_' p.subject '.mat'],'file') ~= 0
-    load(['run_visualmemorymf_' p.subject '.mat']);
+cd(dataDir);
+if exist(['data_visualmemorymf_' p.experiment '_' p.subject '.mat'],'file') ~= 0
+    load(['data_visualmemorymf_' p.experiment '_' p.subject '.mat']);
     p.runNumber = length(theData)+1;
-    p.testCondition_curr = theData{1}.p.trialSchedule(p.orderRow,p.runNumber);
-elseif strcmp(p.subject,'test') 
-    p.testCondition_curr = 1; 
-elseif strcmp(p.subject,'test_HC')
-    p.testCondition_curr = 1; % fixed to perception condition for hard coded testing
+    if strcmp(p.experiment,'test') || strcmp(p.experiment,'test_HC')
+        p.testCondition_curr = 1; % fixed to perception condition for hard coded testing
+    else
+        p.testCondition_curr = theData{1}.p.trialSchedule(p.orderRow,p.runNumber);
+    end
 else 
     p.runNumber = 1;
-    p.orderRow = length(subjectsRan)+1;
-    if p.orderRow > length(visualmemory_condition_order)
-       p.orderRow = p.orderRow - length(visualmemory_condition_order); 
+    if ~strcmp(p.experiment,'test') && ~strcmp(p.experiment,'test_HC')
+        p.orderRow = length(subjectsRan)+1;
+        if p.orderRow > length(visualmemory_condition_order)
+           p.orderRow = p.orderRow - length(visualmemory_condition_order); 
+        end
+        subjectsRan{end+1} = p.subject;
+        p.trialSchedule = visualmemory_condition_order(p.orderRow,:);
+        % Which Test condition, run these test conditions on different days
+        p.testCondition_curr = p.trialSchedule(1);
     end
-    subjectsRan{end+1} = p.subject;
-    p.trialSchedule = visualmemory_condition_order(p.orderRow,:);
-    % Which Test condition, run these test conditions on different days
-    p.testCondition_curr = p.trialSchedule(1); 
 end
 cd(expDir);
 
@@ -97,7 +101,7 @@ colors.dimgrey = [105 105 105]; colors.yellow = [255 255 0]; colors.magenta = [2
 % grating contrast for center and surround
 p.minContrast = 0.1;
 p.maxContrast = 0.75;
-if strcmp(p.subject,'test_HC')
+if strcmp(p.experiment,'test_HC')
     p.numContrasts = 1;
 else
     p.numContrasts = 5;
@@ -152,7 +156,7 @@ p.surroundPhase = p.centerPhase;
 % 3 - baseline: center, mask, blank, mask
 
 % Baseline number of trials based on the number of center grating contrasts
-if strcmp(p.subject,'test_HC')
+if strcmp(p.experiment,'test_HC')
     p.stimConfigurations = 1:2; %1:2 because of perception and baseline
     [configs] = BalanceFactors(p.numBlocks,0,p.stimConfigurations);
     col1 = repmat([1;3],length(configs)/2,1);
@@ -179,7 +183,7 @@ col4 =  randi(360,length(col1),1); %probe grating location
 %--------------------%
 %      Contrast      %
 %--------------------%
-if strcmp(p.subject,'test_HC')
+if strcmp(p.experiment,'test_HC')
     col3 = repmat(p.centerContrast,length(col1),1);
 else
     col3 = repmat(p.centerContrast',p.numBlocks,1); % center grating contrast
@@ -190,7 +194,7 @@ col5(col5>p.maxContrast)=p.maxContrast; col5(col5<p.minContrast)=p.minContrast;
 % bring all 3 together
 p.trialEvents = [col1 col2 col3 col4 col5 configs]; %[condition targetLocation targetContrast probeLocation probeContrast configuration]
 
-if strcmp(p.subject,'test') || strcmp(p.subject,'test_HC')
+if strcmp(p.experiment,'test') || strcmp(p.experiment,'test_HC')
     test = 1;
 else
     test = 0;
@@ -202,7 +206,7 @@ p.trialEvents; % [condition targetLocation targetContrast probeLocation probeCon
 %% TIMING PARAMETERS
 % timing is in seconds
 t.stimOn = 1;     
-t.retention = 2;    
+t.retention = 2.2;    
 t.iti = 2;
 t.startTime = 2;
 t.responseTime = []; t.responseTime_est = 5;
@@ -586,11 +590,11 @@ Screen('LoadNormalizedGammaTable', window, OriginalCLUT);
 Screen('CloseAll')
 ShowCursor;
 %% SAVE OUT THE DATA FILE
-if ~strcmp(p.subject,'test') && ~strcmp(p.subject,'test_HC')
+if ~strcmp(p.experiment,'test') && ~strcmp(p.experiment,'test_HC') && p.repetitions > 5
     cd(dataDir);
     theData(p.runNumber).t = t;
     theData(p.runNumber).p = p;
     theData(p.runNumber).data = data;
-    save(['data_visualmemorymf_' p.subject '.mat'], 'theData')
+    save(['data_visualmemorymf_' p.experiment '_' p.subject '.mat'], 'theData')
     cd(expDir);
 end
