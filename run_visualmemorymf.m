@@ -5,11 +5,12 @@ Screen('Preference', 'SkipSyncTests', 1);
 load('visualmemory_condition_order')
 load('visualmemory_subjectsRan')
 %% PREPARE
-p.repetitions = 5; % for 'test_HC' do 75
+p.repetitions = 30; % for 'test_HC' do 75
 p.numBlocks = p.repetitions;
 
 % Subject Name
-p.subject = 'test_HC'; % 'test' = 5 contrasts ; 'test_HC' = 1 contrast
+p.subject = 'test'; % 'test' = 5 contrasts ; 'test_HC' = 1 contrast, w/ sca
+%baseline condition
 
 % Set directories
 expDir = pwd; % set the experimental directory to the current directory 'pwd'
@@ -26,7 +27,7 @@ if exist(['run_visualmemorymf_' p.subject '.mat'],'file') ~= 0
     p.runNumber = length(theData)+1;
     p.testCondition_curr = theData{1}.p.trialSchedule(p.orderRow,p.runNumber);
 elseif strcmp(p.subject,'test') 
-    p.testCondition_curr = randi(1:2);
+    p.testCondition_curr = 1; 
 elseif strcmp(p.subject,'test_HC')
     p.testCondition_curr = 1; % fixed to perception condition for hard coded testing
 else 
@@ -102,6 +103,8 @@ else
     p.numContrasts = 5;
 end
 p.centerContrast = [10.^linspace(log10(p.minContrast),log10(p.maxContrast),p.numContrasts)];
+% p.centerContrast = rand(1)*(0.55)+0.35;
+
 p.surroundContrast = 1;
 
 % Grating Size 
@@ -494,7 +497,7 @@ for nTrial = 1:size(p.trialEvents,1)
 %     
 %     % PowerMate is sampled at 10msec intervals, therefore have a short
 %     % break to make sure it doesn't skip the contrast task
-    WaitSecs(0.2);
+    WaitSecs(1);
 %     
 %     %Button press for contrast
     [~, contrastangle] = PsychPowerMate('Get', powermate);
@@ -538,15 +541,20 @@ for nTrial = 1:size(p.trialEvents,1)
     %--------------------%
     %       Break        %
     %--------------------%  
-    if mod(nTrial,p.numTrialsPerSet) == 0 && nTrial == p.numTrialsPerSet*nSet
+    if mod(nTrial,p.numTrialsPerSet) == 0 && nTrial == p.numTrialsPerSet*nSet 
         rest = GetSecs;        
         Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
-
-        RestText = ['You can take a short break now, ' '' '\n' ...
-            'or press the dial to continue' '\n' '\n' ];
-        DrawFormattedText(window, RestText, 'center', 'center', white);
+        Screen('TextStyle', window, 1);
+        Screen('TextSize', window, 16);
+        breakText = ['You make take a short break now.\n Or press the powermate to continue.\n'];
+        DrawFormattedText(window, breakText, 'center', 'center', colors.white);
         Screen('Flip', window);
-        pmbuttonbreak = 0;        
+        restText = ['You can take a short break now, ' '' '\n' ...
+            'or press the dial to continue' '\n' '\n' ];
+        DrawFormattedText(window, restText, 'center', 'center', colors.white);
+        Screen('Flip', window);
+        pmbuttonbreak = 0;
+        WaitSecs(1 );
         while 1
             [pmbuttonbreak, a] = PsychPowerMate('Get', powermate);
             if pmbuttonbreak == 1
@@ -570,7 +578,7 @@ Screen(window,'TextSize',30);
 ByebyeText = ['Great work! You have completed this run.' '\n' '\n' ...
     'Please let the experimenter know you have finished.'];
 Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
-DrawFormattedText(window, ByebyeText, 'center', 'center', [255 255 255]);
+DrawFormattedText(window, ByebyeText, 'center', 'center', colors.white);
 Screen('Flip', window);
 WaitSecs(3);
 
