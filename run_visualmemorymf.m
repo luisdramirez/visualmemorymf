@@ -9,7 +9,7 @@ p.repetitions = 30; % data will be saved if > 5
 p.numBlocks = p.repetitions;
 
 % Subject Name
-p.experiment = 'test'; % 'test' = 5 contrasts ; 'test_HC' = 1 contrast, w/ sca
+p.experiment = 'test_HC'; % 'test' = 5 contrasts ; 'test_HC' = 1 contrast, w/ sca
 p.subject = 'JS';
 %baseline condition
 
