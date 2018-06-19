@@ -1,8 +1,17 @@
 clear all;
 close all;
 
-load('p_HC_1.mat')
-load('data_HC_1.mat')
+p.experiment = 'test_HC';
+p.subject = 'JS';
+
+cd(dataDir);
+if exist(['data_visualmemorymf_' p.experiment '_' p.subject '.mat'],'file') ~= 0
+    load(['data_visualmemorymf_' p.experiment '_' p.subject '.mat']);
+    p = theData(1).p; data=theData(1).data;
+else
+    error('Subject file does not exist.')
+end
+
 
 %is there a formula for suppression?
 

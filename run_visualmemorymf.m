@@ -5,13 +5,12 @@ Screen('Preference', 'SkipSyncTests', 1);
 load('visualmemory_condition_order')
 load('visualmemory_subjectsRan')
 %% PREPARE
-p.repetitions = 30; % data will be saved if > 5
+p.repetitions = 75; % data will be saved if > 5
 p.numBlocks = p.repetitions;
 
 % Subject Name
-p.experiment = 'test_HC'; % 'test' = 5 contrasts ; 'test_HC' = 1 contrast, w/ sca
+p.experiment = 'test_HC'; % 'test' = 5 contrasts ; 'test_HC' = 1 contrast, w/ baseline condition
 p.subject = 'JS';
-%baseline condition
 
 % Set directories
 expDir = pwd; % set the experimental directory to the current directory 'pwd'
