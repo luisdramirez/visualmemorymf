@@ -4,13 +4,15 @@ close all; clear all; clc;
 Screen('Preference', 'SkipSyncTests', 1);
 load('visualmemory_condition_order')
 load('visualmemory_subjectsRan')
+% visualmemory_condition_order = perms([1 2 1 2]);
+% visualmemory_subjectsRan = {};
 %% PREPARE
 p.repetitions = 75; % data will be saved if > 5
 p.numBlocks = p.repetitions;
 
 % Subject Name
 p.experiment = 'test_HC'; % 'test' = 5 contrasts ; 'test_HC' = 1 contrast, w/ baseline condition
-p.subject = 'JS';
+p.subject = '000';
 
 % Set directories
 expDir = pwd; % set the experimental directory to the current directory 'pwd'
@@ -42,6 +44,8 @@ else
         p.trialSchedule = visualmemory_condition_order(p.orderRow,:);
         % Which Test condition, run these test conditions on different days
         p.testCondition_curr = p.trialSchedule(1);
+    else
+        p.testCondition_curr = 2; % fixed to perception condition
     end
 end
 cd(expDir);
@@ -86,8 +90,8 @@ end
 screens=Screen('Screens');
 useScreen=max(screens);
 p.screenWidthPixels = Screen('Rect', useScreen);
-screenWidth = 33; %cm
-viewingDistance = 57; %cm
+screenWidth = 53; %cm
+viewingDistance = 110; %cm
 visAngle = (2*atan2(screenWidth/2, viewingDistance))*(180/pi);
 
 p.pixPerDeg = round(p.screenWidthPixels(3)/visAngle);
@@ -116,7 +120,7 @@ p.surroundSize = p.screenWidthPixels(:,3);
 p.gapSize = round(0.08*p.pixPerDeg); %space between center and surround annulus
 
 p.backgroundRadius = p.screenWidthPixels(:,4)/2; %radius of the background circle
-p.eccentricity = p.backgroundRadius/4; %distance from center of screen to center of target
+p.eccentricity = p.backgroundRadius/2; %distance from center of screen to center of target
 p.innerRadius = p.eccentricity - (p.centerSize/2+p.gapSize); %inner edge of surround annulus
 p.outerRadius = p.eccentricity + (p.centerSize/2+p.gapSize); %outer edge of surround annulus
 
@@ -127,7 +131,7 @@ p.outerFixation = round(0.75*p.pixPerDeg);
 % Grating frequency, orientation, phase
 p.orientation = 0;
 p.stimorientation = 90;
-p.freq = 2;
+p.freq = 1.5;
 p.frequency_center = p.centerSize/p.pixPerDeg * p.freq;
 p.frequency_surround = p.surroundSize/p.pixPerDeg * p.freq;
 p.numPhases = 1;
@@ -156,9 +160,11 @@ p.surroundPhase = p.centerPhase;
 
 % Baseline number of trials based on the number of center grating contrasts
 if strcmp(p.experiment,'test_HC')
+    % code blocked design
     p.stimConfigurations = 1:2; %1:2 because of perception and baseline
     [configs] = BalanceFactors(p.numBlocks,0,p.stimConfigurations);
-    col1 = repmat([1;3],length(configs)/2,1);
+    col1 = [p.testCondition_curr*ones(p.repetitions,1); 3*ones(p.repetitions,1)];
+%     col1 = repmat([1;3],length(configs)/2,1);
 %     col1a = ones(length(configs)/2,1); col1b = 3*ones(length(configs)/2,1);
 %     col1 = [col1a;col1b];
 else
@@ -199,20 +205,23 @@ else
     test = 0;
 end
 shuffled = 0;
-% p.trialEvents = Shuffle(p.trialEvents,2); shuffled = 1;
+if ~strcmp(p.experiment,'test_HC')
+    p.trialEvents = Shuffle(p.trialEvents,2); shuffled = 1;
+end
 p.trialEvents; % [condition targetLocation targetContrast probeLocation probeContrast configuration]
 
 %% TIMING PARAMETERS
 % timing is in seconds
-t.stimOn = 1;     
-t.retention = 2.2;    
+t.stimOn1 = 2; % stimulus 1 duration    
+t.retention = 2.2; % memory retention period
+t.stimOn2 = 2; % stimulus 2 duration
 t.iti = 2;
 t.startTime = 2;
 t.responseTime = []; t.responseTime_est = 5;
 t.flickerTime = 0.4; 
 t.flicker = 0.04;
 
-t.trialDur = sum(t.stimOn + t.flickerTime + t.stimOn + t.flickerTime + t.responseTime_est + t.iti); % (s)
+t.trialDur = sum(t.stimOn1 + t.flickerTime + t.stimOn1 + t.flickerTime + t.responseTime_est + t.iti); % (s)
 t.runDur = t.trialDur*size(p.trialEvents,1) + t.startTime*p.numBlocks; % (s)
 if t.runDur/60 >= 1
     disp(['Total run duration: ' num2str(t.runDur/60) ' min(s).'])
@@ -368,7 +377,7 @@ for nTrial = 1:size(p.trialEvents,1)
     Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation])
     Screen('FillOval', window,colors.green,[CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation]);
     Screen('Flip',window);
-    WaitSecs(t.stimOn);
+    WaitSecs(t.stimOn1);
     
     %--------------------%
     %       Mask 1       %
@@ -388,7 +397,16 @@ for nTrial = 1:size(p.trialEvents,1)
     
     %--------------------%
     %    Stimulus 2      %
-    %--------------------%  
+    %--------------------%
+    %%% Retention interval 1
+    Screen('FillOval', window, colors.grey,  [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
+    % Draw fixation
+    Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation])
+    Screen('FillOval', window,colors.green,[CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation]);
+    Screen('Flip',window);
+    WaitSecs(t.retention);
+    
+    %%% Draw surround if memory condition
     Screen('FillOval', window, colors.grey,  [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
     % If memory condition, display surround annulus alone
     if p.trialEvents(nTrial,1) == 2
@@ -401,9 +419,16 @@ for nTrial = 1:size(p.trialEvents,1)
     Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation])
     Screen('FillOval', window,colors.green,[CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation]);
     Screen('Flip',window);
+    WaitSecs(t.stimOn2);
+
+    %%% Retention interval 2
+    Screen('FillOval', window, colors.grey,  [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
+    % Draw fixation
+    Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation])
+    Screen('FillOval', window,colors.green,[CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation]);
+    Screen('Flip',window);
     WaitSecs(t.retention);
-
-
+    
     %--------------------%
     %       Mask 2       %
     %--------------------%  
