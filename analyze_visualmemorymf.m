@@ -1,7 +1,8 @@
 %% Pull & Organize data
-load('t_test_1.mat')
-load('data_test_1.mat')
-load('p_test_1.mat')
+
+load('data_visualmemorymf_test_JS.mat')
+theData = theData(2);
+p = theData.p; data = theData.data; t = theData.t;
 %5 contrasts, 30 repititions
 %column 1 of p.trialEvents: Conditions
     %1 - PERCEPTION
@@ -80,7 +81,11 @@ meanVector = [firstMean secondMean thirdMean fourthMean fifthMean];
 plot(1:(length(firstMean)+length(secondMean)+length(thirdMean)+length(fourthMean)+length(fifthMean)),meanVector);
 legend('Estimated Contrast','Actual Contrast','Avg. Estimated Contrast per Level');
 
-
+fprintf('\nThe mean of responses for contrast %f was %f. The absolute difference is: %f\n\n',firstTE(1,3),firstMean(1), abs(firstTE(1,3)-firstMean(1)));
+fprintf('The mean of responses for contrast %f was %f. The absolute difference is: %f\n\n',secondTE(1,3),secondMean(1),abs(secondTE(1,3)-secondMean(1)));
+fprintf('The mean of responses for contrast %f was %f. The absolute difference is: %f\n\n',thirdTE(1,3),thirdMean(1),abs(thirdTE(1,3)-thirdMean(1)));
+fprintf('The mean of responses for contrast %f was %f. The absolute difference is: %f\n\n',fourthTE(1,3),fourthMean(1),abs(fourthTE(1,3)-fourthMean(1)));
+fprintf('The mean of responses for contrast %f was %f. The absolute difference is: %f\n\n',fifthTE(1,3),fifthMean(1),abs(fifthTE(1,3)-fifthMean(1)));
 %% Histograms of responses for each contrast level
 subplot(2,3,2)
 hist(firstdata(:,4),20);
