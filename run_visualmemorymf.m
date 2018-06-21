@@ -1,17 +1,20 @@
 % run_visualmemorymf.m
 % Written by JS and LR June 2018
 close all; clear all; clc;
+commandwindow;
 Screen('Preference', 'SkipSyncTests', 1);
+commandwindow;
 load('visualmemory_condition_order')
 load('visualmemory_subjectsRan')
+% visualmemory_condition_order = perms([1 2 1 2]);
+% visualmemory_subjectsRan = {};
 %% PREPARE
-p.repetitions = 30; % data will be saved if > 5
+p.repetitions = 15; % data will be saved if > 5
 p.numBlocks = p.repetitions;
 
 % Subject Name
-p.experiment = 'test_HC'; % 'test' = 5 contrasts ; 'test_HC' = 1 contrast, w/ sca
-p.subject = 'JS';
-%baseline condition
+p.experiment = 'test_HC'; % 'test' = 5 contrasts ; 'test_HC' = 1 contrast, w/ baseline condition
+p.subject = 'LR';
 
 % Set directories
 expDir = pwd; % set the experimental directory to the current directory 'pwd'
@@ -43,6 +46,8 @@ else
         p.trialSchedule = visualmemory_condition_order(p.orderRow,:);
         % Which Test condition, run these test conditions on different days
         p.testCondition_curr = p.trialSchedule(1);
+    else
+        p.testCondition_curr = 1; % fixed to perception condition
     end
 end
 cd(expDir);
@@ -87,8 +92,8 @@ end
 screens=Screen('Screens');
 useScreen=max(screens);
 p.screenWidthPixels = Screen('Rect', useScreen);
-screenWidth = 33; %cm
-viewingDistance = 57; %cm
+screenWidth = 53; %cm
+viewingDistance = 110; %cm
 visAngle = (2*atan2(screenWidth/2, viewingDistance))*(180/pi);
 
 p.pixPerDeg = round(p.screenWidthPixels(3)/visAngle);
@@ -114,10 +119,11 @@ p.surroundContrast = 1;
 % Grating Size 
 p.centerSize = round(2*p.pixPerDeg);
 p.surroundSize = p.screenWidthPixels(:,3);
-p.gapSize = round(0.08*p.pixPerDeg); %space between center and surround annulus
+p.gapSize = round(0.01*p.pixPerDeg); %space between center and surround annulus
 
-p.backgroundRadius = p.screenWidthPixels(:,4)/2; %radius of the background circle
-p.eccentricity = p.backgroundRadius/4; %distance from center of screen to center of target
+p.ecc = 10;
+p.backgroundRadius = p.ecc * p.pixPerDeg; %radius of the background circle
+p.eccentricity = round((p.ecc/2) * p.pixPerDeg); %distance from center of screen to center of target
 p.innerRadius = p.eccentricity - (p.centerSize/2+p.gapSize); %inner edge of surround annulus
 p.outerRadius = p.eccentricity + (p.centerSize/2+p.gapSize); %outer edge of surround annulus
 
@@ -157,21 +163,28 @@ p.surroundPhase = p.centerPhase;
 
 % Baseline number of trials based on the number of center grating contrasts
 if strcmp(p.experiment,'test_HC')
-    p.stimConfigurations = 1:2; %1:2 because of perception and baseline
-    [configs] = BalanceFactors(p.numBlocks,0,p.stimConfigurations);
-    col1 = repmat([1;3],length(configs)/2,1);
+    p.numTrialsPerBlock = 5;
+    p.numTrialsPerSet = p.numTrialsPerBlock*5;
+    p.numBlocksPerSet = p.numTrialsPerSet/p.numTrialsPerBlock;
+
+    col1 = [p.testCondition_curr*ones(p.numTrialsPerBlock,1); 3*ones(p.numTrialsPerBlock,1)];
+    col1 = repmat(col1,p.repetitions,1);
+%     col1 = repmat([1;3],length(configs)/2,1);
 %     col1a = ones(length(configs)/2,1); col1b = 3*ones(length(configs)/2,1);
 %     col1 = [col1a;col1b];
+    p.numTrials = length(col1);
+    p.numSets = p.numTrials/p.numTrialsPerSet;
+
 else
     p.stimConfigurations = 1:length(p.centerContrast);
     [configs] = BalanceFactors(p.numBlocks,0,p.stimConfigurations);
     col1 = repmat(p.testCondition_curr,length(configs),1);
+    p.numTrialsPerBlock = p.numContrasts;
+    p.numTrialsPerSet = p.numTrialsPerBlock*6;
+    p.numBlocksPerSet = p.numTrialsPerSet/p.numTrialsPerBlock;
+    p.numTrials = length(col1);
+    p.numSets = p.numTrials/p.numTrialsPerSet;
 end
-p.numTrials = size(col1,1);
-p.numTrialsPerBlock = p.numContrasts;
-p.numTrialsPerSet = 30;
-p.numBlocksPerSet = p.numTrialsPerSet/p.numContrasts;
-p.numSets = p.numTrials/p.numTrialsPerSet;
 
 %--------------------%
 %     Location       %
@@ -192,7 +205,7 @@ col5 = rand(length(col3),1); % probe grating contrast
 col5(col5>p.maxContrast)=p.maxContrast; col5(col5<p.minContrast)=p.minContrast;
 
 % bring all 3 together
-p.trialEvents = [col1 col2 col3 col4 col5 configs]; %[condition targetLocation targetContrast probeLocation probeContrast configuration]
+p.trialEvents = [col1 col2 col3 col4 col5]; %[condition targetLocation targetContrast probeLocation probeContrast]
 
 if strcmp(p.experiment,'test') || strcmp(p.experiment,'test_HC')
     test = 1;
@@ -200,20 +213,23 @@ else
     test = 0;
 end
 shuffled = 0;
-% p.trialEvents = Shuffle(p.trialEvents,2); shuffled = 1;
+if ~strcmp(p.experiment,'test_HC')
+    p.trialEvents = Shuffle(p.trialEvents,2); shuffled = 1;
+end
 p.trialEvents; % [condition targetLocation targetContrast probeLocation probeContrast configuration]
 
 %% TIMING PARAMETERS
 % timing is in seconds
-t.stimOn = 1;     
-t.retention = 2.2;    
+t.stimOn1 = 2; % stimulus 1 duration    
+t.retention = 2.2; % memory retention period
+t.stimOn2 = 2; % stimulus 2 duration
 t.iti = 2;
 t.startTime = 2;
 t.responseTime = []; t.responseTime_est = 5;
 t.flickerTime = 0.4; 
 t.flicker = 0.04;
 
-t.trialDur = sum(t.stimOn + t.flickerTime + t.stimOn + t.flickerTime + t.responseTime_est + t.iti); % (s)
+t.trialDur = sum(t.stimOn1 + t.flickerTime + t.stimOn1 + t.flickerTime + t.responseTime_est + t.iti); % (s)
 t.runDur = t.trialDur*size(p.trialEvents,1) + t.startTime*p.numBlocks; % (s)
 if t.runDur/60 >= 1
     disp(['Total run duration: ' num2str(t.runDur/60) ' min(s).'])
@@ -287,6 +303,8 @@ if shuffled == 1 || test == 1
     [window,rect] = Screen('OpenWindow', useScreen, colors.black, []); %test screen size [0 0 700 500]
     
     OriginalCLUT = Screen('ReadNormalizedGammaTable', window);
+    load('linearizedCLUT.mat'); %testing room 208 only
+    Screen('LoadNormalizedGammaTable',window, linearizedCLUT); %testing room 208 only
     
     % Enable alpha blending
     Screen('BlendFunction', window, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -369,7 +387,7 @@ for nTrial = 1:size(p.trialEvents,1)
     Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation])
     Screen('FillOval', window,colors.green,[CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation]);
     Screen('Flip',window);
-    WaitSecs(t.stimOn);
+    WaitSecs(t.stimOn1);
     
     %--------------------%
     %       Mask 1       %
@@ -389,7 +407,16 @@ for nTrial = 1:size(p.trialEvents,1)
     
     %--------------------%
     %    Stimulus 2      %
-    %--------------------%  
+    %--------------------%
+    %%% Retention interval 1
+    Screen('FillOval', window, colors.grey,  [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
+    % Draw fixation
+    Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation])
+    Screen('FillOval', window,colors.green,[CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation]);
+    Screen('Flip',window);
+    WaitSecs(t.retention);
+    
+    %%% Draw surround if memory condition
     Screen('FillOval', window, colors.grey,  [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
     % If memory condition, display surround annulus alone
     if p.trialEvents(nTrial,1) == 2
@@ -402,9 +429,16 @@ for nTrial = 1:size(p.trialEvents,1)
     Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation])
     Screen('FillOval', window,colors.green,[CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation]);
     Screen('Flip',window);
+    WaitSecs(t.stimOn2);
+
+    %%% Retention interval 2
+    Screen('FillOval', window, colors.grey,  [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
+    % Draw fixation
+    Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation])
+    Screen('FillOval', window,colors.green,[CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation]);
+    Screen('Flip',window);
     WaitSecs(t.retention);
-
-
+    
     %--------------------%
     %       Mask 2       %
     %--------------------%  
@@ -554,7 +588,8 @@ for nTrial = 1:size(p.trialEvents,1)
         DrawFormattedText(window, breakText, 'center', 'center', colors.white);
         Screen('Flip', window);
         restText = ['You can take a short break now, ' '' '\n' ...
-            'or press the dial to continue' '\n' '\n' ];
+            'or press the dial to continue' '\n' '\n' ...
+            num2str(nSet-1) '/' num2str(p.numSets) ' completed.' ];
         DrawFormattedText(window, restText, 'center', 'center', colors.white);
         Screen('Flip', window);
         pmbuttonbreak = 0;
@@ -590,7 +625,7 @@ Screen('LoadNormalizedGammaTable', window, OriginalCLUT);
 Screen('CloseAll')
 ShowCursor;
 %% SAVE OUT THE DATA FILE
-if ~strcmp(p.experiment,'test') && ~strcmp(p.experiment,'test_HC') && p.repetitions > 5
+ if p.repetitions > 5
     cd(dataDir);
     theData(p.runNumber).t = t;
     theData(p.runNumber).p = p;
