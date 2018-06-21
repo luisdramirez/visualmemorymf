@@ -6,12 +6,28 @@ theData = theData(3); %index to trial number
 p = theData.p; data = theData.data; t = theData.t;
 data = cell2mat(struct2cell(data));
 data = data';
-
+[trials,params] = size(p.trialEvents);
 %is there a formula for suppression?
 
 %make this work for the HC and regular versions for testing
 if p.numContrasts == 1 && p.numConditions == 2
-   
+    % Preallocate condition specific data
+    pResults = zeros(trials,params);
+    pData = zeros(trials,params);
+    blResults = zeros(trials,params); 
+    blData = zeros(trials,params);
+
+    for i = 1:length(p.trialEvents)
+        if p.trialEvents(i,1) == 1 %Perception Condition
+            pResults(i,:) = p.trialEvents(i,:); 
+            pData(i,:) = data(i,:);
+        elseif p.trialEvents(i,1) == 3 %Baseline Condition
+            blResults(i,:) = p.trialEvents(i,:); 
+            blData(i,:) = data(i,:);
+        else 
+            disp('Error: Includes unexpected condition.') 
+        end
+    end
     
     pResults(~any(pResults,2),:) = []; 
     pData(~any(pData,2),:) = [];
@@ -43,14 +59,14 @@ if p.numContrasts == 1 && p.numConditions == 2
     plot(pData(:,4)); %EstimatedContrast is fourth column
     hold on
     plot(1:length(pResults(:,3)),pResults(:,3));
-    fit = logfit(1:length(pData(:,4)),pData(:,4)',1);
+    fit = polyfit(1:length(pData(:,4)),pData(:,4)',1);
     plot(polyval(fit,1:length(pData(:,4)))); %Line of best fit for the Estimated Contrast
     xlim([1 length(pData(:,4))]);
     ylim([yMin yMax]);
     title('Perception Contrast Compared to Actual Contrast')
     legend('Subject Contrast Estimation','Actual Contrast', 'Average Contrast Estimation')
     xlabel('Trial Number')
-    ylabel('Contrast')
+    ylabel('Contrast') 
 
     %Baseline Contrast in comparison to actual contrast
     subplot(2,3,4)
