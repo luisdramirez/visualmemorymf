@@ -567,7 +567,7 @@ for nTrial = 1:size(p.trialEvents,1)
             
             contrastangle = angle2;
         end
-        if pmbutton_contrast == 1;
+        if pmbutton_contrast == 1
             data.EstimatedContrast(nTrial) = intial_contrast;
             data.DifferenceContrast(nTrial) = p.trialEvents(nTrial,3) - data.EstimatedContrast(nTrial);
             data.ResponseTime(nTrial) = (GetSecs - starttrial);

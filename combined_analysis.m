@@ -7,39 +7,22 @@ p = theData.p; data = theData.data; t = theData.t;
 data = cell2mat(struct2cell(data));
 data = data';
 [trials,params] = size(p.trialEvents);
-%is there a formula for suppression?
 
-%make this work for the HC and regular versions for testing
+%HC testing, baseline vs perception
 if p.numContrasts == 1 && p.numConditions == 2
-    % Preallocate condition specific data
-    pResults = zeros(trials,params);
-    pData = zeros(trials,params);
-    blResults = zeros(trials,params); 
-    blData = zeros(trials,params);
-
-    for i = 1:length(p.trialEvents)
-        if p.trialEvents(i,1) == 1 %Perception Condition
-            pResults(i,:) = p.trialEvents(i,:); 
-            pData(i,:) = data(i,:);
-        elseif p.trialEvents(i,1) == 3 %Baseline Condition
-            blResults(i,:) = p.trialEvents(i,:); 
-            blData(i,:) = data(i,:);
-        else 
-            error('Error: Includes unexpected condition.') 
-        end
-    end
+    %% Organize Data
+% perception trials
+pResults = p.trialEvents(p.trialEvents(:,1)==1,:);
+pData = data(p.trialEvents(:,1)==1,:);
+% baseline trials
+blResults = p.trialEvents(p.trialEvents(:,1)==3,:);
+blData = data(p.trialEvents(:,1)==3,:);
+    %%  Perception Estimated Contrast in comparison to Actual Contrast  %%
     
-    pResults(~any(pResults,2),:) = []; 
-    pData(~any(pData,2),:) = [];
-    blResults(~any(blResults,2),:) = [];
-    blData(~any(blData,2),:) = [];
-    
-    %Y Limits to compare results of working memory and center only on same
-    %bounds
-    %When using multiple contrasts,it is better to set the bounds to [0 1]
+    % Compare Perception and Baseline on same y-limit
     minContrast = min([min(pData(:,4)) min(blData(:,4))]);
     maxContrast = max([max(pData(:,4)) max(blData(:,4))]);
-    %lower bound
+    %Lower bound
     if minContrast - 0.1 <= 0
         yMin = 0;
     else 
@@ -54,23 +37,26 @@ if p.numContrasts == 1 && p.numConditions == 2
 
     figure
     set(gcf, 'Name', 'Visual Working Memory Versus Perception');
-    %Perception Estimated Contrast in comparison to Actual Contrast
     subplot(2,3,1)
-    plot(pData(:,4)); %EstimatedContrast is fourth column
+    plot(pData(:,4)); %Estimated Contrast
     hold on
     plot(1:length(pResults(:,3)),pResults(:,3));
-    fit = polyfit(1:length(pData(:,4)),pData(:,4)',1);
-    plot(polyval(fit,1:length(pData(:,4)))); %Line of best fit for the Estimated Contrast
+    myfittype = fittype('a+b*log(x)','dependent',{'y'}, 'independent',{'x'},'coefficients' ,{'a,b'});
+    myfit = fit(1:length(pData(:,4),pData(:,4)',myfittype));
+    plot(myfit);
+    
+%     fit = polyfit(1:length(pData(:,4)),pData(:,4)',1);
+%     plot(polyval(fit,1:length(pData(:,4)))); %Line of best fit for the Estimated Contrast
     xlim([1 length(pData(:,4))]);
     ylim([yMin yMax]);
     title('Perception Contrast Compared to Actual Contrast')
     legend('Subject Contrast Estimation','Actual Contrast', 'Average Contrast Estimation')
     xlabel('Trial Number')
-    ylabel('Contrast') 
+    ylabel('Contrast')
 
-    %Baseline Contrast in comparison to actual contrast
+    %% Baseline Contrast in comparison to Actual Contrast  %%
     subplot(2,3,4)
-    plot(blData(:,4)); %EstimatedContrast is fourth column
+    plot(blData(:,4)); %Estimated Contrast
     hold on
     plot(1:length(blResults(:,3)),blResults(:,3));
     fit = polyfit(1:length(blData(:,4)),blData(:,4)',1);
@@ -85,7 +71,7 @@ if p.numContrasts == 1 && p.numConditions == 2
     %Histogram of perception contrast estimations
     subplot(2,3,2)
     [pBins,pEdges] = histcounts(pData(:,4),20);
-    [cOBins,~] = histcounts(blData(:,4),20);
+    [cOBins,cOEdges] = histcounts(blData(:,4),20);
     histmax = max([max(pBins) max(cOBins)]);
     pHist = histogram(pData(:,4),20);
     xlim([0 1]);
@@ -166,42 +152,20 @@ elseif p.numContrasts == 5 && p.numConditions == 2
         %2 - WORKING MEMORY
         %3 - BASELINE
     %Organize graph into different contrasts for comparisons
-    sortedTE = sortrows(p.trialEvents,3); %Sorts rows based on contrasts
+    sortedTE = sortrows(p.trialEvents,3); %sorts rows based on contrasts
     col6 = p.trialEvents(:,6);
     data = [data col6];
     [dataTrials,dataParams] = size(data);
     sortedData = sortrows(data,6);
 
-
-    p.trialEvents = [p.trialEvents (1:length(p.trialEvents))'];
-    [trials, params] = size(p.trialEvents);
-        firstTE = zeros(trials,params);
-        secondTE = zeros(trials,params);
-        thirdTE = zeros(trials,params);
-        fourthTE = zeros(trials,params);
-        fifthTE = zeros(trials,params);
-    for i = 1:length(p.trialEvents)
-        if p.trialEvents(i,6) == 1
-            firstTE(i,:) = p.trialEvents(i,:);
-        elseif p.trialEvents(i,6) == 2
-            secondTE(i,:) = p.trialEvents(i,:);
-        elseif p.trialEvents(i,6) == 3
-            thirdTE(i,:) = p.trialEvents(i,:);
-        elseif p.trialEvents(i,6) == 4
-            fourthTE(i,:) = p.trialEvents(i,:);
-        elseif p.trialEvents(i,6) == 5
-            fifthTE(i,:) = p.trialEvents(i,:);
-        end
-    end
-    
-
-    firstTE(~any(firstTE,2),:) = [];
-    secondTE(~any(secondTE,2),:) = [];
-    thirdTE(~any(thirdTE,2),:) = [];
-    fourthTE(~any(fourthTE,2),:) = [];
-    fifthTE(~any(fifthTE,2),:) = [];
+    p.trialEvents = [p.trialEvents (1:length(p.trialEvents))']; %adds run number to seventh column in p.trialEvents
+    firstTE = p.trialEvents(p.trialEvents(:,6)==1,:);
+    secondTE = p.trialEvents(p.trialEvents(:,6)==2,:);
+    thirdTE = p.trialEvents(p.trialEvents(:,6)==3,:);
+    fourthTE = p.trialEvents(p.trialEvents(:,6)==4,:);
+    fifthTE = p.trialEvents(p.trialEvents(:,6)==5,:);
     orgTE = [firstTE; secondTE; thirdTE; fourthTE; fifthTE];
-
+        
     % Plot estimated versus actual contrast
 
     figure
@@ -211,8 +175,6 @@ elseif p.numContrasts == 5 && p.numConditions == 2
     title('Estimated Vs. Actual Contrast')
     hold on
 
-    % prevent HC - make this a loop that makes the first-fifth data vecs based
-    % on numContrasts
     firstdata = zeros(length(firstTE),dataParams);
     seconddata = zeros(length(secondTE),dataParams);
     thirddata = zeros(length(thirdTE),dataParams);
@@ -290,24 +252,3 @@ elseif p.numContrasts == 5 && p.numConditions == 2
     else
         disp('Number of contrasts or conditions does not correspond to experiment design.')
 end
-
-% 
-% dataDir = 'data';
-% cd(dataDir);
-% if exist(['data_visualmemorymf_' p.experiment '_' p.subject '.mat'],'file') ~= 0
-%     load(['data_visualmemorymf_' p.experiment '_' p.subject '.mat']);
-%     p = theData(1).p; data=theData(1).data;
-% else
-%     error('Subject file does not exist.')
-% end
-
-
-
-% %% Organize Data
-% 
-% % perception trials
-% pResults = p.trialEvents(p.trialEvents(:,1)==1,:);
-% pData = data(p.trialEvents(:,1)==1,:);
-% % baseline trials
-% blResults = p.trialEvents(p.trialEvents(:,1)==3,:);
-% blData = data(p.trialEvents(:,1)==3,:);
