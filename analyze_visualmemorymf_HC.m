@@ -34,11 +34,6 @@ pData = data(p.trialEvents(:,1)==1,:);
 blResults = p.trialEvents(p.trialEvents(:,1)==3,:);
 blData = data(p.trialEvents(:,1)==3,:);
 %%
-pResults(~any(pResults,2),:) = []; 
-pData(~any(pData,2),:) = [];
-blResults(~any(blResults,2),:) = [];
-blData(~any(blData,2),:) = [];
-%%
 %Y Limits to compare results of working memory and center only on same
 %bounds
 %When using multiple contrasts,it is better to set the bounds to [0 1]

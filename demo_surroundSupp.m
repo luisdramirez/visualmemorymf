@@ -1,4 +1,6 @@
 %% SCREEN PARAMTERS
+clear all; close all; clc;
+Screen('Preference', 'SkipSyncTests', 1);
 screens=Screen('Screens');
 useScreen=max(screens);
 p.screenWidthPixels = Screen('Rect', useScreen);
@@ -16,7 +18,7 @@ p.surroundContrast = 1;
 
 p.centerSize = round(2*p.pixPerDeg);
 p.surroundSize = p.screenWidthPixels(:,3);
-p.gapSize = round(0.01*p.pixPerDeg); %space between center and surround annulus
+p.gapSize = round(0.15*p.pixPerDeg); %space between center and surround annulus
 
 p.ecc = 10;
 p.backgroundRadius = p.ecc * p.pixPerDeg; %radius of the background circle
@@ -40,43 +42,46 @@ p.surroundPhase = p.centerPhase;
 %% CREATE STIMULI
 
 %%Center
-[xc,yc] = meshgrid((-p.centerSize/2):(p.centerSize/2)-1, (-p.centerSize/2):(p.centerSize/2)-1);
+p.centerRadius = p.centerSize/2 + p.pixPerDeg/2;
+[xc,yc] = meshgrid((-p.centerRadius):(p.centerRadius)-1, (-p.centerRadius):(p.centerRadius)-1);
 eccen = sqrt((xc).^2+(yc).^2); 	% calculate eccentricity of each point in grid relative to center of 2D image
-centerGaussian = zeros(p.centerSize); centerGaussian = imfilter(centerGaussian,fspecial('gaussian',p.centerSize,p.centerSize));
-centerGaussian(eccen <= (p.centerSize/2)) = 1;
-centerTransparencyMask = zeros(p.centerSize); centerTransparencyMask(eccen <= (p.centerSize/2))=255;
+centerGaussian = zeros(size(xc)); centerGaussian(eccen <= (p.centerSize/2)) = 1;
+centerGaussian = conv2(centerGaussian,fspecial('gaussian',round(p.centerSize/10),p.centerSize/4), 'same');
+centerTransparencyMask = zeros(size(xc)); centerTransparencyMask(eccen <= (p.centerSize/2))=255;
 
 %%Surround
-[xs,ys] = meshgrid((-p.surroundSize/2):(p.surroundSize/2)-1, (-p.surroundSize/2):(p.surroundSize/2)-1);
+p.surroundRadius = p.surroundSize/2 + p.pixPerDeg/2;
+[xs,ys] = meshgrid((-p.surroundRadius):(p.surroundRadius)-1, (-p.surroundRadius):(p.surroundRadius)-1);
 eccen = sqrt((xs).^2+(ys).^2); 	% calculate eccentricity of each point in grid relative to center of 2D image
-Annulus = zeros(p.surroundSize); Annulus(eccen <= p.innerRadius) = 1;
+Annulus = zeros(size(xs)); Annulus(eccen <= p.innerRadius) = 1;
 Annulus(eccen >= p.outerRadius) = 1;
-surroundTransparencyMask = zeros(p.surroundSize); surroundTransparencyMask(eccen <= p.surroundSize/2)=255;
+Annulus = conv2(Annulus, fspecial('gaussian',round(p.centerSize/10),p.centerSize/4),'same');
+surroundTransparencyMask = zeros(size(xs)); surroundTransparencyMask(eccen <= p.surroundSize/2)=255;
 
 %%Background
-bgAnnulus = zeros(p.surroundSize); 
+bgAnnulus = zeros(size(Annulus)); 
 bgAnnulus(eccen <= p.backgroundRadius) = 1;
 bgAnnulus(eccen >= p.backgroundRadius) = 0;
-bgAnnulus(:,p.surroundSize/2:end) = 0;
+bgAnnulus(:,p.surroundRadius:end) = 0;
 
 % Make unique grating
-[Xc,Yc] = meshgrid(0:(p.centerSize-1),0:(p.centerSize-1));
-[Xs,Ys] = meshgrid(0:(p.surroundSize-1),0:(p.surroundSize-1));
+[Xc,Yc] = meshgrid(0:(size(centerGaussian,1)-1),0:(size(centerGaussian,1)-1));
+[Xs,Ys] = meshgrid(0:(size(Annulus,1)-1),0:(size(Annulus,1)-1));
 
-centerGrating = NaN(p.centerSize,p.centerSize);
-surroundGrating = NaN(p.surroundSize,p.surroundSize);
+centerGrating = NaN(size(centerGaussian));
+surroundGrating = NaN(size(Annulus));
 
-centerPatch = (sin(p.frequency_center*2*pi/p.centerSize*(Xc.*sin(p.orientation*(pi/180))+Yc.*cos(p.orientation*(pi/180)))-p.centerPhase));
+centerPatch = (sin(p.frequency_center*2*pi/size(centerGrating,1)*(Xc.*sin(p.orientation*(pi/180))+Yc.*cos(p.orientation*(pi/180)))-p.centerPhase));
 centerGrating = (centerPatch .* centerGaussian);
 
-surroundGrating = (sin(p.frequency_surround*2*pi/p.surroundSize*(Xs.*sin(p.orientation*(pi/180))+Ys.*cos(p.orientation*(pi/180)))-p.surroundPhase));
+surroundGrating = (sin(p.frequency_surround*2*pi/size(surroundGrating,1)*(Xs.*sin(p.orientation*(pi/180))+Ys.*cos(p.orientation*(pi/180)))-p.surroundPhase));
 tmpSurround = (surroundGrating .* Annulus);
 tmpSurround(bgAnnulus == 0) = -1;
-foo = (eccen(:,p.surroundSize/2:end) <= p.backgroundRadius) -1;
-tmpSurround(:,p.surroundSize/2:end) = foo;
+foo = (eccen(:,p.surroundRadius:end) <= p.backgroundRadius) -1;
+tmpSurround(:,p.surroundRadius:end) = foo;
 surroundGrating = tmpSurround;
 
-
+%%
 [window,rect] = Screen('OpenWindow', useScreen, colors.black, []); %test screen size [0 0 700 500]
     
 OriginalCLUT = Screen('ReadNormalizedGammaTable', window);
@@ -96,18 +101,18 @@ t.ifi = Screen('GetFlipInterval',window); % grab screen refresh rate
 
 
 surroundTexture = (surroundGrating*p.surroundContrast)*colors.grey + colors.grey;
-surroundTexture(:,:,2) = surroundTransparencyMask;
+% surroundTexture(:,:,2) = surroundTransparencyMask;
 surroundStimulus = Screen('MakeTexture', window, surroundTexture);
-Screen('DrawTexture', window, surroundStimulus, [], CenterRectOnPoint([0 0 p.surroundSize p.surroundSize], CenterX, CenterY));
+Screen('DrawTexture', window, surroundStimulus, [], CenterRectOnPoint([0 0 size(surroundTexture,1) size(surroundTexture,1)], CenterX, CenterY));
 
 % Draw center grating
 centerTexture = (centerGrating*p.centerContrast)*colors.grey + colors.grey;
 centerTexture(:,:,2) = centerTransparencyMask;
 centerStimulus = Screen('MakeTexture', window, centerTexture);
 Screen('DrawTexture', window, centerStimulus, [], ...
-        CenterRectOnPoint([0 0 p.centerSize p.centerSize], CenterX-p.eccentricity, CenterY));  
+        CenterRectOnPoint([0 0 size(centerTexture,1) size(centerTexture,1)], CenterX-p.eccentricity, CenterY));  
 Screen('DrawTexture', window, centerStimulus, [], ...
-        CenterRectOnPoint([0 0 p.centerSize p.centerSize], CenterX+p.eccentricity, CenterY));  
+        CenterRectOnPoint([0 0 size(centerTexture,1) size(centerTexture,1)], CenterX+p.eccentricity, CenterY));  
 
     % Draw fixation
 Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation])
