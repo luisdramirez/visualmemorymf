@@ -2,13 +2,13 @@ clear all;
 close all;
 
 p.experiment = 'test_HC';
-p.subject = 'JS';
+p.subject = 'LR';
 
 dataDir = 'data';
 cd(dataDir);
 if exist(['data_visualmemorymf_' p.experiment '_' p.subject '.mat'],'file') ~= 0
     load(['data_visualmemorymf_' p.experiment '_' p.subject '.mat']);
-    p = theData(2).p; data=theData(2).data;
+    p = theData(1).p; data=theData(1).data;
 else
     error('Subject file does not exist.')
 end
@@ -25,18 +25,14 @@ blResults = zeros(trials,params);
 blData = zeros(trials,params);
 data = cell2mat(struct2cell(data));
 data = data';
-%%
-for i = 1:length(p.trialEvents)
-    if p.trialEvents(i,1) == 1
-        pResults(i,:) = p.trialEvents(i,:); %Creates new matrix of trials that only had the wm condition
-        pData(i,:) = data(i,:);
-    elseif p.trialEvents(i,1) == 3
-        blResults(i,:) = p.trialEvents(i,:); %Matrix that only tests the center only results
-        blData(i,:) = data(i,:);
-    else 
-        disp('error') % change this process when start testing the perception condition
-    end
-end
+%% Organize Data
+
+% perception trials
+pResults = p.trialEvents(p.trialEvents(:,1)==1,:);
+pData = data(p.trialEvents(:,1)==1,:);
+% baseline trials
+blResults = p.trialEvents(p.trialEvents(:,1)==3,:);
+blData = data(p.trialEvents(:,1)==3,:);
 %%
 pResults(~any(pResults,2),:) = []; 
 pData(~any(pData,2),:) = [];

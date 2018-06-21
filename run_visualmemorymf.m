@@ -121,8 +121,9 @@ p.centerSize = round(2*p.pixPerDeg);
 p.surroundSize = p.screenWidthPixels(:,3);
 p.gapSize = round(0.01*p.pixPerDeg); %space between center and surround annulus
 
-p.backgroundRadius = 10 * p.pixPerDeg; %radius of the background circle
-p.eccentricity = round(6 * p.pixPerDeg); %distance from center of screen to center of target
+p.ecc = 10;
+p.backgroundRadius = p.ecc * p.pixPerDeg; %radius of the background circle
+p.eccentricity = round((p.ecc/2) * p.pixPerDeg); %distance from center of screen to center of target
 p.innerRadius = p.eccentricity - (p.centerSize/2+p.gapSize); %inner edge of surround annulus
 p.outerRadius = p.eccentricity + (p.centerSize/2+p.gapSize); %outer edge of surround annulus
 
