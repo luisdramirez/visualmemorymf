@@ -4,10 +4,11 @@ close all;
 p.experiment = 'test_HC';
 p.subject = 'JS';
 
+dataDir = 'data';
 cd(dataDir);
 if exist(['data_visualmemorymf_' p.experiment '_' p.subject '.mat'],'file') ~= 0
     load(['data_visualmemorymf_' p.experiment '_' p.subject '.mat']);
-    p = theData(1).p; data=theData(1).data;
+    p = theData(2).p; data=theData(2).data;
 else
     error('Subject file does not exist.')
 end
@@ -108,7 +109,7 @@ ylabel('Frquency of response')
 %Histogram of center only contrast estimations
 subplot(2,3,5)
 coHist = histogram(blData(:,4),40);
-xlim([0 1]);
+xlim([0 1]);dataDir = 'data';
 ylim([0 histmax+1]);
 title('Histogram of Baseline Contrast Estimations');
 hold on
