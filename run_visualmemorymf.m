@@ -134,7 +134,7 @@ p.outerFixation = round(0.75*p.pixPerDeg);
 % Grating frequency, orientation, phase
 p.orientation = 0;
 p.stimorientation = 90;
-p.freq = 2.75;
+p.freq = 2;
 p.frequency_center = p.centerSize/p.pixPerDeg * p.freq;
 p.frequency_surround = p.surroundSize/p.pixPerDeg * p.freq;
 p.numPhases = 1;
@@ -303,6 +303,8 @@ if shuffled == 1 || test == 1
     [window,rect] = Screen('OpenWindow', useScreen, colors.black, []); %test screen size [0 0 700 500]
     
     OriginalCLUT = Screen('ReadNormalizedGammaTable', window);
+    load('linearizedCLUT.mat'); %testing room 208 only
+    Screen('LoadNormalizedGammaTable',window, linearizedCLUT); %testing room 208 only
     
     % Enable alpha blending
     Screen('BlendFunction', window, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

@@ -42,7 +42,8 @@ p.surroundPhase = p.centerPhase;
 %%Center
 [xc,yc] = meshgrid((-p.centerSize/2):(p.centerSize/2)-1, (-p.centerSize/2):(p.centerSize/2)-1);
 eccen = sqrt((xc).^2+(yc).^2); 	% calculate eccentricity of each point in grid relative to center of 2D image
-centerGaussian = zeros(p.centerSize); centerGaussian(eccen <= (p.centerSize/2)) = 1;
+centerGaussian = zeros(p.centerSize); centerGaussian = imfilter(centerGaussian,fspecial('gaussian',p.centerSize,p.centerSize));
+centerGaussian(eccen <= (p.centerSize/2)) = 1;
 centerTransparencyMask = zeros(p.centerSize); centerTransparencyMask(eccen <= (p.centerSize/2))=255;
 
 %%Surround
