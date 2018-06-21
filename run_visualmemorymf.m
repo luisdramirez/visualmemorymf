@@ -2,6 +2,7 @@
 % Written by JS and LR June 2018
 close all; clear all; clc;
 Screen('Preference', 'SkipSyncTests', 1);
+commandwindow;
 load('visualmemory_condition_order')
 load('visualmemory_subjectsRan')
 % visualmemory_condition_order = perms([1 2 1 2]);
