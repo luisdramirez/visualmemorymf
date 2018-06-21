@@ -1,6 +1,7 @@
 % run_visualmemorymf.m
 % Written by JS and LR June 2018
 close all; clear all; clc;
+commandwindow;
 Screen('Preference', 'SkipSyncTests', 1);
 commandwindow;
 load('visualmemory_condition_order')
@@ -8,12 +9,12 @@ load('visualmemory_subjectsRan')
 % visualmemory_condition_order = perms([1 2 1 2]);
 % visualmemory_subjectsRan = {};
 %% PREPARE
-p.repetitions = 75; % data will be saved if > 5
+p.repetitions = 15; % data will be saved if > 5
 p.numBlocks = p.repetitions;
 
 % Subject Name
 p.experiment = 'test_HC'; % 'test' = 5 contrasts ; 'test_HC' = 1 contrast, w/ baseline condition
-p.subject = '000';
+p.subject = 'LR';
 
 % Set directories
 expDir = pwd; % set the experimental directory to the current directory 'pwd'
@@ -46,7 +47,7 @@ else
         % Which Test condition, run these test conditions on different days
         p.testCondition_curr = p.trialSchedule(1);
     else
-        p.testCondition_curr = 2; % fixed to perception condition
+        p.testCondition_curr = 1; % fixed to perception condition
     end
 end
 cd(expDir);
@@ -118,10 +119,10 @@ p.surroundContrast = 1;
 % Grating Size 
 p.centerSize = round(2*p.pixPerDeg);
 p.surroundSize = p.screenWidthPixels(:,3);
-p.gapSize = round(0.08*p.pixPerDeg); %space between center and surround annulus
+p.gapSize = round(0.01*p.pixPerDeg); %space between center and surround annulus
 
-p.backgroundRadius = p.screenWidthPixels(:,4)/2; %radius of the background circle
-p.eccentricity = p.backgroundRadius/2; %distance from center of screen to center of target
+p.backgroundRadius = 10 * p.pixPerDeg; %radius of the background circle
+p.eccentricity = round(6 * p.pixPerDeg); %distance from center of screen to center of target
 p.innerRadius = p.eccentricity - (p.centerSize/2+p.gapSize); %inner edge of surround annulus
 p.outerRadius = p.eccentricity + (p.centerSize/2+p.gapSize); %outer edge of surround annulus
 
@@ -132,7 +133,7 @@ p.outerFixation = round(0.75*p.pixPerDeg);
 % Grating frequency, orientation, phase
 p.orientation = 0;
 p.stimorientation = 90;
-p.freq = 1.5;
+p.freq = 2.75;
 p.frequency_center = p.centerSize/p.pixPerDeg * p.freq;
 p.frequency_surround = p.surroundSize/p.pixPerDeg * p.freq;
 p.numPhases = 1;
@@ -161,23 +162,28 @@ p.surroundPhase = p.centerPhase;
 
 % Baseline number of trials based on the number of center grating contrasts
 if strcmp(p.experiment,'test_HC')
-    % code blocked design
-    p.stimConfigurations = 1:2; %1:2 because of perception and baseline
-    [configs] = BalanceFactors(p.numBlocks,0,p.stimConfigurations);
-    col1 = [p.testCondition_curr*ones(p.repetitions,1); 3*ones(p.repetitions,1)];
+    p.numTrialsPerBlock = 5;
+    p.numTrialsPerSet = p.numTrialsPerBlock*5;
+    p.numBlocksPerSet = p.numTrialsPerSet/p.numTrialsPerBlock;
+
+    col1 = [p.testCondition_curr*ones(p.numTrialsPerBlock,1); 3*ones(p.numTrialsPerBlock,1)];
+    col1 = repmat(col1,p.repetitions,1);
 %     col1 = repmat([1;3],length(configs)/2,1);
 %     col1a = ones(length(configs)/2,1); col1b = 3*ones(length(configs)/2,1);
 %     col1 = [col1a;col1b];
+    p.numTrials = length(col1);
+    p.numSets = p.numTrials/p.numTrialsPerSet;
+
 else
     p.stimConfigurations = 1:length(p.centerContrast);
     [configs] = BalanceFactors(p.numBlocks,0,p.stimConfigurations);
     col1 = repmat(p.testCondition_curr,length(configs),1);
+    p.numTrialsPerBlock = p.numContrasts;
+    p.numTrialsPerSet = p.numTrialsPerBlock*6;
+    p.numBlocksPerSet = p.numTrialsPerSet/p.numTrialsPerBlock;
+    p.numTrials = length(col1);
+    p.numSets = p.numTrials/p.numTrialsPerSet;
 end
-p.numTrials = size(col1,1);
-p.numTrialsPerBlock = p.numContrasts;
-p.numTrialsPerSet = 30;
-p.numBlocksPerSet = p.numTrialsPerSet/p.numContrasts;
-p.numSets = p.numTrials/p.numTrialsPerSet;
 
 %--------------------%
 %     Location       %
@@ -198,7 +204,7 @@ col5 = rand(length(col3),1); % probe grating contrast
 col5(col5>p.maxContrast)=p.maxContrast; col5(col5<p.minContrast)=p.minContrast;
 
 % bring all 3 together
-p.trialEvents = [col1 col2 col3 col4 col5 configs]; %[condition targetLocation targetContrast probeLocation probeContrast configuration]
+p.trialEvents = [col1 col2 col3 col4 col5]; %[condition targetLocation targetContrast probeLocation probeContrast]
 
 if strcmp(p.experiment,'test') || strcmp(p.experiment,'test_HC')
     test = 1;
@@ -579,7 +585,8 @@ for nTrial = 1:size(p.trialEvents,1)
         DrawFormattedText(window, breakText, 'center', 'center', colors.white);
         Screen('Flip', window);
         restText = ['You can take a short break now, ' '' '\n' ...
-            'or press the dial to continue' '\n' '\n' ];
+            'or press the dial to continue' '\n' '\n' ...
+            num2str(nSet-1) '/' num2str(p.numSets) ' completed.' ];
         DrawFormattedText(window, restText, 'center', 'center', colors.white);
         Screen('Flip', window);
         pmbuttonbreak = 0;
@@ -615,7 +622,7 @@ Screen('LoadNormalizedGammaTable', window, OriginalCLUT);
 Screen('CloseAll')
 ShowCursor;
 %% SAVE OUT THE DATA FILE
-if ~strcmp(p.experiment,'test') && ~strcmp(p.experiment,'test_HC') && p.repetitions > 5
+ if p.repetitions > 5
     cd(dataDir);
     theData(p.runNumber).t = t;
     theData(p.runNumber).p = p;

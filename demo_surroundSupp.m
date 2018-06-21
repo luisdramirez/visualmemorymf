@@ -2,8 +2,8 @@
 screens=Screen('Screens');
 useScreen=max(screens);
 p.screenWidthPixels = Screen('Rect', useScreen);
-screenWidth = 33; %cm
-viewingDistance = 57; %cm
+screenWidth = 53; %cm
+viewingDistance = 110; %cm
 visAngle = (2*atan2(screenWidth/2, viewingDistance))*(180/pi);
 
 p.pixPerDeg = round(p.screenWidthPixels(3)/visAngle);
@@ -11,15 +11,14 @@ p.fixation=round(0.085 * p.pixPerDeg);
 colors.grey = 128; colors.white = 255; colors.green = [0 255 0]; colors.blue = [0 0 255]; colors.black = [0 0 0]; colors.red = [220 20 60]; 
 colors.dimgrey = [105 105 105]; colors.yellow = [255 255 0]; colors.magenta = [255 0 255]; colors.cyan = [0 255 255];
 
-p.maxContrast = 0.75;
-p.centerContrast = 0.5;
+p.centerContrast = 0.75;
 p.surroundContrast = 1;
 
 p.centerSize = round(2*p.pixPerDeg);
 p.surroundSize = p.screenWidthPixels(:,3);
-p.gapSize = round(0.08*p.pixPerDeg); %space between center and surround annulus
+p.gapSize = round(0.01*p.pixPerDeg); %space between center and surround annulus
 
-p.backgroundRadius = 12 * p.pixPerDeg; %radius of the background circle
+p.backgroundRadius = 10 * p.pixPerDeg; %radius of the background circle
 p.eccentricity = round(6 * p.pixPerDeg); %distance from center of screen to center of target
 p.innerRadius = p.eccentricity - (p.centerSize/2+p.gapSize); %inner edge of surround annulus
 p.outerRadius = p.eccentricity + (p.centerSize/2+p.gapSize); %outer edge of surround annulus
@@ -31,7 +30,7 @@ p.outerFixation = round(0.75*p.pixPerDeg);
 % Grating frequency, orientation, phase
 p.orientation = 90;
 p.stimorientation = 90;
-p.freq = 2;
+p.freq = 2.75;
 p.frequency_center = p.centerSize/p.pixPerDeg * p.freq;
 p.frequency_surround = p.surroundSize/p.pixPerDeg * p.freq;
 p.numPhases = 1;
