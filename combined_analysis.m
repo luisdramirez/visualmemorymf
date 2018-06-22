@@ -1,27 +1,54 @@
+%% Begin %%
+% Preliminary data loading and setup %
 clear all;
 close all;
 
-load('data_visualmemorymf_test_JS.mat') % test_HC or test or regular (?)
-theData = theData(2); %index to trial number
+load('data_visualmemorymf_test_HC_JS.mat') %works for HC, test, and regular trials
+theData = theData(1); %index to trial number
 p = theData.p; data = theData.data; t = theData.t;
 data = cell2mat(struct2cell(data));
 data = data';
 [trials,params] = size(p.trialEvents);
 
-%HC testing, baseline vs perception
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+     %Test_HC and 1 contrast runs%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 if p.numContrasts == 1 && p.numConditions == 2
-    %% Organize Data
-% perception trials
-pResults = p.trialEvents(p.trialEvents(:,1)==1,:);
-pData = data(p.trialEvents(:,1)==1,:);
-% baseline trials
-blResults = p.trialEvents(p.trialEvents(:,1)==3,:);
-blData = data(p.trialEvents(:,1)==3,:);
-    %%  Perception Estimated Contrast in comparison to Actual Contrast  %%
+    %% Organize Trial Events & Data %%
+    if any(p.trialEvents(:,1) == 1) % Perception trials, condition # = 1
+        cond1Results = p.trialEvents(p.trialEvents(:,1)==1,:);
+        cond1Data = data(p.trialEvents(:,1)==1,:);
+        cond1Name = 'Perception';
+    end
+    if any(p.trialEvents(:,1) == 2) % Working Memory trials, condition # = 2
+        if isempty(cond1Data) == 1  &&  isempty(firstcondResults) == 1 && ~strcmp(cond1Name,'Perception')
+            cond1Results = p.trialEvents(p.trialEvents(:,1)==2,:);
+            cond1Data = data(p.trialEvents(:,1)==2,:);
+            cond1Name = 'Working Memory';
+        else
+            cond2Results = p.trialEvents(p.trialEvents(:,1)==2,:);
+            cond2Data = data(p.trialEvents(:,1)==2,:);
+            cond2Name = 'Working Memory';
+        end
+    end
+    if any(p.trialEvents(:,1) == 3)  % Baseline trials, condition = 3
+        if isempty(cond1Data) == 1  &&  isempty(firstcondResults) == 1 && ~strcmp(cond1Name,'Perception') && ~strcmp(cond1Name,'Working Memory')
+            cond1Results = p.trialEvents(p.trialEvents(:,1)==3,:);
+            cond1Data = data(p.trialEvents(:,1)==3,:);
+            cond1Name = 'Baseline';
+        else
+            cond2Results = p.trialEvents(p.trialEvents(:,1)==3,:);
+            cond2Data = data(p.trialEvents(:,1)==3,:);
+            cond2Name = 'Baseline';
+        end
+    end
+    %%  First Condition Estimated Contrast vs. Actual Contrast  %%
     
     % Compare Perception and Baseline on same y-limit
-    minContrast = min([min(pData(:,4)) min(blData(:,4))]);
-    maxContrast = max([max(pData(:,4)) max(blData(:,4))]);
+    minContrast = min([min(cond1Data(:,4)) min(cond2Data(:,4))]);
+    maxContrast = max([max(cond1Data(:,4)) max(cond2Data(:,4))]);
     %Lower bound
     if minContrast - 0.1 <= 0
         yMin = 0;
@@ -36,59 +63,57 @@ blData = data(p.trialEvents(:,1)==3,:);
     end
 
     figure
-    set(gcf, 'Name', 'Visual Working Memory Versus Perception');
+    set(gcf, 'Name', sprintf('%s Versus %s Visual Analysis',cond1Name,cond2Name));
     subplot(2,3,1)
-    plot(pData(:,4)); %Estimated Contrast
+    plot(cond1Data(:,4)); %Estimated Contrast
     hold on
-    plot(1:length(pResults(:,3)),pResults(:,3));
-    myfittype = fittype('a+b*log(x)','dependent',{'y'}, 'independent',{'x'},'coefficients' ,{'a,b'});
-    myfit = fit(1:length(pData(:,4),pData(:,4)',myfittype));
-    plot(myfit);
-    
-%     fit = polyfit(1:length(pData(:,4)),pData(:,4)',1);
-%     plot(polyval(fit,1:length(pData(:,4)))); %Line of best fit for the Estimated Contrast
-    xlim([1 length(pData(:,4))]);
+    plot(1:length(cond1Results(:,3)),cond1Results(:,3));
+%     myfittype = fittype('a+b*log(x)','dependent',{'y'}, 'independent',{'x'},'coefficients' ,{'a,b'});
+%     myfit = fit(1:length(pData(:,4),pData(:,4)',myfittype));
+%     plot(myfit); %%%% LOG FIT %%%%
+    fit = polyfit(1:length(cond1Data(:,4)),cond1Data(:,4)',1);
+    plot(polyval(fit,1:length(cond1Data(:,4)))); %Line of best fit for the Estimated Contrast
+    xlim([1 length(cond1Data(:,4))]);
     ylim([yMin yMax]);
-    title('Perception Contrast Compared to Actual Contrast')
+    title(sprintf('%s Contrast Compared to Actual Contrast',cond1Name))
     legend('Subject Contrast Estimation','Actual Contrast', 'Average Contrast Estimation')
     xlabel('Trial Number')
     ylabel('Contrast')
-
-    %% Baseline Contrast in comparison to Actual Contrast  %%
+    %%  First Condition Estimated Contrast vs. Actual Contrast  %%
     subplot(2,3,4)
-    plot(blData(:,4)); %Estimated Contrast
+    plot(cond2Data(:,4)); %Estimated Contrast
     hold on
-    plot(1:length(blResults(:,3)),blResults(:,3));
-    fit = polyfit(1:length(blData(:,4)),blData(:,4)',1);
-    plot(polyval(fit,1:length(blData(:,4)))); %Line of best fit for the Estimated Contrast
-    xlim([1 length(blData(:,4))]);
+    plot(1:length(cond2Results(:,3)),cond2Results(:,3));
+    fit = polyfit(1:length(cond2Data(:,4)),cond2Data(:,4)',1);
+    plot(polyval(fit,1:length(cond2Data(:,4)))); %Line of best fit for the Estimated Contrast
+    xlim([1 length(cond2Data(:,4))]);
     ylim([yMin yMax]);
-    title('Baseline Contrast Estimations Compared to actual Contrast');
+    title(sprintf('%s Contrast Estimation Compared to Actual Contrast',cond2Name));
     legend('Subject Contrast Estimation','Actual Contrast', 'Average Contrast Estimation')
     xlabel('Trial Number')
     ylabel('Contrast')
 
-    %Histogram of perception contrast estimations
+  %% Histogram of First Condition Responses %%
     subplot(2,3,2)
-    [pBins,pEdges] = histcounts(pData(:,4),20);
-    [cOBins,cOEdges] = histcounts(blData(:,4),20);
-    histmax = max([max(pBins) max(cOBins)]);
-    pHist = histogram(pData(:,4),20);
+    [bins1,edges1] = histcounts(cond1Data(:,4),20);
+    [bins2,edges2] = histcounts(cond2Data(:,4),20);
+    histmax = max([max(bins1) max(bins2)]);
+    pHist = histogram(cond1Data(:,4),20);
     xlim([0 1]);
     ylim([0 histmax]);
-    title('Histogram of Perception Contrast Estimations');
+    title(sprintf('Histogram of %s Contrast Estimations',cond1Name));
     line([p.centerContrast p.centerContrast],ylim, 'Linewidth',1,'Color','r');
     lgd = legend('Bins','Actual Contrast');
     lgd.Location = 'northwest';
     xlabel('Contrast')
-    ylabel('Frquency of response')
+    ylabel('Frequency of response')
 
-    %Histogram of baseline contrast estimations
+ %% Histogram of Second Condition Responses %%
     subplot(2,3,5)
-    blHist = histogram(blData(:,4),20);
+    secondCondHist = histogram(cond2Data(:,4),20);
     xlim([0 1]);
     ylim([0 histmax+1]);
-    title('Histogram of Baseline Contrast Estimations');
+    title(sprintf('Histogram of %s Contrast Estimations',cond2Name));
     hold on
     line([p.centerContrast p.centerContrast],ylim, 'Linewidth',1,'Color','r');
     lgd = legend('Bins','Actual Contrast');
@@ -96,158 +121,185 @@ blData = data(p.trialEvents(:,1)==3,:);
     xlabel('Contrast')
     ylabel('Frequency of response')
 
+%% Misc. Statistical Information %%
 
     %Means & Standard Deviations of estimated contrasts
-    pStd = std(pData(:,4));
-    pMean = mean(pData(:,4));
-    blStd =std(blData(:,4));
-    blMean = mean(blData(:,4));
-    fprintf('The average response for Perception trials was a contrast of %.4f, with a standard deviation of %.4f.\n The absolute difference between the average and actual contrast is %f\n',pMean, pStd,abs(pMean-p.centerContrast));
-    fprintf('The average response for Baseline trials was a contrast of %.4f, with a standard deviation of %.4f.\n The absolute difference between the average and actual contrast is %f\n',blMean, blStd, abs(blMean-p.centerContrast));
+    firstCondStd = std(cond1Data(:,4));
+    firstCondMean = mean2(cond1Data(:,4));
+    secondCondStd =std(cond2Data(:,4));
+    secondCondMean = mean2(cond2Data(:,4));
+    fprintf('\nThe average response for %s trials was a contrast of %.4f, with a standard deviation of %.4f.\n\n The absolute difference between the average and actual contrast is %f\n\n',cond1Name,firstCondMean, firstCondStd,abs(firstCondMean-p.centerContrast));
+    fprintf('The average response for %s trials was a contrast of %.4f, with a standard deviation of %.4f.\n\n The absolute difference between the average and actual contrast is %f\n\n',cond2Name,secondCondMean, secondCondStd, abs(secondCondMean-p.centerContrast));
 
     %Percent Error of Contrast Estimations
-    pPE = zeros(size(1:length(pData(:,4))));
-    blPE = zeros(size(1:length(blData(:,4))));
-
-
-    for i = 1:length(pData(:,4))
-        pPE(i) = (abs((pData(i,4)-pResults(i,3))/pResults(i,3)))*100;
-        blPE(i) = (abs((blData(i,4)-blResults(i,3))/blResults(i,3)))*100;
+    firstCondPE = zeros(size(1:length(cond1Data(:,4))));
+    secondCondPE = zeros(size(1:length(cond2Data(:,4))));
+    for i = 1:length(cond1Data(:,4))
+        firstCondPE(i) = (abs((cond1Data(i,4)-cond1Results(i,3))/cond1Results(i,3)))*100;
+        secondCondPE(i) = (abs((cond2Data(i,4)-cond2Results(i,3))/cond2Results(i,3)))*100;
     end
-
-    maxPE = max([max(pPE) max(blPE)]);
+    maxPE = max([max(firstCondPE) max(secondCondPE)]);
     if maxPE + 5 >= 100
         yLimPE = 100;
     else
         yLimPE = (maxPE + 5);
     end
-
+%% Percent Error Plot First Condition %%
     subplot(2,3,3)
-    plot(pPE);
-    xlim([1 length(pData)])
+    plot(firstCondPE);
+    xlim([1 length(cond1Data)])
     ylim([0 yLimPE])
-    title('perception Contrast Percent Error')
+    title(sprintf('%s Contrast Percent Error',cond1Name))
     hold on
-    plot(repmat(mean(pPE),1,length(pData)))
+    plot(repmat(mean2(firstCondPE),1,length(cond1Data)))
     legend('Percent Error of Each Estimation','Average Percent Error')
     xlabel('Trial Number')
     ylabel('Percent Error')
-
+%% Percent Error Plot Second Condition %%
     subplot(2,3,6)
-    plot(blPE);
-    xlim([1 length(blData)])
+    plot(secondCondPE);
+    xlim([1 length(cond2Data)])
     ylim([0 yLimPE])
-    title('Baseline Percent Error')
+    title(sprintf('%s Contrast Percent Error',cond2Name))
     hold on
-    plot(repmat(mean(blPE),1,length(blData)))
+    plot(repmat(mean2(secondCondPE),1,length(cond2Data)))
     legend('Percent Error of Each Estimation','Average Percent Error')
     xlabel('Trial Number')
     ylabel('Percent Error')
-  %% 5 contrasts
+%%
+    
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        %Test/5 Contrast Runs%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 elseif p.numContrasts == 5 && p.numConditions == 2
-    %Pull & Organize data
-    %5 contrasts, 30 repititions
-    %column 1 of p.trialEvents: Conditions
+    %% Setup of seperate trial Events and data matrices, & misc. statistical data  %%
         %1 - PERCEPTION
         %2 - WORKING MEMORY
         %3 - BASELINE
-    %Organize graph into different contrasts for comparisons
+    % NOTE: For each subject, index into their data file will give only 1 condition
     sortedTE = sortrows(p.trialEvents,3); %sorts rows based on contrasts
     col6 = p.trialEvents(:,6);
     data = [data col6];
     [dataTrials,dataParams] = size(data);
     sortedData = sortrows(data,6);
-
-    p.trialEvents = [p.trialEvents (1:length(p.trialEvents))']; %adds run number to seventh column in p.trialEvents
-    firstTE = p.trialEvents(p.trialEvents(:,6)==1,:);
-    secondTE = p.trialEvents(p.trialEvents(:,6)==2,:);
-    thirdTE = p.trialEvents(p.trialEvents(:,6)==3,:);
-    fourthTE = p.trialEvents(p.trialEvents(:,6)==4,:);
-    fifthTE = p.trialEvents(p.trialEvents(:,6)==5,:);
-    orgTE = [firstTE; secondTE; thirdTE; fourthTE; fifthTE];
+    
+    
+    if any(p.trialEvents(:,1) == 1)
+        condition = 'Perception';
+    elseif any(p.trialEvents(:,1) == 2)
+        condition = 'Working Memory';
+    elseif any(p.trialEvents(:,1) ==3)
+        condition = 'Baseline';
+    end
+    
+    %Seperate trial events based on contrast level
+    p.trialEvents = [p.trialEvents (1:length(p.trialEvents))']; %adds run number to seventh column in p.trialEvents for sorting purposes
+    TE1 = p.trialEvents(p.trialEvents(:,6)==1,:);
+    TE2 = p.trialEvents(p.trialEvents(:,6)==2,:);
+    TE3 = p.trialEvents(p.trialEvents(:,6)==3,:);
+    TE4 = p.trialEvents(p.trialEvents(:,6)==4,:);
+    TE5 = p.trialEvents(p.trialEvents(:,6)==5,:);
+    orgTE = [TE1; TE2; TE3; TE4; TE5];
+    
+    data1 = zeros(length(TE1),dataParams);
+    data2 = zeros(length(TE2),dataParams);
+    data3 = zeros(length(TE3),dataParams);
+    data4 = zeros(length(TE4),dataParams);
+    data5 = zeros(length(TE5),dataParams);
+    for i = 1:length(TE1)
+        data1(i,:) = data(TE1(i,7),:);
+        data2(i,:) = data(TE2(i,7),:);
+        data3(i,:) = data(TE3(i,7),:);
+        data4(i,:) = data(TE4(i,7),:);
+        data5(i,:) = data(TE5(i,7),:);
+    end
+    orgData = [data1; data2; data3; data4; data5];
+    plot(orgData(:,4));
+    hold on
+    mean1 = ones([1 length(data1)])*mean(data1(:,4));
+    mean2 = ones([1 length(data2)])*mean(data2(:,4));
+    mean3 = ones([1 length(data3)])*mean(data3(:,4));
+    mean4 = ones([1 length(data4)])*mean(data4(:,4));
+    mean5 = ones([1 length(data5)])*mean(data5(:,4));
+    meanVec = [mean1 mean2 mean3 mean4 mean5];
         
-    % Plot estimated versus actual contrast
-
+    %% Plot Estimated Contrasts vs. Actual Contrasts %%
     figure
+    set(gcf, 'Name', sprintf('Contrast Variance over 5 Contrast steps for %s',condition));
     subplot(2,3,1)
+    plot(orgData(:,4));
+    hold on
     plot(orgTE(:,3));
     ylim([0 1]);
     title('Estimated Vs. Actual Contrast')
     hold on
-
-    firstdata = zeros(length(firstTE),dataParams);
-    seconddata = zeros(length(secondTE),dataParams);
-    thirddata = zeros(length(thirdTE),dataParams);
-    fourthdata = zeros(length(fourthTE),dataParams);
-    fifthdata = zeros(length(fifthTE),dataParams);
-    for i = 1:length(firstTE)
-        firstdata(i,:) = data(firstTE(i,7),:);
-        seconddata(i,:) = data(secondTE(i,7),:);
-        thirddata(i,:) = data(thirdTE(i,7),:);
-        fourthdata(i,:) = data(fourthTE(i,7),:);
-        fifthdata(i,:) = data(fifthTE(i,7),:);
-    end
-    orgData = [firstdata; seconddata; thirddata; fourthdata; fifthdata];
-    plot(orgData(:,4));
-    hold on
-    firstMean = (ones([1 length(firstdata)])*mean(firstdata(:,4)));
-    secondMean = ones([1 length(seconddata)])*mean(seconddata(:,4));
-    thirdMean = ones([1 length(thirddata)])*mean(thirddata(:,4));
-    fourthMean = ones([1 length(fourthdata)])*mean(fourthdata(:,4));
-    fifthMean = ones([1 length(fifthdata)])*mean(fifthdata(:,4));
-    meanVector = [firstMean secondMean thirdMean fourthMean fifthMean];
-    plot(1:(length(firstMean)+length(secondMean)+length(thirdMean)+length(fourthMean)+length(fifthMean)),meanVector);
+    plot(1:(length(mean1)+length(mean2)+length(mean3)+length(mean4)+length(mean5)),meanVec);
     legend('Estimated Contrast','Actual Contrast','Avg. Estimated Contrast per Level');
-
-    fprintf('\nThe mean of responses for contrast %f was %f. The absolute difference is: %f\n\n',firstTE(1,3),firstMean(1), abs(firstTE(1,3)-firstMean(1)));
-    fprintf('The mean of responses for contrast %f was %f. The absolute difference is: %f\n\n',secondTE(1,3),secondMean(1),abs(secondTE(1,3)-secondMean(1)));
-    fprintf('The mean of responses for contrast %f was %f. The absolute difference is: %f\n\n',thirdTE(1,3),thirdMean(1),abs(thirdTE(1,3)-thirdMean(1)));
-    fprintf('The mean of responses for contrast %f was %f. The absolute difference is: %f\n\n',fourthTE(1,3),fourthMean(1),abs(fourthTE(1,3)-fourthMean(1)));
-    fprintf('The mean of responses for contrast %f was %f. The absolute difference is: %f\n\n',fifthTE(1,3),fifthMean(1),abs(fifthTE(1,3)-fifthMean(1)));
-    %% Histograms of responses for each contrast level
+    fprintf('\nThe mean of responses for contrast %f was %f. The absolute difference is: %f\n\n',TE1(1,3),mean1(1), abs(TE1(1,3)-mean1(1)));
+    fprintf('The mean of responses for contrast %f was %f. The absolute difference is: %f\n\n',TE2(1,3),mean2(1),abs(TE2(1,3)-mean2(1)));
+    fprintf('The mean of responses for contrast %f was %f. The absolute difference is: %f\n\n',TE3(1,3),mean3(1),abs(TE3(1,3)-mean3(1)));
+    fprintf('The mean of responses for contrast %f was %f. The absolute difference is: %f\n\n',TE4(1,3),mean4(1),abs(TE4(1,3)-mean4(1)));
+    fprintf('The mean of responses for contrast %f was %f. The absolute difference is: %f\n\n',TE5(1,3),mean5(1),abs(TE5(1,3)-mean5(1)));
+    
+    %% Histograms of Responses for Each Contrast Step %%
+    
+    % Histogram axis limits
+    [bins1,edges1] = histcounts(data1(:,4),10);
+    [bins2,edges2] = histcounts(data2(:,4),10);
+    [bins3,edges3] = histcounts(data3(:,4),10);
+    [bins4,edges4] = histcounts(data4(:,4),10);
+    [bins5,edges5] = histcounts(data5(:,4),10);
+    histmax = max([max(bins1) max(bins2) max(bins3) max(bins4) max(bins5)]);
+    
+    % First Contrast Hist
     subplot(2,3,2)
-    hist(firstdata(:,4),20);
+    hist(data1(:,4),10);
     hold on
     xlim([0 1]);
-    ylim([0 6]);
-    line([firstTE(:,3) firstTE(:,3)],ylim, 'Linewidth',1,'Color','r');
-    title(sprintf('Hist of Estimated Contrast for %.2f contrast',firstTE(1,3)));
+    ylim([0 histmax+0.5]);
+    line([TE1(:,3) TE1(:,3)],ylim, 'Linewidth',1,'Color','r');
+    title(sprintf('Hist of Estimated Contrast for %.2f Contrast',TE1(1,3)));
     legend('Estimated Contrasts', 'Actual Contrast Level');
-
+    
+    % Second Contrast Hist
     subplot(2,3,3)
-    hist(seconddata(:,4),20);
+    hist(data2(:,4),10);
     xlim([0 1]);
-    ylim([0 6]);
+    ylim([0 histmax+0.5]);
     hold on
-    line([secondTE(:,3) secondTE(:,3)],ylim, 'Linewidth',1,'Color','r');
-    title(sprintf('Hist of Estimated Contrast for %.2f contrast',secondTE(1,3)));
+    line([TE2(:,3) TE2(:,3)],ylim, 'Linewidth',1,'Color','r');
+    title(sprintf('Hist of Estimated Contrast for %.2f contrast',TE2(1,3)));
     legend('Estimated Contrasts', 'Actual Contrast Level');
-
+    
+    % Third Contrast Hist
     subplot(2,3,4)
-    hist(thirddata(:,4),20);
+    hist(data3(:,4),10);
     xlim([0 1]);
-    ylim([0 6]);
+    ylim([0 histmax+0.5]);
     hold on
-    line([thirdTE(:,3) thirdTE(:,3)],ylim, 'Linewidth',1,'Color','r');
-    title(sprintf('Hist of Estimated Contrast for %.2f contrast',thirdTE(1,3)));
-    legend('Estimated Contrasts', 'Actual Contrast Level');
-
+    line([TE3(:,3) TE3(:,3)],ylim, 'Linewidth',1,'Color','r');
+    title(sprintf('Hist of Estimated Contrast for %.2f contrast',TE3(1,3)));
+    legend('Estimated Contrasts', 'Actual Contrast Level'); 
+    
+    % Fourth Contrast Hist
     subplot(2,3,5)
-    hist(fourthdata(:,4),20);
+    hist(data4(:,4),10);
     xlim([0 1]);
-    ylim([0 6]);
+    ylim([0 histmax+0.5]);
     hold on
-    line([fourthTE(:,3) fourthTE(:,3)],ylim, 'Linewidth',1,'Color','r');
-    title(sprintf('Hist of Estimated Contrast for %.2f contrast',fourthTE(1,3)));
-    legend('Estimated Contrasts', 'Actual Contrast Level');
-
+    line([TE4(:,3) TE4(:,3)],ylim, 'Linewidth',1,'Color','r');
+    title(sprintf('Hist of Estimated Contrast for %.2f contrast',TE4(1,3)));
+    legend('Estimated Contrasts', 'Actual Contrast Level'); 
+    
+    % Fifth Contrast Hist
     subplot(2,3,6)
-    hist(fifthdata(:,4),20);
+    hist(data5(:,4),10);
     xlim([0 1]);
-    ylim([0 6]);
+    ylim([0 histmax+0.5]);
     hold on
-    line([fifthTE(:,3) fifthTE(:,3)],ylim, 'Linewidth',1,'Color','r');
-    title(sprintf('Hist of Estimated Contrast for %.2f contrast',fifthTE(1,3)));
+    line([TE5(:,3) TE5(:,3)],ylim, 'Linewidth',1,'Color','r');
+    title(sprintf('Hist of Estimated Contrast for %.2f contrast',TE5(1,3)));
     legend('Estimated Contrasts', 'Actual Contrast Level');
     else
         disp('Number of contrasts or conditions does not correspond to experiment design.')
