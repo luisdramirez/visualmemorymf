@@ -119,7 +119,7 @@ p.surroundContrast = 1;
 % Grating Size 
 p.centerSize = round(2*p.pixPerDeg);
 p.surroundSize = p.screenWidthPixels(:,3);
-p.gapSize = round(0.01*p.pixPerDeg); %space between center and surround annulus
+p.gapSize = round(0.15*p.pixPerDeg); %space between center and surround annulus
 
 p.ecc = 10;
 p.backgroundRadius = p.ecc * p.pixPerDeg; %radius of the background circle
