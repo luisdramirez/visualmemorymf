@@ -4,7 +4,7 @@ clear all;
 close all;
 
 load('data_visualmemorymf_test_JS.mat') %works for HC, test, and regular trials
-theData = theData(2); %index to trial number
+theData = theData(1); %index to trial number
 p = theData.p; data = theData.data; t = theData.t;
 data = cell2mat(struct2cell(data));
 data = data';
@@ -12,7 +12,7 @@ data = data';
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-     %Test_HC and 1 contrast runs%
+     %Test_HC and 1 Contrast Runs%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if p.numContrasts == 1 && p.numConditions == 2
@@ -79,6 +79,7 @@ if p.numContrasts == 1 && p.numConditions == 2
     legend('Subject Contrast Estimation','Actual Contrast', 'Average Contrast Estimation')
     xlabel('Trial Number')
     ylabel('Contrast')
+    
     %%  First Condition Estimated Contrast vs. Actual Contrast  %%
     subplot(2,3,4)
     plot(cond2Data(:,4)); %Estimated Contrast
@@ -226,7 +227,7 @@ elseif p.numContrasts == 5 && p.numConditions == 2
     %% Plot Estimated Contrasts vs. Actual Contrasts %%
     figure
     set(gcf, 'Name', sprintf('Contrast Variance over 5 Contrast steps for %s',condition));
-    subplot(2,4,1)
+    subplot(2,6,1)
     plot(orgData(:,4));
     hold on
     plot(orgTE(:,3));
@@ -237,7 +238,7 @@ elseif p.numContrasts == 5 && p.numConditions == 2
     legend('Estimated Contrast','Actual Contrast','Avg. Estimated Contrast per Level');
     
     %Display Trendline
-    subplot(2,4,2)
+    subplot(2,6,7)
     fit = polyfit([1:length(orgData(:,4))],orgData(:,4)',5); %5 polynomial for number of contrasts - trendline
     plot(polyval(fit,1:length(orgData(:,4)))); %Line of best fit for the Estimated Contrast
     ylim([0 1])
@@ -269,7 +270,7 @@ elseif p.numContrasts == 5 && p.numConditions == 2
     histmax = max([max(bins1) max(bins2) max(bins3) max(bins4) max(bins5)]);
     
     % First Contrast Hist
-    subplot(2,4,3)
+    subplot(2,6,2)
     hist(data1(:,4),10);
     hold on
     xlim([0 1]);
@@ -279,7 +280,7 @@ elseif p.numContrasts == 5 && p.numConditions == 2
     legend('Estimated Contrasts', 'Actual Contrast Level');
     
     % Second Contrast Hist
-    subplot(2,4,4)
+    subplot(2,6,3)
     hist(data2(:,4),10);
     xlim([0 1]);
     ylim([0 histmax+0.5]);
@@ -289,7 +290,7 @@ elseif p.numContrasts == 5 && p.numConditions == 2
     legend('Estimated Contrasts', 'Actual Contrast Level');
     
     % Third Contrast Hist
-    subplot(2,4,5)
+    subplot(2,6,4)
     hist(data3(:,4),10);
     xlim([0 1]);
     ylim([0 histmax+0.5]);
@@ -299,7 +300,7 @@ elseif p.numContrasts == 5 && p.numConditions == 2
     legend('Estimated Contrasts', 'Actual Contrast Level'); 
     
     % Fourth Contrast Hist
-    subplot(2,4,6)
+    subplot(2,6,5)
     hist(data4(:,4),10);
     xlim([0 1]);
     ylim([0 histmax+0.5]);
@@ -309,7 +310,7 @@ elseif p.numContrasts == 5 && p.numConditions == 2
     legend('Estimated Contrasts', 'Actual Contrast Level'); 
     
     % Fifth Contrast Hist
-    subplot(2,4,7)
+    subplot(2,6,6)
     hist(data5(:,4),10);
     xlim([0 1]);
     ylim([0 histmax+0.5]);
@@ -317,6 +318,86 @@ elseif p.numContrasts == 5 && p.numConditions == 2
     line([TE5(:,3) TE5(:,3)],ylim, 'Linewidth',1,'Color','r');
     title(sprintf('Hist of Estimated Contrast for %.2f contrast',TE5(1,3)));
     legend('Estimated Contrasts', 'Actual Contrast Level');
+    
+    %% Percent Error of Contrast Responses %%
+    
+    %Percent Error Calculations
+    contrast1PE = zeros(size(1:length(data1(:,4))));
+    contrast2PE = zeros(size(1:length(data2(:,4))));
+    contrast3PE = zeros(size(1:length(data3(:,4))));
+    contrast4PE = zeros(size(1:length(data4(:,4))));
+    contrast5PE = zeros(size(1:length(data5(:,4))));
+    for i = 1:(length(sortedTE)/p.numContrasts)
+        contrast1PE(i) = (abs((data1(i,4)-TE1(i,3))/TE1(i,3)))*100;
+        contrast2PE(i) = (abs((data2(i,4)-TE2(i,3))/TE2(i,3)))*100;
+        contrast3PE(i) = (abs((data3(i,4)-TE3(i,3))/TE3(i,3)))*100;
+        contrast4PE(i) = (abs((data4(i,4)-TE4(i,3))/TE4(i,3)))*100;
+        contrast5PE(i) = (abs((data5(i,4)-TE5(i,3))/TE5(i,3)))*100;
+    end
+   yLimPE = max([max(contrast1PE) max(contrast2PE) max(contrast3PE) max(contrast4PE) max(contrast5PE) ]) + 5;
+    
+    %% Plotting Percent Errors for 5 Contrasts %%
+    
+    % Contrast 1 Percent Error
+    subplot(2,6,8)
+    plot(contrast1PE);
+    xlim([1 length(contrast1PE)])
+    ylim([0 yLimPE])
+    title(sprintf('%.2f Contrast Percent Error',TE1(1,3)))
+    hold on
+    plot(repmat(mean(contrast1PE),1,length(contrast1PE)))
+    legend('Percent Error of Each Estimation','Average Percent Error')
+    xlabel('Trial Number')
+    ylabel('Percent Error')
+    
+    % Contrast 2 Percent Error
+    subplot(2,6,9)
+    plot(contrast2PE);
+    xlim([1 length(contrast2PE)])
+    ylim([0 yLimPE])
+    title(sprintf('%.2f Contrast Percent Error',TE2(1,3)))
+    hold on
+    plot(repmat(mean(contrast2PE),1,length(contrast2PE)))
+    legend('Percent Error of Each Estimation','Average Percent Error')
+    xlabel('Trial Number')
+    ylabel('Percent Error')
+    
+    % Contrast 3 Percent Error
+    subplot(2,6,10)
+    plot(contrast3PE);
+    xlim([1 length(contrast3PE)])
+    ylim([0 yLimPE])
+    title(sprintf('%.2f Contrast Percent Error',TE3(1,3)))
+    hold on
+    plot(repmat(mean(contrast3PE),1,length(contrast3PE)))
+    legend('Percent Error of Each Estimation','Average Percent Error')
+    xlabel('Trial Number')
+    ylabel('Percent Error')
+    
+    % Contrast 4 Percent Error
+    subplot(2,6,11)
+    plot(contrast4PE);
+    xlim([1 length(contrast4PE)])
+    ylim([0 yLimPE])
+    title(sprintf('%.2f Contrast Percent Error',TE4(1,3)))
+    hold on
+    plot(repmat(mean(contrast4PE),1,length(contrast4PE)))
+    legend('Percent Error of Each Estimation','Average Percent Error')
+    xlabel('Trial Number')
+    ylabel('Percent Error')
+    
+    % Contrast 5 Percent Error
+    subplot(2,6,12)
+    plot(contrast5PE);
+    xlim([1 length(contrast5PE)])
+    ylim([0 yLimPE])
+    title(sprintf('%.2f Contrast Percent Error',TE5(1,3)))
+    hold on
+    plot(repmat(mean(contrast5PE),1,length(contrast5PE)))
+    legend('Percent Error of Each Estimation','Average Percent Error')
+    xlabel('Trial Number')
+    ylabel('Percent Error')
+    
     else
         disp('Number of contrasts or conditions does not correspond to experiment design.')
 end
