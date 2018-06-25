@@ -62,8 +62,8 @@ if p.numContrasts == 1 && p.numConditions == 2
         yMax = maxContrast + 0.1;
     end
 
-    figure
-    set(gcf, 'Name', sprintf('%s Versus %s Visual Analysis',cond1Name,cond2Name));
+    figure(1)
+    set(gcf, 'Name', sprintf('%s Versus %s Visual Analysis: Contrast',cond1Name,cond2Name));
     subplot(2,3,1)
     plot(cond1Data(:,4)); %Estimated Contrast
     hold on
@@ -167,6 +167,7 @@ if p.numContrasts == 1 && p.numConditions == 2
     legend('Percent Error of Each Estimation','Average Percent Error')
     xlabel('Trial Number')
     ylabel('Percent Error')
+        
 %%
     
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -225,7 +226,7 @@ elseif p.numContrasts == 5 && p.numConditions == 2
     meanVec = [mean1 mean2 mean3 mean4 mean5];
         
     %% Plot Estimated Contrasts vs. Actual Contrasts %%
-    figure
+    figure(1)
     set(gcf, 'Name', sprintf('Contrast Variance over 5 Contrast steps for %s',condition));
     subplot(2,6,1)
     plot(orgData(:,4));
@@ -398,6 +399,19 @@ elseif p.numContrasts == 5 && p.numConditions == 2
     xlabel('Trial Number')
     ylabel('Percent Error')
     
+    
+%% Location Analysis %%
+
+% Location Difference
+figure(2)
+subplot(2,3,1)
+plot(data1(:,2)) %Location Difference
+hold on
+plot(repmat(mean(data1(:,2)),1,length(data1(:,2))))
+fprintf('The average location difference for a Contrast of %.2f is %.2f\n',TE1(1,3),mean(data1(:,2)));
+
+
+
     else
         disp('Number of contrasts or conditions does not correspond to experiment design.')
 end
