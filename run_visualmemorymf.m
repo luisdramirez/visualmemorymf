@@ -239,43 +239,36 @@ end
 %% CREATE STIMULI
 
 %%Center
-p.centerRadius = p.centerSize/2 + p.pixPerDeg/2;
-[xc,yc] = meshgrid((-p.centerRadius):(p.centerRadius)-1, (-p.centerRadius):(p.centerRadius)-1);
-eccen = sqrt((xc).^2+(yc).^2); % calculate eccentricity of each point in grid relative to center of 2D image
-centerGaussian = zeros(size(xc)); centerGaussian(eccen <= (p.centerSize/2)) = 1;
-centerGaussian = conv2(centerGaussian,fspecial('gaussian',round(p.centerSize/10),p.centerSize/4), 'same');
-centerTransparencyMask = zeros(size(xc)); centerTransparencyMask(eccen <= (p.centerSize/2))=255;
+[xc,yc] = meshgrid((-p.centerSize/2):(p.centerSize/2)-1, (-p.centerSize/2):(p.centerSize/2)-1);
+eccen = sqrt((xc).^2+(yc).^2); 	% calculate eccentricity of each point in grid relative to center of 2D image
+centerGaussian = zeros(p.centerSize); centerGaussian(eccen <= (p.centerSize/2)) = 1;
+centerTransparencyMask = zeros(p.centerSize); centerTransparencyMask(eccen <= (p.centerSize/2))=255;
 
 %%Surround
-p.surroundRadius = p.surroundSize/2 + p.pixPerDeg/2;
-[xs,ys] = meshgrid((-p.surroundRadius):(p.surroundRadius)-1, (-p.surroundRadius):(p.surroundRadius)-1);
-eccen = sqrt((xs).^2+(ys).^2); % calculate eccentricity of each point in grid relative to center of 2D image
-Annulus = zeros(size(xs)); Annulus(eccen <= p.innerRadius) = 1;
+[xs,ys] = meshgrid((-p.surroundSize/2):(p.surroundSize/2)-1, (-p.surroundSize/2):(p.surroundSize/2)-1);
+eccen = sqrt((xs).^2+(ys).^2); 	% calculate eccentricity of each point in grid relative to center of 2D image
+Annulus = zeros(p.surroundSize); Annulus(eccen <= p.innerRadius) = 1;
 Annulus(eccen >= p.outerRadius) = 1;
-Annulus = conv2(Annulus, fspecial('gaussian',round(p.centerSize/10),p.centerSize/4),'same');
-surroundTransparencyMask = zeros(size(xs)); surroundTransparencyMask(eccen <= p.surroundSize/2)=255;
+surroundTransparencyMask = zeros(p.surroundSize); surroundTransparencyMask(eccen <= p.surroundSize/2)=255;
 
 %%Background
-bgAnnulus = zeros(size(Annulus)); 
+bgAnnulus = zeros(p.surroundSize); 
 bgAnnulus(eccen <= p.backgroundRadius) = 1;
 bgAnnulus(eccen >= p.backgroundRadius) = 0;
-bgAnnulus(:,p.surroundRadius:end) = 0;
 
 % Make unique grating
-[Xc,Yc] = meshgrid(0:(size(centerGaussian,1)-1),0:(size(centerGaussian,1)-1));
-[Xs,Ys] = meshgrid(0:(size(Annulus,1)-1),0:(size(Annulus,1)-1));
+[Xc,Yc] = meshgrid(0:(p.centerSize-1),0:(p.centerSize-1));
+[Xs,Ys] = meshgrid(0:(p.surroundSize-1),0:(p.surroundSize-1));
 
-centerGrating = NaN(size(centerGaussian));
-surroundGrating = NaN(size(Annulus));
+centerGrating = NaN(p.centerSize,p.centerSize);
+surroundGrating = NaN(p.surroundSize,p.surroundSize);
 
-centerPatch = (sin(p.frequency_center*2*pi/size(centerGrating,1)*(Xc.*sin(p.orientation*(pi/180))+Yc.*cos(p.orientation*(pi/180)))-p.centerPhase));
+centerPatch = (sin(p.frequency_center*2*pi/p.centerSize*(Xc.*sin(p.orientation*(pi/180))+Yc.*cos(p.orientation*(pi/180)))-p.centerPhase));
 centerGrating = (centerPatch .* centerGaussian);
 
-surroundGrating = (sin(p.frequency_surround*2*pi/size(surroundGrating,1)*(Xs.*sin(p.orientation*(pi/180))+Ys.*cos(p.orientation*(pi/180)))-p.surroundPhase));
+surroundGrating = (sin(p.frequency_surround*2*pi/p.surroundSize*(Xs.*sin(p.orientation*(pi/180))+Ys.*cos(p.orientation*(pi/180)))-p.surroundPhase));
 tmpSurround = (surroundGrating .* Annulus);
 tmpSurround(bgAnnulus == 0) = -1;
-foo = (eccen(:,p.surroundRadius:end) <= p.backgroundRadius) -1;
-tmpSurround(:,p.surroundRadius:end) = foo;
 surroundGrating = tmpSurround;
 %% MASK
 
