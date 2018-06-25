@@ -9,7 +9,7 @@ load('visualmemory_subjectsRan')
 % visualmemory_condition_order = perms([1 2 1 2]);
 % visualmemory_subjectsRan = {};
 %% PREPARE
-p.repetitions = 15; % data will be saved if > 5
+p.repetitions = 1; % data will be saved if > 5
 p.numBlocks = p.repetitions;
 
 % Subject Name
@@ -280,11 +280,11 @@ surroundGrating = tmpSurround;
 %% MASK
 
 %sf filter
-cutoff = [1 3] .*round(p.surroundSize/p.pixPerDeg);
-f = freqspace(p.surroundSize);
+cutoff = [1 3] .*round(size(bgAnnulus,1)/p.pixPerDeg);
+f = freqspace(size(bgAnnulus,1));
 
 %bandpass filter
-filter = Bandpass2(p.surroundSize, f(cutoff(1)), f(cutoff(2)));
+filter = Bandpass2(size(bgAnnulus,1), f(cutoff(1)), f(cutoff(2)));
 
 %low pass filter
 h = fspecial('disk', 5);
@@ -292,9 +292,9 @@ filter = conv2(filter, h, 'same');
 filter = filter/max(filter(:));
 
 %noise
-maskGrating = NaN(round(t.flickerTime/t.flicker), p.surroundRadius, p.surroundRadius);
+maskGrating = NaN(round(t.flickerTime/t.flicker), size(bgAnnulus,1), size(bgAnnulus,1));
 for nTrial = 1:(t.flickerTime/t.flicker)
-    noise = -1+2.*rand(p.surroundRadius);
+    noise = -1+2.*rand(size(bgAnnulus,1));
     fftNoise = fftshift(fft2(noise));
     filterNoise = fftNoise .* filter;
     newNoise = real(ifft2(fftshift(filterNoise)));
@@ -338,7 +338,7 @@ PsychHID('KbQueueStart', deviceNumber);
 % Generate mask texture
 Mask = NaN(round(t.flickerTime/t.flicker),1);
 for m = 1:round(t.flickerTime/t.flicker)
- Mask(m,:) = Screen('MakeTexture', window, squeeze(maskGrating(m,:,:))* colors.grey + colors.grey);
+    Mask(m,:) = Screen('MakeTexture', window, squeeze(maskGrating(m,:,:))* colors.grey + colors.grey);
 end
 
 % Welcome Screen
@@ -349,10 +349,10 @@ welcomeText = ['Hello' '\n' ...
 DrawFormattedText(window, welcomeText, 'center', 'center', 255);
 Screen('Flip', window);
 while 1
- [pmbutton, ~] = PsychPowerMate('Get', powermate);
- if pmbutton == 1
- break;
- end
+     [pmbutton, ~] = PsychPowerMate('Get', powermate);
+     if pmbutton == 1
+        break;
+     end
 end
 
 % Starting Screen
@@ -365,258 +365,258 @@ WaitSecs(t.startTime);
 nSet = 1;
 for nTrial = 1:size(p.trialEvents,1)
 
- %--------------------%
- % Trial Settings %
- %--------------------% 
- p.currentDegreeLocation = round(p.trialEvents(nTrial,2));
- p.centerContrast = p.trialEvents(nTrial,3);
- targetXY = round([CenterX+p.eccentricity*cos(p.currentDegreeLocation*(pi/180))' CenterY-p.eccentricity*sin(p.currentDegreeLocation*(pi/180))']);
+     %--------------------%
+     % Trial Settings %
+     %--------------------% 
+     p.currentDegreeLocation = round(p.trialEvents(nTrial,2));
+     p.centerContrast = p.trialEvents(nTrial,3);
+     targetXY = round([CenterX+p.eccentricity*cos(p.currentDegreeLocation*(pi/180))' CenterY-p.eccentricity*sin(p.currentDegreeLocation*(pi/180))']);
 
- %--------------------%
- % Stimulus 1 %
- %--------------------%
- %If perception condition, draw surround annulus with center grating
- if p.trialEvents(nTrial,1) == 1 
- surroundTexture = (surroundGrating*p.surroundContrast)*colors.grey + colors.grey;
- surroundTexture(:,:,2) = surroundTransparencyMask;
- surroundStimulus = Screen('MakeTexture', window, surroundTexture);
- Screen('DrawTexture', window, surroundStimulus, [], CenterRectOnPoint([0 0 size(surroundTexture,1) size(surroundTexture,1)], CenterX, CenterY), p.stimorientation);
- else
- Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
- end 
- % Draw center grating
- centerTexture = (centerGrating*p.centerContrast)*colors.grey + colors.grey;
- centerTexture(:,:,2) = centerTransparencyMask;
- centerStimulus = Screen('MakeTexture', window, centerTexture);
- Screen('DrawTexture', window, centerStimulus, [], ...
- CenterRectOnPoint([0 0 size(centerTexture,1) size(centerTexture,1)], targetXY(1), targetXY(2)), p.stimorientation); 
- % Draw fixation
- Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation])
- Screen('FillOval', window,colors.green,[CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation]);
- Screen('Flip',window);
- WaitSecs(t.stimOn1);
+     %--------------------%
+     % Stimulus 1 %
+     %--------------------%
+     %If perception condition, draw surround annulus with center grating
+     if p.trialEvents(nTrial,1) == 1 
+     surroundTexture = (surroundGrating*p.surroundContrast)*colors.grey + colors.grey;
+     surroundTexture(:,:,2) = surroundTransparencyMask;
+     surroundStimulus = Screen('MakeTexture', window, surroundTexture);
+     Screen('DrawTexture', window, surroundStimulus, [], CenterRectOnPoint([0 0 size(surroundTexture,1) size(surroundTexture,1)], CenterX, CenterY), p.stimorientation);
+     else
+     Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
+     end 
+     % Draw center grating
+     centerTexture = (centerGrating*p.centerContrast)*colors.grey + colors.grey;
+     centerTexture(:,:,2) = centerTransparencyMask;
+     centerStimulus = Screen('MakeTexture', window, centerTexture);
+     Screen('DrawTexture', window, centerStimulus, [], ...
+     CenterRectOnPoint([0 0 size(centerTexture,1) size(centerTexture,1)], targetXY(1), targetXY(2)), p.stimorientation); 
+     % Draw fixation
+     Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation])
+     Screen('FillOval', window,colors.green,[CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation]);
+     Screen('Flip',window);
+     WaitSecs(t.stimOn1);
 
- %--------------------%
- % Mask 1 %
- %--------------------% 
- indx = Shuffle(1:round(t.flickerTime/t.flicker));
- StartMask = GetSecs;
- for a = indx
- if GetSecs > StartMask + t.flickerTime - t.flicker
- break
- end 
- Screen('DrawTexture', window, Mask(a,:), [],CenterRectOnPoint([0 0 p.surroundSize p.surroundSize], CenterX, CenterY));
- Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation]);
- Screen('FillOval', window, colors.green, [CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation]);
- Screen('Flip', window);
- WaitSecs(t.flicker); 
- end
+     %--------------------%
+     % Mask 1 %
+     %--------------------% 
+     indx = Shuffle(1:round(t.flickerTime/t.flicker));
+     StartMask = GetSecs;
+     for a = indx
+     if GetSecs > StartMask + t.flickerTime - t.flicker
+     break
+     end 
+     Screen('DrawTexture', window, Mask(a,:), [],CenterRectOnPoint([0 0 p.surroundSize p.surroundSize], CenterX, CenterY));
+     Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation]);
+     Screen('FillOval', window, colors.green, [CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation]);
+     Screen('Flip', window);
+     WaitSecs(t.flicker); 
+     end
 
- %--------------------%
- % Stimulus 2 %
- %--------------------%
- %%% Retention interval 1
- Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
- % Draw fixation
- Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation])
- Screen('FillOval', window,colors.green,[CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation]);
- Screen('Flip',window);
- WaitSecs(t.retention);
+     %--------------------%
+     % Stimulus 2 %
+     %--------------------%
+     %%% Retention interval 1
+     Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
+     % Draw fixation
+     Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation])
+     Screen('FillOval', window,colors.green,[CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation]);
+     Screen('Flip',window);
+     WaitSecs(t.retention);
 
- %%% Draw surround if memory condition
- Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
- % If memory condition, display surround annulus alone
- if p.trialEvents(nTrial,1) == 2
- surroundTexture = (surroundGrating*p.surroundContrast)*colors.grey + colors.grey;
- surroundTexture(:,:,2) = surroundTransparencyMask;
- surroundStimulus = Screen('MakeTexture', window, surroundTexture);
- Screen('DrawTexture', window, surroundStimulus, [], CenterRectOnPoint([0 0 size(surroundTexture,1) size(surroundTexture,1)], CenterX, CenterY), p.stimorientation);
- end
- % Draw fixation
- Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation])
- Screen('FillOval', window,colors.green,[CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation]);
- Screen('Flip',window);
- WaitSecs(t.stimOn2);
+     %%% Draw surround if memory condition
+     Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
+     % If memory condition, display surround annulus alone
+     if p.trialEvents(nTrial,1) == 2
+     surroundTexture = (surroundGrating*p.surroundContrast)*colors.grey + colors.grey;
+     surroundTexture(:,:,2) = surroundTransparencyMask;
+     surroundStimulus = Screen('MakeTexture', window, surroundTexture);
+     Screen('DrawTexture', window, surroundStimulus, [], CenterRectOnPoint([0 0 size(surroundTexture,1) size(surroundTexture,1)], CenterX, CenterY), p.stimorientation);
+     end
+     % Draw fixation
+     Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation])
+     Screen('FillOval', window,colors.green,[CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation]);
+     Screen('Flip',window);
+     WaitSecs(t.stimOn2);
 
- %%% Retention interval 2
- Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
- % Draw fixation
- Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation])
- Screen('FillOval', window,colors.green,[CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation]);
- Screen('Flip',window);
- WaitSecs(t.retention);
+     %%% Retention interval 2
+     Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
+     % Draw fixation
+     Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation])
+     Screen('FillOval', window,colors.green,[CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation]);
+     Screen('Flip',window);
+     WaitSecs(t.retention);
 
- %--------------------%
- % Mask 2 %
- %--------------------% 
- indx = Shuffle(1:round(t.flickerTime/t.flicker));
- StartMask = GetSecs;
- for a = indx
- if GetSecs > StartMask + t.flickerTime - t.flicker
- break
- end 
- Screen('DrawTexture', window, Mask(a,:), [],CenterRectOnPoint([0 0 p.surroundSize p.surroundSize], CenterX, CenterY));
- Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation]);
- Screen('FillOval', window, colors.green, [CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation]);
- Screen('Flip', window);
- WaitSecs(t.flicker); 
- end
+     %--------------------%
+     % Mask 2 %
+     %--------------------% 
+     indx = Shuffle(1:round(t.flickerTime/t.flicker));
+     StartMask = GetSecs;
+     for a = indx
+     if GetSecs > StartMask + t.flickerTime - t.flicker
+     break
+     end 
+     Screen('DrawTexture', window, Mask(a,:), [],CenterRectOnPoint([0 0 p.surroundSize p.surroundSize], CenterX, CenterY));
+     Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation]);
+     Screen('FillOval', window, colors.green, [CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation]);
+     Screen('Flip', window);
+     WaitSecs(t.flicker); 
+     end
 
- %--------------------%
- % Probe %
- %--------------------%
+     %--------------------%
+     % Probe %
+     %--------------------%
 
- % Check if ESCAPE has been pressed
- [keyIsDown, keyCode] = PsychHID('KbQueueCheck', deviceNumber); %check response
- key = find(keyCode);
- if key == KbName('ESCAPE') % windows = 'esc', mac = 'ESCAPE' If user presses ESCAPE, exit the program.
- Screen('LoadNormalizedGammaTable', window, OriginalCLUT);
- Screen('CloseAll');
- ListenChar(1); % % Go back to unsuppressed mode
- FlushEvents('keyDown', deviceNumber);
- error('User exited program.');
- end
+     % Check if ESCAPE has been pressed
+     [keyIsDown, keyCode] = PsychHID('KbQueueCheck', deviceNumber); %check response
+     key = find(keyCode);
+     if key == KbName('ESCAPE') % windows = 'esc', mac = 'ESCAPE' If user presses ESCAPE, exit the program.
+     Screen('LoadNormalizedGammaTable', window, OriginalCLUT);
+     Screen('CloseAll');
+     ListenChar(1); % % Go back to unsuppressed mode
+     FlushEvents('keyDown', deviceNumber);
+     error('User exited program.');
+     end
 
- %Show probe at random location with random contrast
- Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
+     %Show probe at random location with random contrast
+     Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
 
- initialAngle = p.trialEvents(nTrial,4);
- ProbeXY = round([CenterX + p.eccentricity*(cos(initialAngle*(pi/180)))' CenterY - p.eccentricity*(sin(initialAngle*(pi/180)))']);
- intial_contrast = p.trialEvents(nTrial,5); % random start contrast on each trial
-
-
- Probe = Screen('MakeTexture', window, squeeze(centerGrating)* (intial_contrast *colors.grey) + colors.grey);
- Screen('DrawTexture', window, Probe, [], CenterRectOnPoint([0 0 size(centerTexture,1) size(centerTexture,1)], ProbeXY(1), ProbeXY(2)), p.stimorientation);
- Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation]);
- Screen('FillOval', window, colors.green, [CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation]);
- Screen('Flip', window);
- starttrial = GetSecs; % get the start time of each trial
+     initialAngle = p.trialEvents(nTrial,4);
+     ProbeXY = round([CenterX + p.eccentricity*(cos(initialAngle*(pi/180)))' CenterY - p.eccentricity*(sin(initialAngle*(pi/180)))']);
+     intial_contrast = p.trialEvents(nTrial,5); % random start contrast on each trial
 
 
-% Allow for dial rotation for location update
- [~, startangle] = PsychPowerMate('Get',powermate);
+     Probe = Screen('MakeTexture', window, squeeze(centerGrating)* (intial_contrast *colors.grey) + colors.grey);
+     Screen('DrawTexture', window, Probe, [], CenterRectOnPoint([0 0 size(centerTexture,1) size(centerTexture,1)], ProbeXY(1), ProbeXY(2)), p.stimorientation);
+     Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation]);
+     Screen('FillOval', window, colors.green, [CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation]);
+     Screen('Flip', window);
+     starttrial = GetSecs; % get the start time of each trial
 
- while 1 %start inf loop
- % Query PowerMate button state and rotation angle in "clicks"
- [pmbutton, angle] = PsychPowerMate('Get', powermate);
- % 1st button is the "or" of the 1st mouse button and the actual PowerMate button
- if startangle ~= angle
 
- % Convert turn of dial first to degrees and then to contrast:
- Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
+    % Allow for dial rotation for location update
+     [~, startangle] = PsychPowerMate('Get',powermate);
 
- angles = ((startangle-angle)*3.8298);
- changeposition = (angles/(2*pi));
- initialAngle = initialAngle + changeposition; % update the location relative to last dial position
- ProbeXY = round([CenterX + p.eccentricity*(cos(initialAngle*(pi/180)))' CenterY - p.eccentricity*(sin(initialAngle*(pi/180)))']);
+     while 1 %start inf loop
+         % Query PowerMate button state and rotation angle in "clicks"
+         [pmbutton, angle] = PsychPowerMate('Get', powermate);
+         % 1st button is the "or" of the 1st mouse button and the actual PowerMate button
+         if startangle ~= angle
 
- Target = Screen('MakeTexture', window, squeeze(centerGrating)* (intial_contrast*colors.grey) + colors.grey);
- Screen('DrawTexture', window, Target, [], CenterRectOnPoint([0 0 size(centerTexture,1) size(centerTexture,1)], ProbeXY(1), ProbeXY(2)), p.stimorientation)
- Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation]);
- Screen('FillOval', window, colors.green, [CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation])
- Screen('Flip', window);
+             % Convert turn of dial first to degrees and then to contrast:
+             Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
 
- startangle = angle;
- end
- if pmbutton == 1;
- locationTime = GetSecs;
-% % % make sure angle stays in 0-360 range
- correctedAngle = mod(initialAngle, 360);
+             angles = ((startangle-angle)*3.8298);
+             changeposition = (angles/(2*pi));
+             initialAngle = initialAngle + changeposition; % update the location relative to last dial position
+             ProbeXY = round([CenterX + p.eccentricity*(cos(initialAngle*(pi/180)))' CenterY - p.eccentricity*(sin(initialAngle*(pi/180)))']);
 
- data.EstimatedLocation(nTrial) = correctedAngle;
-% 
-% % %make sure difference is in the 180 range
- difference = abs(p.trialEvents(nTrial,2) - data.EstimatedLocation(nTrial));
+             Target = Screen('MakeTexture', window, squeeze(centerGrating)* (intial_contrast*colors.grey) + colors.grey);
+             Screen('DrawTexture', window, Target, [], CenterRectOnPoint([0 0 size(centerTexture,1) size(centerTexture,1)], ProbeXY(1), ProbeXY(2)), p.stimorientation)
+             Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation]);
+             Screen('FillOval', window, colors.green, [CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation])
+             Screen('Flip', window);
 
- if difference > 180
- difference = abs(difference - 360);
- end
+             startangle = angle;
+         end
+         if pmbutton == 1;
+             locationTime = GetSecs;
+            % % % make sure angle stays in 0-360 range
+             correctedAngle = mod(initialAngle, 360);
 
- data.DifferenceLocation(nTrial) = difference;
+             data.EstimatedLocation(nTrial) = correctedAngle;
+            % 
+            % % %make sure difference is in the 180 range
+             difference = abs(p.trialEvents(nTrial,2) - data.EstimatedLocation(nTrial));
 
- data.ResponseTime_location(nTrial) = (locationTime - starttrial);
- pmbutton = 0;
- break
- end
- end
-% 
-% % PowerMate is sampled at 10msec intervals, therefore have a short
-% % break to make sure it doesn't skip the contrast task
- WaitSecs(1);
-% 
-% %Button press for contrast
- [~, contrastangle] = PsychPowerMate('Get', powermate);
- while 1 %start inf loop
-% % Query PowerMate button state and rotation angle in "clicks"
- [pmbutton_contrast, angle2] = PsychPowerMate('Get', powermate);
-% % 1st button is the "or" of the 1st mouse button and the actual PowerMate button
- if contrastangle ~= angle2
-% 
-% % Convert turn of dial first to degrees and then to contrast:
- angles = (angle * 3.8298)/360;
- angles = ((contrastangle-angle2)*3.8298);
- changecontrast = angles/360;
- intial_contrast = intial_contrast - changecontrast; % update the contrast relative to last dial position
-% % Make sure we stay in range
-% 
- if intial_contrast > 1
- intial_contrast = 1;
- elseif intial_contrast < 0
- intial_contrast = 0.001;
- end
- Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
+         if difference > 180
+            difference = abs(difference - 360);
+         end
 
- Target = Screen('MakeTexture', window, squeeze(centerGrating)* (intial_contrast*colors.grey) + colors.grey);
- Screen('DrawTexture', window, Target, [], CenterRectOnPoint([0 0 size(centerTexture,1) size(centerTexture,1)], ProbeXY(1), ProbeXY(2)), p.stimorientation)
- Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation]);
- Screen('FillOval', window, colors.green, [CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation])
- Screen('Flip', window);
+         data.DifferenceLocation(nTrial) = difference;
 
- contrastangle = angle2;
- end
- if pmbutton_contrast == 1
- data.EstimatedContrast(nTrial) = intial_contrast;
- data.DifferenceContrast(nTrial) = p.trialEvents(nTrial,3) - data.EstimatedContrast(nTrial);
- data.ResponseTime(nTrial) = (GetSecs - starttrial);
- pmbutton_contrast = 0;
- break
- end 
- end
+         data.ResponseTime_location(nTrial) = (locationTime - starttrial);
+         pmbutton = 0;
+         break
+         end
+     end
+    % 
+    % % PowerMate is sampled at 10msec intervals, therefore have a short
+    % % break to make sure it doesn't skip the contrast task
+     WaitSecs(1);
+    % 
+    % %Button press for contrast
+     [~, contrastangle] = PsychPowerMate('Get', powermate);
+     while 1 %start inf loop
+        % % Query PowerMate button state and rotation angle in "clicks"
+         [pmbutton_contrast, angle2] = PsychPowerMate('Get', powermate);
+        % % 1st button is the "or" of the 1st mouse button and the actual PowerMate button
+         if contrastangle ~= angle2
+        % 
+        % % Convert turn of dial first to degrees and then to contrast:
+             angles = (angle * 3.8298)/360;
+             angles = ((contrastangle-angle2)*3.8298);
+             changecontrast = angles/360;
+             intial_contrast = intial_contrast - changecontrast; % update the contrast relative to last dial position
+            % % Make sure we stay in range
+            % 
+             if intial_contrast > 1
+                 intial_contrast = 1;
+             elseif intial_contrast < 0
+                 intial_contrast = 0.001;
+             end
+             Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
 
- %--------------------%
- % Break %
- %--------------------% 
- if mod(nTrial,p.numTrialsPerSet) == 0 && nTrial == p.numTrialsPerSet*nSet 
- rest = GetSecs; 
- Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
- Screen('TextStyle', window, 1);
- Screen('TextSize', window, 16);
- breakText = ['You make take a short break now.\n Or press the powermate to continue.\n'];
- DrawFormattedText(window, breakText, 'center', 'center', colors.white);
- Screen('Flip', window);
- restText = ['You can take a short break now, ' '' '\n' ...
- 'or press the dial to continue' '\n' '\n' ...
- num2str(nSet-1) '/' num2str(p.numSets) ' completed.' ];
- DrawFormattedText(window, restText, 'center', 'center', colors.white);
- Screen('Flip', window);
- pmbuttonbreak = 0;
- WaitSecs(1 );
- while 1
- [pmbuttonbreak, a] = PsychPowerMate('Get', powermate);
- if pmbuttonbreak == 1
- break;
- end
- end
- t.restTime(nSet) = (GetSecs-rest)/60;
- nSet = nSet + 1;
- end
+             Target = Screen('MakeTexture', window, squeeze(centerGrating)* (intial_contrast*colors.grey) + colors.grey);
+             Screen('DrawTexture', window, Target, [], CenterRectOnPoint([0 0 size(centerTexture,1) size(centerTexture,1)], ProbeXY(1), ProbeXY(2)), p.stimorientation)
+             Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation]);
+             Screen('FillOval', window, colors.green, [CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation])
+             Screen('Flip', window);
 
- % ITI
- Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
- Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation]);
- Screen('FillOval' , window, colors.green, [CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation]);
- Screen('Flip',window);
- WaitSecs(t.iti);
+             contrastangle = angle2;
+         end
+         if pmbutton_contrast == 1
+         data.EstimatedContrast(nTrial) = intial_contrast;
+         data.DifferenceContrast(nTrial) = p.trialEvents(nTrial,3) - data.EstimatedContrast(nTrial);
+         data.ResponseTime(nTrial) = (GetSecs - starttrial);
+         pmbutton_contrast = 0;
+         break
+         end 
+     end
+
+     %--------------------%
+     % Break %
+     %--------------------% 
+     if mod(nTrial,p.numTrialsPerSet) == 0 && nTrial == p.numTrialsPerSet*nSet 
+         rest = GetSecs; 
+         Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
+         Screen('TextStyle', window, 1);
+         Screen('TextSize', window, 16);
+         breakText = ['You make take a short break now.\n Or press the powermate to continue.\n'];
+         DrawFormattedText(window, breakText, 'center', 'center', colors.white);
+         Screen('Flip', window);
+         restText = ['You can take a short break now, ' '' '\n' ...
+         'or press the dial to continue' '\n' '\n' ...
+         num2str(nSet-1) '/' num2str(p.numSets) ' completed.' ];
+         DrawFormattedText(window, restText, 'center', 'center', colors.white);
+         Screen('Flip', window);
+         pmbuttonbreak = 0;
+         WaitSecs(1 );
+         while 1
+         [pmbuttonbreak, a] = PsychPowerMate('Get', powermate);
+             if pmbuttonbreak == 1
+                break;
+             end
+         end
+         t.restTime(nSet) = (GetSecs-rest)/60;
+         nSet = nSet + 1;
+     end
+
+     % ITI
+     Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
+     Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation]);
+     Screen('FillOval' , window, colors.green, [CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation]);
+     Screen('Flip',window);
+     WaitSecs(t.iti);
 end
 
 %Draw some more text to the screen outside of the loop:

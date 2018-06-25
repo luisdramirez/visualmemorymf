@@ -171,8 +171,6 @@ for ii = 1:(t.flickertime/t.flicker)
     mask_grating(ii,:,:) = tmp_mask;
 end
 
-
-
 % Make unique grating for every trial
 [Xc,Yc] = meshgrid(0:(p.PatchSize-1),0:(p.PatchSize-1));
 [Xs,Ys] = meshgrid(0:(p.Surround-1),0:(p.Surround-1));
