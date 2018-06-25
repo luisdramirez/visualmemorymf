@@ -292,16 +292,16 @@ filter = conv2(filter, h, 'same');
 filter = filter/max(filter(:));
 
 %noise
-maskGrating = NaN(round(t.flickerTime/t.flicker), p.surroundSize, p.surroundSize);
+maskGrating = NaN(round(t.flickerTime/t.flicker), p.surroundRadius, p.surroundRadius);
 for nTrial = 1:(t.flickerTime/t.flicker)
-     noise = -1+2.*rand(p.surroundSize);
-     fftNoise = fftshift(fft2(noise));
-     filterNoise = fftNoise .* f    ilter;
-     newNoise = real(ifft2(fftshift(filterNoise)));
-     noiseMask = newNoise./(max(abs(newNoise(:))));
-     tempMask = (noiseMask.*bgAnnulus);
-     tempMask(bgAnnulus == 0) = -1; %to make black background make == 0
-     maskGrating (nTrial,:,:) = tempMask;
+    noise = -1+2.*rand(p.surroundRadius);
+    fftNoise = fftshift(fft2(noise));
+    filterNoise = fftNoise .* filter;
+    newNoise = real(ifft2(fftshift(filterNoise)));
+    noiseMask = newNoise./(max(abs(newNoise(:))));
+    tempMask = (noiseMask.*bgAnnulus);
+    tempMask(bgAnnulus == 0) = -1; %to make black background make == 0
+    maskGrating (nTrial,:,:) = tempMask;
 end 
 
 %% WINDOW SETUP
