@@ -1,4 +1,4 @@
-%% Begin %%
+ %% 
 % Preliminary data loading and setup %
 clear all;
 close all;
@@ -16,7 +16,7 @@ data = data';
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if p.numContrasts == 1 && p.numConditions == 2
-    %% Organize Trial Events & Data %%
+  %%  Organize Trial Events & Data %%
     if any(p.trialEvents(:,1) == 1) % Perception trials, condition # = 1
         cond1Results = p.trialEvents(p.trialEvents(:,1)==1,:);
         cond1Data = data(p.trialEvents(:,1)==1,:);
@@ -61,17 +61,16 @@ if p.numContrasts == 1 && p.numConditions == 2
     else
         yMax = maxContrast + 0.1;
     end
-
+    
+    
     figure(1)
     set(gcf, 'Name', sprintf('%s Versus %s Visual Analysis: Contrast',cond1Name,cond2Name));
     subplot(2,3,1)
     plot(cond1Data(:,4)); %Estimated Contrast
     hold on
-    plot(1:length(cond1Results(:,3)),cond1Results(:,3));
-%     myfittype = fittype('a+b*log(x)','dependent',{'y'}, 'independent',{'x'},'coefficients' ,{'a,b'});
-%     myfit = fit(1:length(pData(:,4),pData(:,4)',myfittype));
-%     plot(myfit); %%%% LOG FIT %%%%
     fit = polyfit(1:length(cond1Data(:,4)),cond1Data(:,4)',1);
+    plot(1:length(cond1Results(:,3)),cond1Results(:,3));
+    %%%% LOG FIT %%%% ?!?
     plot(polyval(fit,1:length(cond1Data(:,4)))); %Line of best fit for the Estimated Contrast
     xlim([1 length(cond1Data(:,4))]);
     ylim([yMin yMax]);
@@ -227,7 +226,7 @@ elseif p.numContrasts == 5 && p.numConditions == 2
         
     %% Plot Estimated Contrasts vs. Actual Contrasts %%
     figure(1)
-    set(gcf, 'Name', sprintf('Contrast Variance over 5 Contrast steps for %s',condition));
+    set(gcf, 'Name', sprintf('Contrast Statistics over 5 Contrasts for %s',condition));
     subplot(2,6,1)
     plot(orgData(:,4));
     hold on
@@ -235,12 +234,12 @@ elseif p.numContrasts == 5 && p.numConditions == 2
     ylim([0 1]);
     title('Estimated Vs. Actual Contrast')
     hold on
-    plot(1:(length(mean1)+length(mean2)+length(mean3)+length(mean4)+length(mean5)),meanVec);
+    plot(1:length(meanVec),meanVec);
     legend('Estimated Contrast','Actual Contrast','Avg. Estimated Contrast per Level');
     
     %Display Trendline
     subplot(2,6,7)
-    fit = polyfit([1:length(orgData(:,4))],orgData(:,4)',5); %5 polynomial for number of contrasts - trendline
+    fit = polyfit([1:length(orgData(:,4))],orgData(:,4)',5); %5 polynomial for number of contrasts - visual trendline
     plot(polyval(fit,1:length(orgData(:,4)))); %Line of best fit for the Estimated Contrast
     ylim([0 1])
     hold on
@@ -322,18 +321,23 @@ elseif p.numContrasts == 5 && p.numConditions == 2
     
     %% Percent Error of Contrast Responses %%
     
-    %Percent Error Calculations
-    contrast1PE = zeros(size(1:length(data1(:,4))));
-    contrast2PE = zeros(size(1:length(data2(:,4))));
-    contrast3PE = zeros(size(1:length(data3(:,4))));
-    contrast4PE = zeros(size(1:length(data4(:,4))));
-    contrast5PE = zeros(size(1:length(data5(:,4))));
+    %Percent Error Calculations (includes location PE)
+    contrast1PE = repmat(zeros(size(1:length(data1(:,4)))),2,1);
+    contrast2PE = repmat(zeros(size(1:length(data2(:,4)))),2,1);
+    contrast3PE = repmat(zeros(size(1:length(data3(:,4)))),2,1);
+    contrast4PE = repmat(zeros(size(1:length(data4(:,4)))),2,1);
+    contrast5PE = repmat(zeros(size(1:length(data5(:,4)))),2,1);
     for i = 1:(length(sortedTE)/p.numContrasts)
-        contrast1PE(i) = (abs((data1(i,4)-TE1(i,3))/TE1(i,3)))*100;
-        contrast2PE(i) = (abs((data2(i,4)-TE2(i,3))/TE2(i,3)))*100;
-        contrast3PE(i) = (abs((data3(i,4)-TE3(i,3))/TE3(i,3)))*100;
-        contrast4PE(i) = (abs((data4(i,4)-TE4(i,3))/TE4(i,3)))*100;
-        contrast5PE(i) = (abs((data5(i,4)-TE5(i,3))/TE5(i,3)))*100;
+        contrast1PE(1,i) = (abs((data1(i,4)-TE1(i,3))/TE1(i,3)))*100;
+        contrast1PE(2,i) = (abs((data1(i,2)/TE1(i,2))))*100;
+        contrast2PE(1,i) = (abs((data2(i,4)-TE2(i,3))/TE2(i,3)))*100;
+        contrast2PE(2,i) = (abs((data2(i,2)/TE2(i,2))))*100;
+        contrast3PE(1,i) = (abs((data3(i,4)-TE3(i,3))/TE3(i,3)))*100;
+        contrast3PE(2,i) = (abs((data3(i,2)/TE3(i,2))))*100;
+        contrast4PE(1,i) = (abs((data4(i,4)-TE4(i,3))/TE4(i,3)))*100;
+        contrast4PE(2,i) = (abs((data4(i,2)/TE4(i,2))))*100;
+        contrast5PE(1,i) = (abs((data5(i,4)-TE5(i,3))/TE5(i,3)))*100;
+        contrast5PE(2,i) = (abs((data5(i,2)/TE5(i,2))))*100;
     end
    yLimPE = max([max(contrast1PE) max(contrast2PE) max(contrast3PE) max(contrast4PE) max(contrast5PE) ]) + 5;
     
@@ -341,77 +345,210 @@ elseif p.numContrasts == 5 && p.numConditions == 2
     
     % Contrast 1 Percent Error
     subplot(2,6,8)
-    plot(contrast1PE);
+    plot(contrast1PE(1,:));
     xlim([1 length(contrast1PE)])
     ylim([0 yLimPE])
     title(sprintf('%.2f Contrast Percent Error',TE1(1,3)))
     hold on
-    plot(repmat(mean(contrast1PE),1,length(contrast1PE)))
+    plot(repmat(mean(contrast1PE(1,:)),1,length(contrast1PE)))
     legend('Percent Error of Each Estimation','Average Percent Error')
     xlabel('Trial Number')
     ylabel('Percent Error')
     
     % Contrast 2 Percent Error
     subplot(2,6,9)
-    plot(contrast2PE);
+    plot(contrast2PE(1,:));
     xlim([1 length(contrast2PE)])
     ylim([0 yLimPE])
     title(sprintf('%.2f Contrast Percent Error',TE2(1,3)))
     hold on
-    plot(repmat(mean(contrast2PE),1,length(contrast2PE)))
+    plot(repmat(mean(contrast2PE(1,:)),1,length(contrast2PE)))
     legend('Percent Error of Each Estimation','Average Percent Error')
     xlabel('Trial Number')
     ylabel('Percent Error')
     
     % Contrast 3 Percent Error
     subplot(2,6,10)
-    plot(contrast3PE);
+    plot(contrast3PE(1,:));
     xlim([1 length(contrast3PE)])
     ylim([0 yLimPE])
     title(sprintf('%.2f Contrast Percent Error',TE3(1,3)))
     hold on
-    plot(repmat(mean(contrast3PE),1,length(contrast3PE)))
+    plot(repmat(mean(contrast3PE(1,:)),1,length(contrast3PE)))
     legend('Percent Error of Each Estimation','Average Percent Error')
     xlabel('Trial Number')
     ylabel('Percent Error')
     
     % Contrast 4 Percent Error
     subplot(2,6,11)
-    plot(contrast4PE);
+    plot(contrast4PE(1,:));
     xlim([1 length(contrast4PE)])
     ylim([0 yLimPE])
     title(sprintf('%.2f Contrast Percent Error',TE4(1,3)))
     hold on
-    plot(repmat(mean(contrast4PE),1,length(contrast4PE)))
+    plot(repmat(mean(contrast4PE(1,:)),1,length(contrast4PE)))
     legend('Percent Error of Each Estimation','Average Percent Error')
     xlabel('Trial Number')
     ylabel('Percent Error')
     
     % Contrast 5 Percent Error
     subplot(2,6,12)
-    plot(contrast5PE);
+    plot(contrast5PE(1,:));
     xlim([1 length(contrast5PE)])
     ylim([0 yLimPE])
     title(sprintf('%.2f Contrast Percent Error',TE5(1,3)))
     hold on
-    plot(repmat(mean(contrast5PE),1,length(contrast5PE)))
+    plot(repmat(mean(contrast5PE(1,:)),1,length(contrast5PE)))
     legend('Percent Error of Each Estimation','Average Percent Error')
     xlabel('Trial Number')
     ylabel('Percent Error')
     
     
-%% Location Analysis %%
+    %% Location Analysis %%
 
-% Location Difference
-figure(2)
-subplot(2,3,1)
-plot(data1(:,2)) %Location Difference
-hold on
-plot(repmat(mean(data1(:,2)),1,length(data1(:,2))))
-fprintf('The average location difference for a Contrast of %.2f is %.2f\n',TE1(1,3),mean(data1(:,2)));
+    % Location Difference in relation to differnt contrasts - any discrepancies
+    % between average difference by contrast level?
+
+    %Y Limit for accurate comparisons
+    yLocMax = max([max(data1(:,2)) max(data2(:,2)) max(data3(:,2)) max(data4(:,2)) max(data5(:,2))])+5;
+    figure(2)
+    set(gcf, 'Name', sprintf('Location Statistics over 5 Contrasts for %s',condition));
+
+    % General Location Differences and Trendline
+    subplot(3,5,11)
+    plot(sortedData(:,2))
+    hold on
+    ylim([0 yLocMax])
+    xlabel('Trial Number')
+    ylabel('Estimated vs. Actual Location Difference (°)')
+    title('Location Difference for all Contrasts')
+    fit = polyfit(1:length(sortedData(:,2)),sortedData(:,2)',1);
+    plot(polyval(fit,1:length(sortedData(:,2)))); 
+
+    %Contrast 1 Location Difference
+    subplot(3,5,1)
+    plot(data1(:,2))
+    xlim([1 length(data1)])
+    ylim([0 yLocMax])
+    xlabel('Trial Number')
+    ylabel('Estimated vs. Actual Location Difference (°)')
+    title(sprintf('Location Difference for %.2f Contrast',TE1(1,3)))
+    hold on
+    plot(repmat(mean(data1(:,2)),1,length(data1(:,2))))
+    fprintf('\nThe average location difference for a Contrast of %.2f is %.2f\n',TE1(1,3),mean(data1(:,2)));
+
+    %Contrast 2 Location Difference
+    subplot(3,5,2)
+    plot(data2(:,2))
+    xlim([1 length(data2)])
+    ylim([0 yLocMax])
+    xlabel('Trial Number')
+    ylabel('Estimated vs. Actual Location Difference (°)')
+    title(sprintf('Location Difference for %.2f Contrast',TE2(1,3)))
+    hold on
+    plot(repmat(mean(data2(:,2)),1,length(data2(:,2))))
+    fprintf('\nThe average location difference for a Contrast of %.2f is %.2f\n',TE2(1,3),mean(data2(:,2)));
+
+    %Contrast 3 Location Difference
+    subplot(3,5,3)
+    plot(data3(:,2))
+    xlim([1 length(data3)])
+    ylim([0 yLocMax])
+    xlabel('Trial Number')
+    ylabel('Estimated vs. Actual Location Difference (°)')
+    title(sprintf('Location Difference for %.2f Contrast',TE3(1,3)))
+    hold on
+    plot(repmat(mean(data3(:,2)),1,length(data3(:,2))))
+    fprintf('\nThe average location difference for a Contrast of %.2f is %.2f\n',TE3(1,3),mean(data3(:,2)));
+
+    %Contrast 4 Location Difference
+    subplot(3,5,4)
+    plot(data4(:,2))
+    xlim([1 length(data4)])
+    ylim([0 yLocMax])
+    xlabel('Trial Number')
+    ylabel('Estimated vs. Actual Location Difference (°)')
+    title(sprintf('Location Difference for %.2f Contrast',TE4(1,3)))
+    hold on
+    plot(repmat(mean(data4(:,2)),1,length(data4(:,2))))
+    fprintf('\nThe average location difference for a Contrast of %.2f is %.2f\n',TE4(1,3),mean(data4(:,2)));
+
+    %Contrast 5 Location Difference
+    subplot(3,5,5)
+    plot(data5(:,2))
+    xlim([1 length(data5)])
+    ylim([0 yLocMax])
+    xlabel('Trial Number')
+    ylabel('Estimated vs. Actual Location Difference (°)')
+    title(sprintf('Location Difference for %.2f Contrast',TE5(1,3)))
+    hold on
+    plot(repmat(mean(data5(:,2)),1,length(data5(:,2))))
+    fprintf('\nThe average location difference for a Contrast of %.2f is %.2f\n',TE5(1,3),mean(data5(:,2)));
 
 
+%% Percent Error in Location Estimations %%
 
+    yLimPE = max([max(contrast1PE(2,:)) max(contrast2PE(2,:)) max(contrast3PE(2,:)) max(contrast4PE(2,:)) max(contrast5PE(2,:))])+5;
+
+    % Location Percent Error, Contrast 1 
+    subplot(3,5,6)
+    plot(contrast1PE(2,:));
+    xlim([1 length(contrast1PE)])
+    ylim([0 yLimPE])
+    title(sprintf('Location Difference Percent Error for %.2f Contrast Level',TE1(1,3)))
+    hold on
+    plot(repmat(mean(contrast1PE(2,:)),1,length(contrast1PE)))
+    legend('Percent Error of Each Estimation','Average Percent Error')
+    xlabel('Trial Number')
+    ylabel('Percent Error')
+
+    % Location Percent Error, Contrast 2 
+    subplot(3,5,7)
+    plot(contrast2PE(2,:));
+    xlim([1 length(contrast2PE)])
+    ylim([0 yLimPE])
+    title(sprintf('Location Difference Percent Error for %.2f Contrast Level',TE2(1,3)))
+    hold on
+    plot(repmat(mean(contrast2PE(2,:)),1,length(contrast2PE)))
+    legend('Percent Error of Each Estimation','Average Percent Error')
+    xlabel('Trial Number')
+    ylabel('Percent Error')
+    
+    % Location Percent Error, Contrast 3 
+    subplot(3,5,8)
+    plot(contrast3PE(2,:));
+    xlim([1 length(contrast3PE)])
+    ylim([0 yLimPE])
+    title(sprintf('Location Difference Percent Error for %.2f Contrast Level',TE3(1,3)))
+    hold on
+    plot(repmat(mean(contrast3PE(2,:)),1,length(contrast3PE)))
+    legend('Percent Error of Each Estimation','Average Percent Error')
+    xlabel('Trial Number')
+    ylabel('Percent Error')
+    
+    % Location Percent Error, Contrast 4 
+    subplot(3,5,9)
+    plot(contrast4PE(2,:));
+    xlim([1 length(contrast4PE)])
+    ylim([0 yLimPE])
+    title(sprintf('Location Difference Percent Error for %.2f Contrast Level',TE4(1,3)))
+    hold on
+    plot(repmat(mean(contrast4PE(2,:)),1,length(contrast4PE)))
+    legend('Percent Error of Each Estimation','Average Percent Error')
+    xlabel('Trial Number')
+    ylabel('Percent Error')
+    
+    % Location Percent Error, Contrast 5 
+    subplot(3,5,10)
+    plot(contrast5PE(2,:));
+    xlim([1 length(contrast5PE)])
+    ylim([0 yLimPE])
+    title(sprintf('Location Difference Percent Error for %.2f Contrast Level',TE5(1,3)))
+    hold on
+    plot(repmat(mean(contrast5PE(2,:)),1,length(contrast5PE)))
+    legend('Percent Error of Each Estimation','Average Percent Error')
+    xlabel('Trial Number')
+    ylabel('Percent Error')
     else
         disp('Number of contrasts or conditions does not correspond to experiment design.')
 end
