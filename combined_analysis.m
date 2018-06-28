@@ -1,11 +1,12 @@
- %% 
+%% Analysis designed to evaluate and show visual representations of data from one single run %%
 % Preliminary data loading and setup %
 clear all;
 close all;
 
+dataDir = 'data';
 load('data_visualmemorymf_test_JS.mat') %works for HC, test, and regular trials
-theData = theData(2); %index to trial number
-p = theData.p; data = theData.data; t = theData.t;
+theDatacurr = theData(1); %index to trial number
+p = theDatacurr.p; data = theDatacurr.data; t = theDatacurr.t;
 data = cell2mat(struct2cell(data));
 data = data';
 [trials,params] = size(p.trialEvents);
@@ -143,6 +144,14 @@ if p.numContrasts == 1 && p.numConditions == 2
         yLimPE = 100;
     else
         yLimPE = (maxPE + 5);
+    end
+    
+    % Paired Sample T-test
+    [h,p] = ttest(cond1Data(:,5),cond2Data(:,5));
+    if h == 0
+        fprintf('The reported contrasts for %s and %s were not statistically significant',cond1Name,cond2Name);
+    elseif h == 1
+        fprintf('The reported contrasts for %s and %s were statistically significant from each other, with a p value of %.3f\n\n',cond1Name,cond2Name,p);
     end
 %% Percent Error Plot First Condition %%
     subplot(2,3,3)
@@ -406,6 +415,10 @@ elseif p.numContrasts == 5 && p.numConditions == 2
 
     % Location Difference in relation to differnt contrasts - any discrepancies
     % between average difference by contrast level?
+    
+    %Statistical Information
+%     locDiff = sortedData(:,2);
+%     [h,p,ci,stats] = ttest(sortedData(:,2),mean(sortedData(:,2))); % h
 
     %Y Limit for accurate comparisons
     yLocMax = max([max(data1(:,2)) max(data2(:,2)) max(data3(:,2)) max(data4(:,2)) max(data5(:,2))])+5;
@@ -560,14 +573,19 @@ elseif p.numContrasts == 5 && p.numConditions == 2
     legend('Percent Error','Average Percent Error')
     
     %% Timing Parameters %%
-    
-    contrastTime = theData(1).data.ResponseTime-theData(1).data.ResponseTime_location;
-    locationTime = theData(1).data.ResponseTime_location;
-    timingData = [locationTime' contrastTime'];
+    contrastTime = data(:,6) - data(:,3);
+    locationTime = data(:,3);
+    timingData = [contrastTime locationTime];
+    lengthTD = length(timingData);
+%     for i = 1:lengthTD
+%         if any(timingData(i,:) > 10)
+%             timingData(i,:) = [];
+%         end
+%     end
 %     for i = 1:length(timingData)
 %         m = timingData(i,1);
 %         n = timingData(i,2);
-%         if m >=10 || n>=10
+%         if m >10 || n>10
 %             timingData(i,:) = [];
 %         end
 %     end
@@ -579,16 +597,30 @@ elseif p.numContrasts == 5 && p.numConditions == 2
     hold on
     scatter(ones(length(timingData),1),timingData(:,1))
     scatter(2*ones(length(timingData),1),timingData(:,2))
-    set(gca,'XtickLabel',{'Location RT' , 'Contrast RT'})
+    set(gca,'XtickLabel',{'Contrast RT' , 'LocationRT'})
+    
+    %% Organize statistical information to compare against other trials %%
+    stats.data = data;
+    stats.data1 = data1;
+    stats.data2 = data2;
+    stats.data3 = data3;
+    stats.data4 = data4;
+    stats.data5 = data5;
+    stats.sortedData = sortedData;
+    stats.trialEvents = p.trialEvents;
+    stats.orgTE = orgTE;
+    stats.mean1 = mean1;
+    stats.mean2 = mean2;
+    stats.mean3 = mean3;
+    stats.mean4 = mean4;
+    stats.mean5 = mean5;
+    stats.condition = condition;
     
     else
         disp('Number of contrasts or conditions does not correspond to experiment design.')
 end
+%% Save Out Analysis Information %%
 
-%%
-%%% make a figure
-% figure, bar(1:2,avgResponseTimes)
-% hold on
-%%% scatter plot 1
-% scatter(ones(length(responseTimes),1),responseTimes(:,1))
-% scatter(2*ones(length(responseTimes),1),responseTimes(:,2))
+theData(p.runNumber).stats = stats;
+save(['data_visualmemorymf_' p.experiment '_' p.subject '.mat'], 'theData')
+%See if this correspond to the rest of theData file for each run number
