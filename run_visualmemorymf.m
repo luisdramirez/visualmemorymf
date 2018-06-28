@@ -100,8 +100,8 @@ else
 useScreen=min(screens);
 end
 p.screenWidthPixels = Screen('Rect', useScreen);
-screenWidth = 53; %cm
-viewingDistance = 110; %cm
+screenWidth = 53; %cm testing room = 53
+viewingDistance = 110; %cm testing room =110
 visAngle = (2*atan2(screenWidth/2, viewingDistance))*(180/pi);
 
 p.pixPerDeg = round(p.screenWidthPixels(3)/visAngle);
@@ -126,13 +126,16 @@ p.surroundContrast = 1;
 
 % Grating Size 
 p.centerSize = round(2*p.pixPerDeg);
-p.centerRadius = p.centerSize/2 + p.pixPerDeg/2;
+p.centerRadius = round(p.centerSize/2 + p.pixPerDeg/2);
 p.surroundSize = p.screenWidthPixels(:,3);
-p.surroundRadius = p.surroundSize/2 + p.pixPerDeg/2;
+p.surroundRadius = round(p.surroundSize/2 + p.pixPerDeg/2);
+if mod(p.surroundRadius,2) ~= 0
+    p.surroundRadius = p.surroundRadius-1;
+end
 p.gapSize = round(0.15*p.pixPerDeg); %space between center and surround annulus
 
 p.ecc = 10;
-p.backgroundRadius = p.ecc * p.pixPerDeg; %radius of the background circle
+p.backgroundRadius = round(p.ecc * p.pixPerDeg); %radius of the background circle
 p.eccentricity = round((p.ecc/2) * p.pixPerDeg); %distance from center of screen to center of target
 p.innerRadius = p.eccentricity - (p.centerSize/2+p.gapSize); %inner edge of surround annulus
 p.outerRadius = p.eccentricity + (p.centerSize/2+p.gapSize); %outer edge of surround annulus
@@ -232,7 +235,7 @@ p.trialEvents; % [condition targetLocation targetContrast probeLocation probeCon
 % timing is in seconds
 t.stimOn1 = 2; % stimulus 1 duration 
 t.retention = 1; % memory retention period
-t.stimOn2 = 2; % stimulus 2 duration
+t.stimOn2 = t.stimOn1; % stimulus 2 duration
 t.iti = 2;
 t.startTime = 2;
 t.responseTime = []; t.responseTime_est = 5;
@@ -253,7 +256,7 @@ end
 eccen = sqrt((xc).^2+(yc).^2); 	% calculate eccentricity of each point in grid relative to center of 2D image
 centerGaussian = zeros(size(xc)); centerGaussian(eccen <= (p.centerSize/2)) = 1;
 centerGaussian = conv2(centerGaussian,fspecial('gaussian',round(p.centerSize/10),p.centerSize/4), 'same');
-centerTransparencyMask = zeros(size(xc)); centerTransparencyMask(eccen <= (p.centerSize/2))=255;
+centerTransparencyMask = zeros(size(xc)); centerTransparencyMask(eccen <= (p.centerSize/2)+p.gapSize/2)=255;
 
 %%Surround
 [xs,ys] = meshgrid((-p.surroundRadius):(p.surroundRadius)-1, (-p.surroundRadius):(p.surroundRadius)-1);
@@ -261,7 +264,6 @@ eccen = sqrt((xs).^2+(ys).^2); 	% calculate eccentricity of each point in grid r
 Annulus = zeros(size(xs)); Annulus(eccen <= p.innerRadius) = 1;
 Annulus(eccen >= p.outerRadius) = 1;
 Annulus = conv2(Annulus, fspecial('gaussian',round(p.centerSize/10),p.centerSize/4),'same');
-surroundTransparencyMask = zeros(size(xs)); surroundTransparencyMask(eccen <= p.surroundSize/2)=255;
 
 %%Background
 bgAnnulus = zeros(size(Annulus)); 
@@ -285,7 +287,8 @@ surroundGrating = tmpSurround;
 %% MASK
 
 %sf filter
-cutoff = [1 3] .*round(size(surroundGrating,1)/p.pixPerDeg);
+
+cutoff = [1 3].*round(p.surroundSize/p.pixPerDeg);
 f = freqspace(size(surroundGrating,1));
 
 %bandpass filter
@@ -306,7 +309,7 @@ for nTrial = 1:(t.flickerTime/t.flicker)
     noiseMask = newNoise./(max(abs(newNoise(:))));
     tempMask = (noiseMask.*bgAnnulus);
     tempMask(bgAnnulus == 0) = -1; %to make black background make == 0
-    maskGrating (nTrial,:,:) = tempMask;
+    maskGrating(nTrial,:,:) = tempMask;
 end 
 
 %% WINDOW SETUP
