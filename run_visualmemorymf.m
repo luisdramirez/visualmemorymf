@@ -330,7 +330,6 @@ if shuffled == 1 || test == 1
     Screen('TextStyle', window, 1);
     Screen('TextSize', window, 16);
     t.ifi = Screen('GetFlipInterval',window); % grab screen refresh rate
-
 elseif shuffled == 0 && test == 0
     error('Trials not shuffled!')
 end
@@ -391,7 +390,7 @@ for nTrial = 1:size(p.trialEvents,1)
     else
         Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
     end 
-    % Draw center grating
+    % Draw center stimulus
     centerTexture = (centerGrating*p.centerContrast)*colors.grey + colors.grey;
     centerTexture(:,:,2) = centerTransparencyMask;
     centerStimulus = Screen('MakeTexture', window, centerTexture);
@@ -424,36 +423,27 @@ for nTrial = 1:size(p.trialEvents,1)
     %--------------------%
     %     Stimulus 2     %
     %--------------------%
-    %%% Retention interval 1
-    Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
-    % Draw fixation
-    Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation])
-    Screen('FillOval', window,colors.green,[CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation]);
-    Screen('Flip',window);
-    WaitSecs(t.retention);
 
-    %%% Draw surround if memory condition
     Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
-    % If memory condition, display surround annulus alone
+    % If memory condition, display surround stimulus alone
     if p.trialEvents(nTrial,1) == 2
-     surroundTexture = (surroundGrating*p.surroundContrast)*colors.grey + colors.grey;
-    %      surroundTexture(:,:,2) = surroundTransparencyMask;
-     surroundStimulus = Screen('MakeTexture', window, surroundTexture);
-     Screen('DrawTexture', window, surroundStimulus, [], CenterRectOnPoint([0 0 size(surroundGrating,1) size(surroundGrating,1)], CenterX, CenterY), p.stimorientation);
+        surroundTexture = (surroundGrating*p.surroundContrast)*colors.grey + colors.grey;
+        surroundStimulus = Screen('MakeTexture', window, surroundTexture);
+        Screen('DrawTexture', window, surroundStimulus, [], CenterRectOnPoint([0 0 size(surroundGrating,1) size(surroundGrating,1)], CenterX, CenterY), p.stimorientation);
+        % Draw fixation
+        Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation])
+        Screen('FillOval', window,colors.green,[CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation]);
+        Screen('Flip',window);
+        WaitSecs(t.stimOn2);
+    else
+        %%% Retention interval 1
+        Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
+        % Draw fixation
+        Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation])
+        Screen('FillOval', window,colors.green,[CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation]);
+        Screen('Flip',window);
+        WaitSecs(2*t.retention);
     end
-    % Draw fixation
-    Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation])
-    Screen('FillOval', window,colors.green,[CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation]);
-    Screen('Flip',window);
-    WaitSecs(t.stimOn2);
-
-    %%% Retention interval 2
-    Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
-    % Draw fixation
-    Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation])
-    Screen('FillOval', window,colors.green,[CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation]);
-    Screen('Flip',window);
-    WaitSecs(t.retention);
 
     %--------------------%
     %       Mask 2       %
@@ -493,13 +483,13 @@ for nTrial = 1:size(p.trialEvents,1)
     ProbeXY = round([CenterX + p.eccentricity*(cos(initialAngle*(pi/180)))' CenterY - p.eccentricity*(sin(initialAngle*(pi/180)))']);
     intial_contrast = p.trialEvents(nTrial,5); % random start contrast on each trial
 
-
     Probe = Screen('MakeTexture', window, squeeze(centerGrating)* (intial_contrast *colors.grey) + colors.grey);
     Screen('DrawTexture', window, Probe, [], CenterRectOnPoint([0 0 size(centerTexture,1) size(centerTexture,1)], ProbeXY(1), ProbeXY(2)), p.stimorientation);
     Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation]);
     Screen('FillOval', window, colors.green, [CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation]);
     Screen('Flip', window);
-    starttrial = GetSecs; % get the start time of each trial
+    
+    startResponseTime = GetSecs; % get the start time of response
     if strcmp(p.experiment,'env')
         GetClicks;
     end
@@ -544,7 +534,7 @@ for nTrial = 1:size(p.trialEvents,1)
 
          data.DifferenceLocation(nTrial) = difference;
 
-         data.ResponseTime_location(nTrial) = (locationTime - starttrial);
+         data.ResponseTime_location(nTrial) = (locationTime - startResponseTime);
          pmbutton = 0;
          break
      end
@@ -585,14 +575,15 @@ for nTrial = 1:size(p.trialEvents,1)
      contrastangle = angle2;
     end
     if pmbutton_contrast == 1
-     data.EstimatedContrast(nTrial) = intial_contrast;
-     data.DifferenceContrast(nTrial) = p.trialEvents(nTrial,3) - data.EstimatedContrast(nTrial);
-     data.ResponseTime(nTrial) = (GetSecs - starttrial);
-     pmbutton_contrast = 0;
-     break
+        contrastTime = GetSecs;
+        data.EstimatedContrast(nTrial) = intial_contrast;
+        data.DifferenceContrast(nTrial) = p.trialEvents(nTrial,3) - data.EstimatedContrast(nTrial);
+        data.ResponseTime_Contrast(nTrial) = (contrastTime - startResponseTime);
+        pmbutton_contrast = 0;
+        break
     end 
     end
-
+    data.responseTime(nTrial) = (GetSecs-startResponseTime);
     %--------------------%
     %       Break        %
     %--------------------% 
