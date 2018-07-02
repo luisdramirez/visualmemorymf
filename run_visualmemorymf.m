@@ -8,11 +8,11 @@ commandwindow;
 % visualmemory_condition_order = perms([1 2 1 2]);
 % visualmemory_subjectsRan = {};
 %% PREPARE
-p.repetitions = 1; % data will be saved if > 5
+p.repetitions = 15; % data will be saved if > 5
 p.numBlocks = p.repetitions;
 
 % Subject Name
-p.experiment = 'env'; % 'test' = 5 contrasts ; 'test_HC' = 1 contrast, w/ baseline condition
+p.experiment = 'test_HC'; % 'test' = 5 contrasts ; 'test_HC' = 1 contrast, w/ baseline condition
 if ~strcmp(p.experiment, 'env')
 load('visualmemory_condition_order')
 load('visualmemory_subjectsRan')    
@@ -59,12 +59,12 @@ cd(expDir);
 deviceNumber = 0;
 [keyBoardIndices, ProductNames] = GetKeyboardIndices;
 %deviceString = 'Apple Internal Keyboard / Trackpad';
-deviceString = 'USB-HID Keyboard';
+%deviceString = 'USB-HID Keyboard';
 %deviceString = 'Wired USB Keyboard';
 %deviceString = 'Apple Keyboard';
 %deviceString = 'USB Keyboard';
 %deviceString = 'Wired Keyboard 400';
-% deviceString = 'Lenovo Traditional USB Keyboard';
+ deviceString = 'Lenovo Traditional USB Keyboard';
 
 for nTrial = 1:length(ProductNames)
     if strcmp(ProductNames{nTrial}, deviceString)
@@ -521,7 +521,7 @@ for nTrial = 1:size(p.trialEvents,1)
 
          startangle = angle;
      end
-     if pmbutton == 1;
+     if pmbutton == 1
          locationTime = GetSecs;
         % % % make sure angle stays in 0-360 range
          correctedAngle = mod(initialAngle, 360);
