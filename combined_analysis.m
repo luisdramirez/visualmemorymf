@@ -4,13 +4,20 @@ clear all;
 close all;
 
 dataDir = 'data';
-load('data_visualmemorymf_test_JS.mat') %works for HC, test, and regular trials
-theDatacurr = theData(2); %index to trial number
-p = theDatacurr.p; data = theDatacurr.data; t = theDatacurr.t;
-data = cell2mat(struct2cell(data));
-data = data';
-[trials,params] = size(p.trialEvents);
+p.experiment = 'test_HC';
+p.subject = 'LR';
+cd(dataDir)
 
+if exist(['data_visualmemorymf_' p.experiment '_' p.subject '.mat'],'file') ~= 0
+    load(['data_visualmemorymf_' p.experiment '_' p.subject '.mat']); %works for HC, test, and regular trials
+    theDatacurr = theData(1); %index to trial number
+    p = theDatacurr.p; data = theDatacurr.data; t = theDatacurr.t;
+    data = cell2mat(struct2cell(data));
+    data = data';
+    [trials,params] = size(p.trialEvents);
+else
+    error('data file does not exist')
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
      %Test_HC and 1 Contrast Runs%
