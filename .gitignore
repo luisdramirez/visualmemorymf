@@ -1,3 +1,4 @@
 data
 .DS_Store
 data_visualmemorymf_test_JS.mat
+*.mat
