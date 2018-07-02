@@ -59,11 +59,11 @@ cd(expDir);
 deviceNumber = 0;
 [keyBoardIndices, ProductNames] = GetKeyboardIndices;
 %deviceString = 'Apple Internal Keyboard / Trackpad';
-deviceString = 'USB-HID Keyboard';
+%deviceString = 'USB-HID Keyboard';
 %deviceString = 'Wired USB Keyboard';
 %deviceString = 'Apple Keyboard';
 %deviceString = 'USB Keyboard';
-%deviceString = 'Wired Keyboard 400';
+deviceString = 'Wired Keyboard 400';
 % deviceString = 'Lenovo Traditional USB Keyboard';
 
 for nTrial = 1:length(ProductNames)
@@ -100,8 +100,8 @@ else
 useScreen=min(screens);
 end
 p.screenWidthPixels = Screen('Rect', useScreen);
-screenWidth = 53; %cm
-viewingDistance = 110; %cm
+screenWidth = 53; %cm (testing room = 53cm)
+viewingDistance = 110; %cm (testing room = 110cm)
 visAngle = (2*atan2(screenWidth/2, viewingDistance))*(180/pi);
 
 p.pixPerDeg = round(p.screenWidthPixels(3)/visAngle);
@@ -285,11 +285,11 @@ surroundGrating = tmpSurround;
 %% MASK
 
 %sf filter
-cutoff = [1 3] .*round(size(surroundGrating,1)/p.pixPerDeg);
-f = freqspace(size(surroundGrating,1));
+cutoff = [1 3] .*round(size(Annulus,1)/p.pixPerDeg);
+f = freqspace(size(Annulus,1));
 
 %bandpass filter
-filter = Bandpass2(size(surroundGrating,1), f(cutoff(1)), f(cutoff(2)));
+filter = Bandpass2(size(Annulus,1), f(cutoff(1)), f(cutoff(2)));
 
 %low pass filter
 h = fspecial('disk', 5);
@@ -297,16 +297,16 @@ filter = conv2(filter, h, 'same');
 filter = filter/max(filter(:));
 
 %noise
-maskGrating = NaN(round(t.flickerTime/t.flicker), size(surroundGrating,1), size(surroundGrating,1));
-for nTrial = 1:(t.flickerTime/t.flicker)
-    noise = -1+2.*rand(size(surroundGrating,1));
+maskGrating = NaN(round(t.flickerTime/t.flicker), size(Annulus,1), size(Annulus,1));
+for n = 1:(t.flickerTime/t.flicker)
+    noise = -1+2.*rand(size(Annulus,1));
     fftNoise = fftshift(fft2(noise));
     filterNoise = fftNoise .* filter;
     newNoise = real(ifft2(fftshift(filterNoise)));
     noiseMask = newNoise./(max(abs(newNoise(:))));
     tempMask = (noiseMask.*bgAnnulus);
     tempMask(bgAnnulus == 0) = -1; %to make black background make == 0
-    maskGrating (nTrial,:,:) = tempMask;
+    maskGrating (n,:,:) = tempMask;
 end 
 
 %% WINDOW SETUP

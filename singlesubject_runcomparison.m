@@ -52,78 +52,77 @@ end
  else
      error('Error with condition pairings.');
  end
-
  
-
-
-
-
-% trial 1 and 2
-if sum(strcmp(run1Stats.condition,'Perception') || strcmp(run2Stats.condition,'Perception')) == 1  %One of them is perception, one is working memory
-    [h,p] = ttest(run1Stats.data(:,5),run2Stats.data(:,5));
-    if h == 1
-        fprintf('The estimated contrast differences were statistically significant between %s (trial 1) and %s (trial 2) with a calculated probability of %0.3f',run1Stats.condition, run2Stats.condition, p);
+ % Trial 3 vs. Trial 4
+[results.h34,results.p34] = ttest(run3Stats.data(:,5),run4Stats.data(:,5));
+    if results.h34 == 1
+        fprintf('\nThe estimated contrast differences were statistically significant between %s (trial 3) and %s (trial 4) with a calculated probability of %0.3f\n',run3Stats.condition, run4Stats.condition, results.p34);
     else
-        disp('The estimated contrast between %s (trial 1) and %s (trial 2) is not statistically significant', run1Stats.condition, run2Stats.condition)
+        fprintf('The estimated contrast between %s (trial 3) and %s (trial 4) is not statistically significant\n', run3Stats.condition, run4Stats.condition)
     end
-elseif  sum(strcmp(run1Stats.condition,'Perception') || strcmp(run2Stats.condition,'Perception')) == 2 % Both are perception
-   [h,p] = ttest(run1Stats.data(:,5),run2Stats.data(:,5));
-    if h == 1
-        fprintf('The estimated contrast differences were statistically significant between %s (trial 1) and %s (trial 2) with a calculated probability of %0.3f',run1Stats.condition, run2Stats.condition, p);
+ if sum(strcmp(run3Stats.condition,'Perception') || strcmp(run4Stats.condition,'Perception')) == 0
+     results.trials34 = 0; % =0 is both working memory conditioned trials
+ elseif sum(strcmp(run3Stats.condition,'Perception') || strcmp(run4Stats.condition,'Perception')) == 1
+     results.trials34 = 1; % =1 is one working memory trial, and one perception trial
+ elseif sum(strcmp(run3Stats.condition,'Perception') || strcmp(run4Stats.condition,'Perception')) == 2 
+     results.trials = 2; % =2 is both perception conditioned trials
+ else
+     error('Error with condition pairings.');
+ end
+
+ % Trial 4 vs. Trial 1
+[results.h41,results.p41] = ttest(run4Stats.data(:,5),run1Stats.data(:,5));
+    if results.h41 == 1
+        fprintf('\nThe estimated contrast differences were statistically significant between %s (trial 4) and %s (trial 1) with a calculated probability of %0.3f\n',run4Stats.condition, run1Stats.condition, results.p41);
     else
-        disp('The estimated contrast between %s (trial 1) and %s (trial 2) is not statistically significant', run1Stats.condition, run2Stats.condition)
+        fprintf('The estimated contrast between %s (trial 4) and %s (trial 1) is not statistically significant\n', run4Stats.condition, run1Stats.condition)
     end
-elseif sum(strcmp(run1Stats.condition,'Perception') || strcmp(run2Stats.condition,'Perception')) == 0  % Both are working memory 
-    [h,p] = ttest(run1Stats.data(:,5),run2Stats.data(:,5));
-    if h == 1
-        fprintf('The estimated contrast differences were statistically significant between %s (trial 1) and %s (trial 2) with a calculated probability of %0.3f',run1Stats.condition, run2Stats.condition, p);
+ if sum(strcmp(run4Stats.condition,'Perception') || strcmp(run1Stats.condition,'Perception')) == 0
+     results.trials41 = 0; % =0 is both working memory conditioned trials
+ elseif sum(strcmp(run4Stats.condition,'Perception') || strcmp(run1Stats.condition,'Perception')) == 1
+     results.trials41 = 1; % =1 is one working memory trial, and one perception trial
+ elseif sum(strcmp(run4Stats.condition,'Perception') || strcmp(run1Stats.condition,'Perception')) == 2 
+     results.trials41 = 2; % =2 is both perception conditioned trials
+ else
+     error('Error with condition pairings.');
+ end
+ 
+ % Trial 1 vs. Trial 3
+[results.h13,results.p13] = ttest(run1Stats.data(:,5),run3Stats.data(:,5));
+    if results.h13 == 1
+        fprintf('\nThe estimated contrast differences were statistically significant between %s (trial 1) and %s (trial 3) with a calculated probability of %0.3f\n',run1Stats.condition, run3Stats.condition, results.p23);
     else
-        disp('The estimated contrast between %s (trial 1) and %s (trial 2) is not statistically significant', run1Stats.condition, run2Stats.condition)
+        fprintf('The estimated contrast between %s (trial 2) and %s (trial 3) is not statistically significant\n', run1Stats.condition, run3Stats.condition)
     end
-else 
-    error('Error with condition pairings');
-end
+ if sum(strcmp(run1Stats.condition,'Perception') || strcmp(run3Stats.condition,'Perception')) == 0
+     results.trials13 = 0; % =0 is both working memory conditioned trials
+ elseif sum(strcmp(run1Stats.condition,'Perception') || strcmp(run3Stats.condition,'Perception')) == 1
+     results.trials13 = 1; % =1 is one working memory trial, and one perception trial
+ elseif sum(strcmp(run1Stats.condition,'Perception') || strcmp(run3Stats.condition,'Perception')) == 2 
+     results.trials23 = 2; % =2 is both perception conditioned trials
+ else
+     error('Error with condition pairings.');
+ end
 
-% trial 2 and 3
-if sum(strcmp(run2Stats.condition,'Perception') || strcmp(run3Stats.condition,'Perception')) == 0 % Neither are perception, do nothing
-elseif sum(strcmp(run2Stats.condition,'Perception') || strcmp(run3Stats.condition,'Perception')) == 1  %One of them is perception, one is working memory
-    % ttest and other stats to compare
-elseif  sum(strcmp(run2Stats.condition,'Perception') || strcmp(run3Stats.condition,'Perception')) == 2 % Both are perception
-    % run tests between trials
-end
-
-% trial 3 and 4
-if sum(strcmp(run3Stats.condition,'Perception') || strcmp(run4Stats.condition,'Perception')) == 0 % Neither are perception, do nothing
-elseif sum(strcmp(run3Stats.condition,'Perception') || strcmp(run4Stats.condition,'Perception')) == 1  %One of them is perception, one is working memory
-    % ttest and other stats to compare
-elseif  sum(strcmp(run3Stats.condition,'Perception') || strcmp(run4Stats.condition,'Perception')) == 2 % Both are perception
-    % run tests between trials
-end
-
-% trial 4 and 1
-if sum(strcmp(run4Stats.condition,'Perception') || strcmp(run1Stats.condition,'Perception')) == 0 % Neither are perception, do nothing
-elseif sum(strcmp(run4Stats.condition,'Perception') || strcmp(run1Stats.condition,'Perception')) == 1  %One of them is perception, one is working memory
-    % ttest and other stats to compare
-elseif  sum(strcmp(run4Stats.condition,'Perception') || strcmp(run1Stats.condition,'Perception')) == 2 % Both are perception
-    % run tests between trials
-end
+% Trial 2 vs. Trial 4
+[results.h24,results.p24] = ttest(run2Stats.data(:,5),run4Stats.data(:,5));
+    if results.h24 == 1
+        fprintf('\nThe estimated contrast differences were statistically significant between %s (trial 2) and %s (trial 4) with a calculated probability of %0.3f\n',run2Stats.condition, run4Stats.condition, results.p24);
+    else
+        fprintf('The estimated contrast between %s (trial 2) and %s (trial 4) is not statistically significant\n', run2Stats.condition, run4Stats.condition)
+    end
+ if sum(strcmp(run2Stats.condition,'Perception') || strcmp(run4Stats.condition,'Perception')) == 0
+     results.trials24 = 0; % =0 is both working memory conditioned trials
+ elseif sum(strcmp(run2Stats.condition,'Perception') || strcmp(run4Stats.condition,'Perception')) == 1
+     results.trials24 = 1; % =1 is one working memory trial, and one perception trial
+ elseif sum(strcmp(run2Stats.condition,'Perception') || strcmp(run4Stats.condition,'Perception')) == 2 
+     results.trials24 = 2; % =2 is both perception conditioned trials
+ else
+     error('Error with condition pairings.');
+ end
 
 
-% trial 2 and 4
-if sum(strcmp(run2Stats.condition,'Perception') || strcmp(run4Stats.condition,'Perception')) == 0 % Neither are perception, do nothing
-elseif sum(strcmp(run2Stats.condition,'Perception') || strcmp(run4Stats.condition,'Perception')) == 1  %One of them is perception, one is working memory
-    % ttest and other stats to compare
-elseif  sum(strcmp(run2Stats.condition,'Perception') || strcmp(run4Stats.condition,'Perception')) == 2 % Both are perception
-    % run tests between trials
-end 
 
-% trial 1 and 3
-if sum(strcmp(run1Stats.condition,'Perception') || strcmp(run3Stats.condition,'Perception')) == 0 % Neither are perception, do nothing
-elseif sum(strcmp(run1Stats.condition,'Perception') || strcmp(run3Stats.condition,'Perception')) == 1  %One of them is perception, one is working memory
-    % ttest and other stats to compare
-elseif  sum(strcmp(run1Stats.condition,'Perception') || strcmp(run3Stats.condition,'Perception')) == 2 % Both are perception
-    % run tests between trials
-end
    
         
 % run t tests between conditions of matching and not matching conditions,
