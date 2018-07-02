@@ -9,7 +9,6 @@ commandwindow;
 % visualmemory_subjectsRan = {};
 
 % from testing_luis
->>>>>>> testing_luis
 %% PREPARE
 p.repetitions = 1; % data will be saved if > 5
 p.numBlocks = p.repetitions;
