@@ -3,7 +3,7 @@
 clear all;
 close all;
 
-dataDir = 'data';
+dataDir = 'data_master';
 p.experiment = 'test_HC';
 p.subject = 'LR';
 cd(dataDir)
