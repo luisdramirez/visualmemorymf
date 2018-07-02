@@ -5,7 +5,7 @@ close all;
 
 dataDir = 'data';
 load('data_visualmemorymf_test_JS.mat') %works for HC, test, and regular trials
-theDatacurr = theData(1); %index to trial number
+theDatacurr = theData(2); %index to trial number
 p = theDatacurr.p; data = theDatacurr.data; t = theDatacurr.t;
 data = cell2mat(struct2cell(data));
 data = data';
@@ -15,7 +15,7 @@ data = data';
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
      %Test_HC and 1 Contrast Runs%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+%for i = 1:length(theData) - this displays all at same time on same graphs
 if p.numContrasts == 1 && p.numConditions == 2
   %%  Organize Trial Events & Data %%
     if any(p.trialEvents(:,1) == 1) % Perception trials, condition # = 1
@@ -63,7 +63,6 @@ if p.numContrasts == 1 && p.numConditions == 2
         yMax = maxContrast + 0.1;
     end
     
-    
     figure(1)
     set(gcf, 'Name', sprintf('%s Versus %s Visual Analysis: Contrast',cond1Name,cond2Name));
     subplot(2,3,1)
@@ -100,6 +99,7 @@ if p.numContrasts == 1 && p.numConditions == 2
     [bins2,edges2] = histcounts(cond2Data(:,4),20);
     histmax = max([max(bins1) max(bins2)]);
     pHist = histogram(cond1Data(:,4),20);
+    hold on
     xlim([0 1]);
     ylim([0 histmax]);
     title(sprintf('Histogram of %s Contrast Estimations',cond1Name));
@@ -129,8 +129,8 @@ if p.numContrasts == 1 && p.numConditions == 2
     cond1Mean = mean2(cond1Data(:,4));
     cond2Std =std(cond2Data(:,4));
     cond2Mean = mean2(cond2Data(:,4));
-    fprintf('\nThe average response for %s trials was a contrast of %.4f, with a standard deviation of %.4f.\n\n The absolute difference between the average and actual contrast is %f\n\n',cond1Name,cond1Mean, cond1Std,abs(cond1Mean-p.centerContrast));
-    fprintf('The average response for %s trials was a contrast of %.4f, with a standard deviation of %.4f.\n\n The absolute difference between the average and actual contrast is %f\n\n',cond2Name,cond2Mean, cond2Std, abs(cond2Mean-p.centerContrast));
+    fprintf('The average response for %s trials was a contrast of %.4f, with a standard deviation of %.4f.\n The absolute difference between the average and actual contrast is %f\n',cond1Name,cond1Mean, cond1Std,abs(cond1Mean-p.centerContrast));
+    fprintf('The average response for %s trials was a contrast of %.4f, with a standard deviation of %.4f.\n The absolute difference between the average and actual contrast is %f\n',cond2Name,cond2Mean, cond2Std, abs(cond2Mean-p.centerContrast));
 
     %Percent Error of Contrast Estimations
     cond1PE = zeros(size(1:length(cond1Data(:,4))));
@@ -149,9 +149,9 @@ if p.numContrasts == 1 && p.numConditions == 2
     % Paired Sample T-test
     [h,p] = ttest(cond1Data(:,5),cond2Data(:,5));
     if h == 0
-        fprintf('The reported contrasts for %s and %s were not statistically significant',cond1Name,cond2Name);
+        fprintf('The reported contrasts for %s and %s were not statistically significant\n',cond1Name,cond2Name);
     elseif h == 1
-        fprintf('The reported contrasts for %s and %s were statistically significant from each other, with a p value of %.3f\n\n',cond1Name,cond2Name,p);
+        fprintf('The reported contrasts for %s and %s were statistically significant from each other, with a p value of %.3f\n',cond1Name,cond2Name,p);
     end
 %% Percent Error Plot First Condition %%
     subplot(2,3,3)
@@ -175,7 +175,13 @@ if p.numContrasts == 1 && p.numConditions == 2
     legend('Percent Error of Each Estimation','Average Percent Error')
     xlabel('Trial Number')
     ylabel('Percent Error')
-        
+    if cond1Mean > cond2Mean
+        fprintf('%s had a higher estimated contrast than %s\n',cond1Name,cond2Name);
+        fprintf('with a percent difference of %.3f%\n\n',(cond1Mean-cond2Mean)*100);
+    elseif cond1Mean < cond2Mean
+        fprintf('%s had a higher estimated contrast than %s\n',cond2Name,cond1Name);
+        fprintf('with a percent difference of %.3f%\n\n',abs(cond1Mean-cond2Mean)*100);
+    end
 %%
     
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -183,14 +189,18 @@ if p.numContrasts == 1 && p.numConditions == 2
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 elseif p.numContrasts == 5 && p.numConditions == 2
-   %% Setup of seperate trial Events and data matrices, & misc. statistical data  %%
+  for i = 1:length(theData)
+      theDatacurr = theData(i); %index to trial number
+    p = theDatacurr.p; data = theDatacurr.data; t = theDatacurr.t;
+    data = cell2mat(struct2cell(data));
+    %% Setup of seperate trial Events and data matrices, & misc. statistical data  %%
         %1 - PERCEPTION
         %2 - WORKING MEMORY
         %3 - BASELINE
     % NOTE: For each subject, index into their data file will give only 1 condition
     sortedTE = sortrows(p.trialEvents,3); %sorts rows based on contrasts
     col6 = p.trialEvents(:,6);
-    data = [data col6];
+    data = [data' col6];
     [dataTrials,dataParams] = size(data);
     sortedData = sortrows(data,7);
     
@@ -589,8 +599,7 @@ elseif p.numContrasts == 5 && p.numConditions == 2
 %             timingData(i,:) = [];
 %         end
 %     end
-%   trying to figure out how to take outliers out (over 10ish seconds?)  
-%     
+%   trying to figure out how to take outliers out (over 10ish seconds?)   
     figure(3)
     set(gcf, 'Name', sprintf('Timing Statistics for %s',condition));
     bar(1:2,mean(timingData));
@@ -615,12 +624,9 @@ elseif p.numContrasts == 5 && p.numConditions == 2
     stats.mean4 = mean4;
     stats.mean5 = mean5;
     stats.condition = condition;
-    
+    theData(p.runNumber).stats = stats;
+    save(['data_visualmemorymf_' p.experiment '_' p.subject '.mat'], 'theData')
+  end
     else
         disp('Number of contrasts or conditions does not correspond to experiment design.')
-end
-%% Save Out Analysis Information %%
-
-theData(p.runNumber).stats = stats;
-save(['data_visualmemorymf_' p.experiment '_' p.subject '.mat'], 'theData')
-%See if this correspond to the rest of theData file for each run number
+  end
