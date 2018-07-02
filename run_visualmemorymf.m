@@ -598,15 +598,11 @@ for nTrial = 1:size(p.trialEvents,1)
     breakText = ['You make take a short break now.\n Or press the powermate to continue.\n'];
     DrawFormattedText(window, breakText, 'center', 'center', colors.white);
     Screen('Flip', window);
-    if nSet>1
-        restText = ['You can take a short break now, ' '' '\n' ...
-        'or press the dial to continue' '\n' '\n' ...
-        num2str(nSet-1) '/' num2str(p.numSets) ' completed.' ];
-    else
-        restText = ['You can take a short break now, ' '' '\n' ...
-        'or press the dial to continue' '\n' '\n' ...
-        num2str(nSet) '/' num2str(p.numSets) ' completed.' ];       
-    end
+
+    restText = ['You can take a short break now, ' '' '\n' ...
+    'or press the dial to continue' '\n' '\n' ...
+    num2str(nSet) '/' num2str(p.numSets) ' completed.' ];       
+
     DrawFormattedText(window, restText, 'center', 'center', colors.white);
     Screen('Flip', window);
     pmbuttonbreak = 0;
