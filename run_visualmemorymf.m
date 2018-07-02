@@ -598,13 +598,15 @@ for nTrial = 1:size(p.trialEvents,1)
     breakText = ['You make take a short break now.\n Or press the powermate to continue.\n'];
     DrawFormattedText(window, breakText, 'center', 'center', colors.white);
     Screen('Flip', window);
+
     restText = ['You can take a short break now, ' '' '\n' ...
     'or press the dial to continue' '\n' '\n' ...
-    num2str(nSet-1) '/' num2str(p.numSets) ' completed.' ];
+    num2str(nSet) '/' num2str(p.numSets) ' completed.' ];       
+
     DrawFormattedText(window, restText, 'center', 'center', colors.white);
     Screen('Flip', window);
     pmbuttonbreak = 0;
-    WaitSecs(1 );
+    WaitSecs(1);
     while 1
     [pmbuttonbreak, a] = PsychPowerMate('Get', powermate);
      if pmbuttonbreak == 1
