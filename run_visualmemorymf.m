@@ -8,11 +8,11 @@ commandwindow;
 % visualmemory_condition_order = perms([1 2 1 2]);
 % visualmemory_subjectsRan = {};
 %% PREPARE
-p.repetitions = 15; % data will be saved if > 5
+p.repetitions = 1; % data will be saved if > 5
 p.numBlocks = p.repetitions;
 
 % Subject Name
-p.experiment = 'test_HC'; % 'test' = 5 contrasts ; 'test_HC' = 1 contrast, w/ baseline condition
+p.experiment = 'env'; % 'test' = 5 contrasts ; 'test_HC' = 1 contrast, w/ baseline condition
 if ~strcmp(p.experiment, 'env')
 load('visualmemory_condition_order')
 load('visualmemory_subjectsRan')    
@@ -132,7 +132,7 @@ p.surroundRadius = round(p.surroundSize/2 + p.pixPerDeg/2);
 if mod(p.surroundRadius,2) ~= 0
     p.surroundRadius = p.surroundRadius-1;
 end
-p.gapSize = round(0.15*p.pixPerDeg); %space between center and surround annulus
+p.gapSize = round(0.17*p.pixPerDeg); %space between center and surround annulus
 
 p.ecc = 10;
 p.backgroundRadius = round(p.ecc * p.pixPerDeg); %radius of the background circle
