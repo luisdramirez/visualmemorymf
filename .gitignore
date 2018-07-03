@@ -1,3 +1,4 @@
 data_master
 *.fig
+*.m~
 .DS_Store
