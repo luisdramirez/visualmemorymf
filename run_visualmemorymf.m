@@ -9,7 +9,6 @@ test_env = 1;
 % visualmemory_condition_order = perms([1 2 1 2]);
 % visualmemory_subjectsRan = {};
 
-%testing
 %% PREPARE
 p.repetitions = 1; % data will be saved if repetitions > 5
 
