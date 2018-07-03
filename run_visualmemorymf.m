@@ -10,7 +10,7 @@ test_env = 1;
 % visualmemory_subjectsRan = {};
 
 %% PREPARE
-p.repetitions = 25; % data will be saved if repetitions > 5
+p.repetitions = 1; % data will be saved if repetitions > 5
 
 % Experiment & Subject Name
 p.experiment = 'test'; % 'test_HC'=1 contrast, no WM; 'test'=5 contrasts, no WM; 'exp1=5 contrasts, w/WM
@@ -62,13 +62,13 @@ cd(expDir);
 
 deviceNumber = 0;
 [keyBoardIndices, ProductNames] = GetKeyboardIndices;
-deviceString = 'Apple Internal Keyboard / Trackpad';
+deviceString = 'Lenovo Traditional USB Keyboard';
+% deviceString = 'Apple Internal Keyboard / Trackpad';
 %deviceString = 'USB-HID Keyboard';
 %deviceString = 'Wired USB Keyboard';
 %deviceString = 'Apple Keyboard';
 %deviceString = 'USB Keyboard';
 % deviceString = 'Wired Keyboard 400';
-% deviceString = 'Lenovo Traditional USB Keyboard';
 
 for nTrial = 1:length(ProductNames)
     if strcmp(ProductNames{nTrial}, deviceString)
