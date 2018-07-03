@@ -4,25 +4,26 @@ close all; clear all; clc;
 commandwindow;
 Screen('Preference', 'SkipSyncTests', 1);
 commandwindow;
+test_env = 1;
 
 % visualmemory_condition_order = perms([1 2 1 2]);
 % visualmemory_subjectsRan = {};
 
-% from testing_luis
 %% PREPARE
 p.repetitions = 1; % data will be saved if > 5
 p.numBlocks = p.repetitions;
 
 % Subject Name
-p.experiment = 'env'; % 'test' = 5 contrasts ; 'test_HC' = 1 contrast, w/ baseline condition
-if ~strcmp(p.experiment, 'env')
+p.experiment = 'test'; % 'test_HC'=1 contrast, no WM; 'test'=5 contrasts, no WM; 'exp1=5 contrasts, w/WM
+if test_env
 load('visualmemory_condition_order')
 load('visualmemory_subjectsRan')    
 end
 p.subject = 'LR';
+
 % Set directories
 expDir = pwd; % set the experimental directory to the current directory 'pwd'
-dataDir = 'data'; %Set the path to a directory called 'data'
+dataDir = 'data_master'; %Set the path to a directory called 'data'
 t.mySeed = sum(100*clock);
 rng(t.mySeed); % start with a random seed
 t.theDate = datestr(now, 'yymmdd'); %collect todays date
@@ -41,7 +42,7 @@ if exist(['data_visualmemorymf_' p.experiment '_' p.subject '.mat'],'file') ~= 0
     end
 else 
     p.runNumber = 1;
-    if sum(strcmp(p.experiment,{'test','test_HC','env'})) == 0
+    if sum(strcmp(p.experiment,{'test','test_HC'})) == 0
         p.orderRow = length(subjectsRan)+1;
         if p.orderRow > length(visualmemory_condition_order)
             p.orderRow = p.orderRow - length(visualmemory_condition_order); 
@@ -60,12 +61,12 @@ cd(expDir);
 
 deviceNumber = 0;
 [keyBoardIndices, ProductNames] = GetKeyboardIndices;
-%deviceString = 'Apple Internal Keyboard / Trackpad';
+deviceString = 'Apple Internal Keyboard / Trackpad';
 %deviceString = 'USB-HID Keyboard';
 %deviceString = 'Wired USB Keyboard';
 %deviceString = 'Apple Keyboard';
 %deviceString = 'USB Keyboard';
-deviceString = 'Wired Keyboard 400';
+% deviceString = 'Wired Keyboard 400';
 % deviceString = 'Lenovo Traditional USB Keyboard';
 
 for nTrial = 1:length(ProductNames)
@@ -78,7 +79,7 @@ if deviceNumber == 0
     error('No device by that name was detected');
 end
 
-if ~strcmp(p.experiment, 'env')
+if ~test_env
 %Check which devicenumber the powermate is assigned to
 powermate = PsychPowerMate('Open');
 if isempty(powermate)
@@ -96,7 +97,7 @@ end
 end
 %% SCREEN PARAMTERS
 screens=Screen('Screens');
-if ~strcmp(p.experiment,'env')
+if test_env
 useScreen=max(screens);
 else
 useScreen=min(screens);
@@ -116,7 +117,7 @@ colors.dimgrey = [105 105 105]; colors.yellow = [255 255 0]; colors.magenta = [2
 % grating contrast for center and surround
 p.minContrast = 0.1;
 p.maxContrast = 0.75;
-if sum(strcmp(p.experiment,{'test_HC', 'env'})) == 1
+if sum(strcmp(p.experiment,{'test_HC'})) == 1
     p.numContrasts = 1;
 else
     p.numContrasts = 5;
@@ -177,7 +178,7 @@ p.surroundPhase = p.centerPhase;
 % 3 - baseline: center, mask, blank, mask
 
 % Baseline number of trials based on the number of center grating contrasts
-if sum(strcmp(p.experiment,{'test_HC', 'env'})) == 1
+if sum(strcmp(p.experiment,{'test_HC'})) == 1
     p.numTrialsPerBlock = 5;
     p.numTrialsPerSet = p.numTrialsPerBlock*5;
     p.numBlocksPerSet = p.numTrialsPerSet/p.numTrialsPerBlock;
@@ -211,7 +212,7 @@ col4 = randi(360,length(col1),1); %probe grating location
 %--------------------%
 % Contrast %
 %--------------------%
-if sum(strcmp(p.experiment,{'test_HC', 'env'})) == 1
+if sum(strcmp(p.experiment,{'test_HC'})) == 1
     col3 = repmat(p.centerContrast,length(col1),1);
 else
     col3 = repmat(p.centerContrast',p.numBlocks,1); % center grating contrast
@@ -222,13 +223,13 @@ col5(col5>p.maxContrast)=p.maxContrast; col5(col5<p.minContrast)=p.minContrast;
 % bring all 3 together
 p.trialEvents = [col1 col2 col3 col4 col5]; %[condition targetLocation targetContrast probeLocation probeContrast]
 
-if sum(strcmp(p.experiment,{'test', 'test_HC', 'env'})) == 1
+if sum(strcmp(p.experiment,{'test', 'test_HC'})) == 1
     test = 1;
 else
     test = 0;
 end
 shuffled = 0;
-if ~strcmp(p.experiment,'test_HC') && ~strcmp(p.experiment,'env')
+if ~strcmp(p.experiment,'test_HC') && ~test_env
     p.trialEvents = Shuffle(p.trialEvents,2); shuffled = 1;
 end
 p.trialEvents; % [condition targetLocation targetContrast probeLocation probeContrast configuration]
@@ -319,7 +320,7 @@ if shuffled == 1 || test == 1
     [window,rect] = Screen('OpenWindow', useScreen, colors.black, []); %test screen size [0 0 700 500]
 
     OriginalCLUT = Screen('ReadNormalizedGammaTable', window);
-    if ~strcmp(p.experiment,'env')
+    if ~test_env
     load('linearizedCLUT.mat'); %testing room 208 only
     Screen('LoadNormalizedGammaTable',window, linearizedCLUT); %testing room 208 only
     end
@@ -350,7 +351,7 @@ for m = 1:round(t.flickerTime/t.flicker)
     Mask(m,:) = Screen('MakeTexture', window, squeeze(maskGrating(m,:,:))* colors.grey + colors.grey);
 end
 
-if ~strcmp(p.experiment,'env')
+if ~test_env
 % Welcome Screen
 Screen('TextStyle', window, 1);
 Screen('TextSize', window, 16);
@@ -405,7 +406,7 @@ for nTrial = 1:size(p.trialEvents,1)
     Screen('FillOval', window,colors.green,[CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation]);
     Screen('Flip',window);
     WaitSecs(t.stimOn1);
-    if strcmp(p.experiment,'env')
+    if test_env
         GetClicks;
     end
     %--------------------%
@@ -494,10 +495,10 @@ for nTrial = 1:size(p.trialEvents,1)
     Screen('Flip', window);
     
     startResponseTime = GetSecs; % get the start time of response
-    if strcmp(p.experiment,'env')
+    if test_env
         GetClicks;
     end
-    if ~strcmp(p.experiment,'env')
+    if ~test_env
     % Allow for dial rotation for location update
     [~, startangle] = PsychPowerMate('Get',powermate);
 
@@ -637,7 +638,7 @@ Screen('LoadNormalizedGammaTable', window, OriginalCLUT);
 Screen('CloseAll')
 ShowCursor;
 %% SAVE OUT THE DATA FILE
-if p.repetitions > 5 && ~strcmp(p.experiment, 'env')
+if p.repetitions > 5 && ~test_env
     cd(dataDir);
     theData(p.runNumber).t = t;
     theData(p.runNumber).p = p;
