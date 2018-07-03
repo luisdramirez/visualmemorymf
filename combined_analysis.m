@@ -4,8 +4,8 @@ clear all;
 close all;
 expDir=pwd;
 dataDir = 'data_master';
-p.experiment = 'test';
-p.subject = 'JS';
+p.experiment = 'test_HC';
+p.subject = 'LR';
 cd(dataDir)
 
 if exist(['data_visualmemorymf_' p.experiment '_' p.subject '.mat'],'file') ~= 0
@@ -196,8 +196,8 @@ if p.numContrasts == 1 && p.numConditions == 2
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 elseif p.numContrasts == 5 && p.numConditions == 2
-  %for i = 1:length(theData)
-%       theDatacurr = theData(i); %index to trial number
+  for i = 1:length(theData)
+      theDatacurr = theData(i); %index to trial number
     p = theDatacurr.p; data = theDatacurr.data; t = theDatacurr.t;
     data = cell2mat(struct2cell(data));
     %% Setup of seperate trial Events and data matrices, & misc. statistical data  %%
@@ -205,9 +205,7 @@ elseif p.numContrasts == 5 && p.numConditions == 2
         %2 - WORKING MEMORY
         %3 - BASELINE
     % NOTE: For each subject, index into their data file will give only 1 condition
-    
-    sortedTE = sortrows(p.trialEvents,[1,3]); %sorts based off of conditions, then based off of contrasts, (based off of trial num?)
-    
+    sortedTE = sortrows(p.trialEvents,3); %sorts rows based on contrasts
     col6 = p.trialEvents(:,6);
     data = [data' col6];
     [dataTrials,dataParams] = size(data);
@@ -635,8 +633,8 @@ elseif p.numContrasts == 5 && p.numConditions == 2
     stats.condition = condition;
     theData(p.runNumber).stats = stats;
     save(['data_visualmemorymf_' p.experiment '_' p.subject '.mat'], 'theData')
-%   end
+  end
     else
         disp('Number of contrasts or conditions does not correspond to experiment design.')
-end
+  end
 cd(expDir)
