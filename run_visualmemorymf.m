@@ -4,23 +4,27 @@ close all; clear all; clc;
 commandwindow;
 Screen('Preference', 'SkipSyncTests', 1);
 commandwindow;
+test_env = 1;
 
 % visualmemory_condition_order = perms([1 2 1 2]);
 % visualmemory_subjectsRan = {};
-%% PREPARE
-p.repetitions = 5; % data will be saved if > 5
-p.numBlocks = p.repetitions;
 
-% Subject Name
-p.experiment = 'env'; % 'test' = 5 contrasts ; 'test_HC' = 1 contrast, w/ baseline condition
-if ~strcmp(p.experiment, 'env')
+%% PREPARE
+p.repetitions = 1; % data will be saved if repetitions > 5
+
+% Experiment & Subject Name
+p.experiment = 'test'; % 'test_HC'=1 contrast, no WM; 'test'=5 contrasts, no WM; 'exp1=5 contrasts, w/WM
+p.subject = 'LR';
+
+if sum(strcmp(p.experiment,{'test','test_HC'})) == 0
 load('visualmemory_condition_order')
 load('visualmemory_subjectsRan')    
 end
-p.subject = 'LR';
+
+
 % Set directories
 expDir = pwd; % set the experimental directory to the current directory 'pwd'
-dataDir = 'data_master'; %Set the path to a directory called 'data_master' (?)
+dataDir = 'data_master'; %Set the path to a directory called 'data'
 t.mySeed = sum(100*clock);
 rng(t.mySeed); % start with a random seed
 t.theDate = datestr(now, 'yymmdd'); %collect todays date
@@ -33,13 +37,13 @@ if exist(['data_visualmemorymf_' p.experiment '_' p.subject '.mat'],'file') ~= 0
     load(['data_visualmemorymf_' p.experiment '_' p.subject '.mat']);
     p.runNumber = length(theData)+1;
     if sum(strcmp(p.experiment,{'test', 'test_HC'})) == 1
-        p.testCondition_curr = 1; % fixed to perception condition for hard coded testing
+        p.testCondition = 1; % fixed to perception condition for hard coded testing
     else
-        p.testCondition_curr = theData{1}.p.trialSchedule(p.orderRow,p.runNumber);
+        p.testCondition = theData{1}.p.trialSchedule(p.orderRow,p.runNumber);
     end
 else 
     p.runNumber = 1;
-    if sum(strcmp(p.experiment,{'test','test_HC','env'})) == 0
+    if sum(strcmp(p.experiment,{'test','test_HC'})) == 0
         p.orderRow = length(subjectsRan)+1;
         if p.orderRow > length(visualmemory_condition_order)
             p.orderRow = p.orderRow - length(visualmemory_condition_order); 
@@ -47,9 +51,9 @@ else
         subjectsRan{end+1} = p.subject;
         p.trialSchedule = visualmemory_condition_order(p.orderRow,:);
         % Which Test condition, run these test conditions on different days
-        p.testCondition_curr = p.trialSchedule(1);
+        p.testCondition = p.trialSchedule(1);
     else
-        p.testCondition_curr = 1; % fixed to perception condition
+        p.testCondition = 1; % fixed to perception condition
     end
 end
 cd(expDir);
@@ -58,12 +62,12 @@ cd(expDir);
 
 deviceNumber = 0;
 [keyBoardIndices, ProductNames] = GetKeyboardIndices;
-%deviceString = 'Apple Internal Keyboard / Trackpad';
+deviceString = 'Apple Internal Keyboard / Trackpad';
 %deviceString = 'USB-HID Keyboard';
 %deviceString = 'Wired USB Keyboard';
 %deviceString = 'Apple Keyboard';
 %deviceString = 'USB Keyboard';
-deviceString = 'Wired Keyboard 400';
+% deviceString = 'Wired Keyboard 400';
 % deviceString = 'Lenovo Traditional USB Keyboard';
 
 for nTrial = 1:length(ProductNames)
@@ -76,7 +80,7 @@ if deviceNumber == 0
     error('No device by that name was detected');
 end
 
-if ~strcmp(p.experiment, 'env')
+if ~test_env
 %Check which devicenumber the powermate is assigned to
 powermate = PsychPowerMate('Open');
 if isempty(powermate)
@@ -94,10 +98,10 @@ end
 end
 %% SCREEN PARAMTERS
 screens=Screen('Screens');
-if ~strcmp(p.experiment,'env')
-useScreen=max(screens);
-else
-useScreen=min(screens);
+if test_env
+    useScreen=max(screens);
+else test_env
+    useScreen=min(screens);
 end
 p.screenWidthPixels = Screen('Rect', useScreen);
 screenWidth = 53; %cm (testing room = 53cm)
@@ -114,7 +118,7 @@ colors.dimgrey = [105 105 105]; colors.yellow = [255 255 0]; colors.magenta = [2
 % grating contrast for center and surround
 p.minContrast = 0.1;
 p.maxContrast = 0.75;
-if sum(strcmp(p.experiment,{'test_HC', 'env'})) == 1
+if sum(strcmp(p.experiment,{'test_HC'})) == 1
     p.numContrasts = 1;
 else
     p.numContrasts = 5;
@@ -173,29 +177,36 @@ p.surroundPhase = p.centerPhase;
 % 1 - perception: center and surround, mask, blank, mask
 % 2 - working memory: center, mask, surround, mask
 % 3 - baseline: center, mask, blank, mask
+conds = [p.testCondition 3];
+condNames = {'Perception' 'Working Memory' 'Baseline'};
 
 % Baseline number of trials based on the number of center grating contrasts
-if sum(strcmp(p.experiment,{'test_HC', 'env'})) == 1
+if strcmp(p.experiment,{'test_HC'})
     p.numTrialsPerBlock = 5;
-    p.numTrialsPerSet = p.numTrialsPerBlock*5;
+    p.numBlocksPerSet = 4;
+    p.numTrialsPerSet = p.numTrialsPerBlock*p.numBlocksPerSet;
     p.numBlocksPerSet = p.numTrialsPerSet/p.numTrialsPerBlock;
 
-    col1 = [p.testCondition_curr*ones(p.numTrialsPerBlock,1); 3*ones(p.numTrialsPerBlock,1)];
+    col1 = [p.testCondition*ones(p.numTrialsPerBlock,1); 3*ones(p.numTrialsPerBlock,1)];
     col1 = repmat(col1,p.repetitions,1);
-    % col1 = repmat([1;3],length(configs)/2,1);
-    % col1a = ones(length(configs)/2,1); col1b = 3*ones(length(configs)/2,1);
-    % col1 = [col1a;col1b];
+
     p.numTrials = length(col1);
     p.numSets = p.numTrials/p.numTrialsPerSet;
 
-else
-    p.stimConfigurations = 1:length(p.centerContrast);
-    [configs] = BalanceFactors(p.numBlocks,0,p.stimConfigurations);
-    col1 = [repmat(p.testCondition_curr,length(configs)/2,1);repmat(3,length(configs)/2,1)]; %gives column 1 of one current test condition, one basline condition block
+elseif strcmp(p.experiment, 'test')
+    p.stimConfigurations = 1:length(p.centerContrast)*length(conds);
+    [combs] = BalanceFactors(p.repetitions,0,p.stimConfigurations);
+
     p.numTrialsPerBlock = p.numContrasts;
-    p.numTrialsPerSet = p.numTrialsPerBlock*6;
+    p.numBlocksPerSet = 4;
+    p.numTrialsPerSet = p.numTrialsPerBlock*p.numBlocksPerSet;
     p.numBlocksPerSet = p.numTrialsPerSet/p.numTrialsPerBlock;
+    
+    col1 = [p.testCondition*ones(p.numTrialsPerBlock,1); 3*ones(p.numTrialsPerBlock,1)];
+    col1 = repmat(col1,p.repetitions,1);
+    
     p.numTrials = length(col1);
+    p.numBlocks = p.numTrials/p.numTrialsPerBlock;
     p.numSets = p.numTrials/p.numTrialsPerSet;
 end
 
@@ -204,15 +215,27 @@ end
 %--------------------%
 %location is random every trial
 col2 = randi(360,length(col1),1); % center grating location
-col4 = randi(360,length(col1),1); %probe grating location
+col4 = randi(360,length(col1),1); % probe grating location
 
 %--------------------%
-% Contrast %
+%       Contrast     %
 %--------------------%
-if sum(strcmp(p.experiment,{'test_HC', 'env'})) == 1
-    col3 = repmat(p.centerContrast,length(col1),1);
+col3 = nan(size(col1));
+col3(1:p.numContrasts) = Shuffle(p.centerContrast');
+if sum(strcmp(p.experiment,{'test_HC'})) == 1
+    for nBlock = 1:p.numBlocks-1
+        for n=1:2*randi(10,1,1)
+            temp_col3 = Shuffle(p.centerContrast');
+        end
+        col3(p.numContrasts+nBlock*p.numTrialsPerBlock-p.numTrialsPerBlock+1:p.numContrasts+nBlock*p.numTrialsPerBlock) = temp_col3;
+    end
 else
-    col3 = repmat(p.centerContrast',p.numBlocks,1); % center grating contrast
+    for nBlock = 1:p.numBlocks-1
+        for n=1:2*randi(10,1,1)
+            temp_col3 = Shuffle(p.centerContrast');
+        end
+        col3(p.numContrasts+nBlock*p.numTrialsPerBlock-p.numTrialsPerBlock+1:p.numContrasts+nBlock*p.numTrialsPerBlock) = temp_col3;
+    end
 end
 col5 = rand(length(col3),1); % probe grating contrast
 col5(col5>p.maxContrast)=p.maxContrast; col5(col5<p.minContrast)=p.minContrast;
@@ -220,16 +243,13 @@ col5(col5>p.maxContrast)=p.maxContrast; col5(col5<p.minContrast)=p.minContrast;
 % bring all 3 together
 p.trialEvents = [col1 col2 col3 col4 col5]; %[condition targetLocation targetContrast probeLocation probeContrast]
 
-if sum(strcmp(p.experiment,{'test', 'test_HC', 'env'})) == 1
+if sum(strcmp(p.experiment,{'test', 'test_HC'})) == 1 || test_env
     test = 1;
 else
     test = 0;
 end
-shuffled = 0;
-if ~strcmp(p.experiment,'test_HC') && ~strcmp(p.experiment,'env')
-    p.trialEvents = Shuffle(p.trialEvents,2); shuffled = 1;
-end
-p.trialEvents; % [condition targetLocation targetContrast probeLocation probeContrast configuration]
+
+p.trialEvents; % [condition targetLocation targetContrast probeLocation probeContrast]
 
 %% TIMING PARAMETERS
 % timing is in seconds
@@ -313,28 +333,25 @@ end
 
 %% WINDOW SETUP
 
-if shuffled == 1 || test == 1
-    [window,rect] = Screen('OpenWindow', useScreen, colors.black, []); %test screen size [0 0 700 500]
+[window,rect] = Screen('OpenWindow', useScreen, colors.black, []); %test screen size [0 0 700 500]
 
-    OriginalCLUT = Screen('ReadNormalizedGammaTable', window);
-    if ~strcmp(p.experiment,'env')
+OriginalCLUT = Screen('ReadNormalizedGammaTable', window);
+if ~test_env
     load('linearizedCLUT.mat'); %testing room 208 only
     Screen('LoadNormalizedGammaTable',window, linearizedCLUT); %testing room 208 only
-    end
-    % Enable alpha blending
-    Screen('BlendFunction', window, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    % Define coordinates where to draw the fixation
-    CenterX = rect(3)/2; CenterY = rect(4)/2;
-    % Coordinates for location on left and right side of fixation
-    center = [CenterX CenterY];
-
-    Screen('TextStyle', window, 1);
-    Screen('TextSize', window, 16);
-    t.ifi = Screen('GetFlipInterval',window); % grab screen refresh rate
-elseif shuffled == 0 && test == 0
-    error('Trials not shuffled!')
 end
+% Enable alpha blending
+Screen('BlendFunction', window, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+% Define coordinates where to draw the fixation
+CenterX = rect(3)/2; CenterY = rect(4)/2;
+% Coordinates for location on left and right side of fixation
+center = [CenterX CenterY];
+
+Screen('TextStyle', window, 1);
+Screen('TextSize', window, 16);
+t.ifi = Screen('GetFlipInterval',window); % grab screen refresh rate
+
 %% EXPERIMENT LOOP
 HideCursor;
 % Esc to quit
@@ -348,20 +365,21 @@ for m = 1:round(t.flickerTime/t.flicker)
     Mask(m,:) = Screen('MakeTexture', window, squeeze(maskGrating(m,:,:))* colors.grey + colors.grey);
 end
 
-if ~strcmp(p.experiment,'env')
-% Welcome Screen
-Screen('TextStyle', window, 1);
-Screen('TextSize', window, 16);
-welcomeText = ['Hello' '\n' ...
- 'Click powermate to start experiment.'];
-DrawFormattedText(window, welcomeText, 'center', 'center', 255);
-Screen('Flip', window);
-while 1
-     [pmbutton, ~] = PsychPowerMate('Get', powermate);
-     if pmbutton == 1
-        break;
-     end
-end
+if ~test_env
+    % Welcome Screen
+    Screen('TextStyle', window, 1);
+    Screen('TextSize', window, 16);
+    welcomeText = ['Hello' '\n' ...
+     'Click powermate to start experiment.'];
+    DrawFormattedText(window, welcomeText, 'center', 'center', 255);
+    Screen('Flip', window);
+    % Check powermate works by forcing a click
+    while 1
+         [pmbutton, ~] = PsychPowerMate('Get', powermate);
+         if pmbutton == 1
+            break;
+         end
+    end
 end
 
 % Starting Screen
@@ -371,7 +389,7 @@ Screen('FillOval' , window, colors.green, [CenterX-p.innerFixation CenterY-p.inn
 Screen('Flip',window);
 WaitSecs(t.startTime);
 
-nSet = 1;
+nSet = 1; % #sets completed tracker
 for nTrial = 1:size(p.trialEvents,1)
 
     %--------------------%
@@ -403,7 +421,7 @@ for nTrial = 1:size(p.trialEvents,1)
     Screen('FillOval', window,colors.green,[CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation]);
     Screen('Flip',window);
     WaitSecs(t.stimOn1);
-    if strcmp(p.experiment,'env')
+    if test_env
         GetClicks;
     end
     %--------------------%
@@ -492,10 +510,10 @@ for nTrial = 1:size(p.trialEvents,1)
     Screen('Flip', window);
     
     startResponseTime = GetSecs; % get the start time of response
-    if strcmp(p.experiment,'env')
+    if test_env
         GetClicks;
     end
-    if ~strcmp(p.experiment,'env')
+    if ~test_env
     % Allow for dial rotation for location update
     [~, startangle] = PsychPowerMate('Get',powermate);
 
@@ -599,7 +617,7 @@ for nTrial = 1:size(p.trialEvents,1)
     Screen('Flip', window);
     restText = ['You can take a short break now, ' '' '\n' ...
     'or press the dial to continue' '\n' '\n' ...
-    num2str(nSet-1) '/' num2str(p.numSets) ' completed.' ];
+    num2str(nSet) '/' num2str(p.numSets) ' completed.' ];
     DrawFormattedText(window, restText, 'center', 'center', colors.white);
     Screen('Flip', window);
     pmbuttonbreak = 0;
@@ -614,20 +632,22 @@ for nTrial = 1:size(p.trialEvents,1)
     nSet = nSet + 1;
     end
     end
-    % ITI
-    Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
-    Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation]);
-    Screen('FillOval' , window, colors.green, [CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation]);
-    Screen('Flip',window);
-    WaitSecs(t.iti);
+    if nSet < p.numSets
+        % ITI
+        Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
+        Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation]);
+        Screen('FillOval' , window, colors.green, [CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation]);
+        Screen('Flip',window);
+        WaitSecs(t.iti);
+    end
 end
 
 %Draw some more text to the screen outside of the loop:
 Screen(window,'TextSize',30);
-ByebyeText = ['Great work! You have completed this run.' '\n' '\n' ...
+byeByeText = ['Great work! You have completed this run.' '\n' '\n' ...
  'Please let the experimenter know you have finished.'];
 Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
-DrawFormattedText(window, ByebyeText, 'center', 'center', colors.white);
+DrawFormattedText(window, byeByeText, 'center', 'center', colors.black);
 Screen('Flip', window);
 WaitSecs(3);
 
@@ -635,7 +655,7 @@ Screen('LoadNormalizedGammaTable', window, OriginalCLUT);
 Screen('CloseAll')
 ShowCursor;
 %% SAVE OUT THE DATA FILE
-if p.repetitions > 5 && ~strcmp(p.experiment, 'env')
+if p.repetitions > 5 && ~test_env
     cd(dataDir);
     theData(p.runNumber).t = t;
     theData(p.runNumber).p = p;
