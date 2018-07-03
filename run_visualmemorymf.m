@@ -8,7 +8,7 @@ commandwindow;
 % visualmemory_condition_order = perms([1 2 1 2]);
 % visualmemory_subjectsRan = {};
 %% PREPARE
-p.repetitions = 1; % data will be saved if > 5
+p.repetitions = 5; % data will be saved if > 5
 p.numBlocks = p.repetitions;
 
 % Subject Name
@@ -20,7 +20,7 @@ end
 p.subject = 'LR';
 % Set directories
 expDir = pwd; % set the experimental directory to the current directory 'pwd'
-dataDir = 'data'; %Set the path to a directory called 'data'
+dataDir = 'data_master'; %Set the path to a directory called 'data_master' (?)
 t.mySeed = sum(100*clock);
 rng(t.mySeed); % start with a random seed
 t.theDate = datestr(now, 'yymmdd'); %collect todays date
@@ -157,7 +157,7 @@ p.surroundPhase = p.centerPhase;
 %% TRIAL EVENTS
 % Create matrix with all unique trial events based on the number of
 % repetitions, which will be saved as p.trialEvents. Stimulus
-% configurations are the number of possible conditionn, manually inserted
+% configurations are the number of possible conditions, manually inserted
 % into BalanceFactors. BalanceFactors will output the possible combinations
 % of given parameters, repeated as many times as specified. Grating
 % orientation, cue, and which staircase to be fed will be specified here.
@@ -191,7 +191,7 @@ if sum(strcmp(p.experiment,{'test_HC', 'env'})) == 1
 else
     p.stimConfigurations = 1:length(p.centerContrast);
     [configs] = BalanceFactors(p.numBlocks,0,p.stimConfigurations);
-    col1 = repmat(p.testCondition_curr,length(configs),1);
+    col1 = [repmat(p.testCondition_curr,length(configs)/2,1);repmat(3,length(configs)/2,1)]; %gives column 1 of one current test condition, one basline condition block
     p.numTrialsPerBlock = p.numContrasts;
     p.numTrialsPerSet = p.numTrialsPerBlock*6;
     p.numBlocksPerSet = p.numTrialsPerSet/p.numTrialsPerBlock;
