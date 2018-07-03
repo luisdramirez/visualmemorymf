@@ -10,7 +10,7 @@ test_env = 1;
 % visualmemory_subjectsRan = {};
 
 %% PREPARE
-p.repetitions = 1; % data will be saved if repetitions > 5
+p.repetitions = 25; % data will be saved if repetitions > 5
 
 % Experiment & Subject Name
 p.experiment = 'test'; % 'test_HC'=1 contrast, no WM; 'test'=5 contrasts, no WM; 'exp1=5 contrasts, w/WM

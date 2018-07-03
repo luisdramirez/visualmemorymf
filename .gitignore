@@ -2,3 +2,4 @@
 *.m~
 data_master
 .DS_Store
+linearizedCLUT.mat
