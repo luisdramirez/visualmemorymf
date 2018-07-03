@@ -2,7 +2,7 @@
 % Preliminary data loading and setup %
 clear all;
 close all;
-
+expDir=pwd;
 dataDir = 'data_master';
 p.experiment = 'test_HC';
 p.subject = 'LR';
@@ -637,3 +637,4 @@ elseif p.numContrasts == 5 && p.numConditions == 2
     else
         disp('Number of contrasts or conditions does not correspond to experiment design.')
   end
+cd(expDir)
