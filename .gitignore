@@ -1,4 +1,4 @@
+*.fig
+*.m~
 data_master
 .DS_Store
-*.mat
-*.m~
