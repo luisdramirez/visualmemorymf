@@ -1,5 +1,4 @@
-.DS_Store
 *.fig
 *.m~
 data_master
-
+.DS_Store
