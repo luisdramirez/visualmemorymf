@@ -24,6 +24,9 @@ end
 
 [fields, runsCompleted] = size(theData);
 for i = 1:runsCompleted
+    if length(theData) > runsCompleted
+        theData(runsCompleted+1:end) = [];
+    end
     theDataCurrent = theData(i); %index to trial number
     p = theDataCurrent.p; data = theDataCurrent.data; t = theDataCurrent.t;
     data = cell2mat(struct2cell(data));
@@ -337,14 +340,17 @@ for i = 1:runsCompleted
     histmax = max([max(cond1bins1) max(cond1bins2) max(cond1bins3) max(cond1bins4) max(cond1bins5) max(cond2bins1) max(cond2bins2) max(cond2bins3) max(cond2bins4) max(cond2bins5)]);
     
     %%% Condition 1 Contrast Histograms %%%
+    
     subplot (2,6,2)
     hist(cond1cont1Data(:,4),10);
     hold on
     xlim([0 1]);
     ylim([0 histmax+0.5]);
     line([cond1cont1TE(:,3) cond1cont1TE(:,3)],ylim, 'Linewidth',1,'Color','r');
+    hold on
+    line([unique(cond1cont1mean) unique(cond1cont1mean)],ylim, 'Linewidth',3,'Color','g');
     hold off
-    title(sprintf('Hist of Estimated Contrast for %.2f Contrast',cond1cont1TE(1,3)));
+    title(sprintf('Hist of Estimated Contrast for %.2f Contrastin %s Trials ',cond1cont1TE(1,3),condition1));
     legend('Estimated Contrasts', 'Actual Contrast Level');
     
     subplot (2,6,3)
@@ -353,8 +359,10 @@ for i = 1:runsCompleted
     xlim([0 1]);
     ylim([0 histmax+0.5]);
     line([cond1cont2TE(:,3) cond1cont2TE(:,3)],ylim, 'Linewidth',1,'Color','r');
+    hold on
+    line([unique(cond1cont2mean) unique(cond1cont2mean)],ylim, 'Linewidth',3,'Color','g');
     hold off
-    title(sprintf('Hist of Estimated Contrast for %.2f Contrast',cond1cont2TE(1,3)));
+    title(sprintf('Hist of Estimated Contrast for %.2f Contrast in %s Trials',cond1cont2TE(1,3),condition1));
     legend('Estimated Contrasts', 'Actual Contrast Level');
     
     subplot (2,6,4)
@@ -363,28 +371,585 @@ for i = 1:runsCompleted
     xlim([0 1]);
     ylim([0 histmax+0.5]);
     line([cond1cont3TE(:,3) cond1cont3TE(:,3)],ylim, 'Linewidth',1,'Color','r');
+    hold on
+    line([unique(cond1cont3mean) unique(cond1cont3mean)],ylim, 'Linewidth',3,'Color','g');
     hold off
-    title(sprintf('Hist of Estimated Contrast for %.2f Contrast',cond1cont3TE(1,3)));
+    title(sprintf('Hist of Estimated Contrast for %.2f Contrast in %s Trials ',cond1cont3TE(1,3),condition1));
     legend('Estimated Contrasts', 'Actual Contrast Level');
+    
     subplot (2,6,5)
     hist(cond1cont4Data(:,4),10);
     hold on
     xlim([0 1]);
     ylim([0 histmax+0.5]);
-    line([cond1cont4TE(:,3) cond1cont1TE(:,3)],ylim, 'Linewidth',1,'Color','r');
+    line([cond1cont4TE(:,3) cond1cont4TE(:,3)],ylim, 'Linewidth',1,'Color','r');
+    hold on
+    line([unique(cond1cont4mean) unique(cond1cont4mean)],ylim, 'Linewidth',3,'Color','g');
     hold off
-    title(sprintf('Hist of Estimated Contrast for %.2f Contrast',cond1cont4TE(1,3)));
+    title(sprintf('Hist of Estimated Contrast for %.2f Contrast in %s Trials ',cond1cont4TE(1,3),condition1));
     legend('Estimated Contrasts', 'Actual Contrast Level');
+    
     subplot (2,6,6)
     hist(cond1cont5Data(:,4),10);
     hold on
     xlim([0 1]);
     ylim([0 histmax+0.5]);
     line([cond1cont5TE(:,3) cond1cont5TE(:,3)],ylim, 'Linewidth',1,'Color','r');
+    hold on
+    line([unique(cond1cont5mean) unique(cond1cont5mean)],ylim, 'Linewidth',3,'Color','g');
     hold off
-    title(sprintf('Hist of Estimated Contrast for %.2f Contrast',cond1cont5TE(1,3)));
+    title(sprintf('Hist of Estimated Contrast for %.2f Contrastin %s Trials ',cond1cont5TE(1,3),condition1));
     legend('Estimated Contrasts', 'Actual Contrast Level');
+    
     %%% Condition 2 Contrast Graphs %%%
+    
+    subplot (2,6,8)
+    hist(cond2cont1Data(:,4),10);
+    hold on
+    xlim([0 1]);
+    ylim([0 histmax+0.5]);
+    line([cond2cont1TE(:,3) cond2cont1TE(:,3)],ylim, 'Linewidth',1,'Color','r');
+    hold on
+    line([unique(cond2cont1mean) unique(cond2cont1mean)],ylim, 'Linewidth',3,'Color','g');
+    hold off
+    title(sprintf('Hist of Estimated Contrast for %.2f Contrastin %s Trials ',cond2cont1TE(1,3),condition2));
+    legend('Estimated Contrasts', 'Actual Contrast Level');
+    
+    subplot (2,6,9)
+    hist(cond2cont2Data(:,4),10);
+    hold on
+    xlim([0 1]);
+    ylim([0 histmax+0.5]);
+    line([cond2cont2TE(:,3) cond2cont2TE(:,3)],ylim, 'Linewidth',1,'Color','r');
+    hold on
+    line([unique(cond2cont2mean) unique(cond2cont2mean)],ylim, 'Linewidth',3,'Color','g');
+    hold off
+    title(sprintf('Hist of Estimated Contrast for %.2f Contrast in %s Trials',cond2cont2TE(1,3),condition2));
+    legend('Estimated Contrasts', 'Actual Contrast Level');
+    
+    subplot (2,6,10)
+    hist(cond2cont3Data(:,4),10);
+    hold on
+    xlim([0 1]);
+    ylim([0 histmax+0.5]);
+    line([cond2cont3TE(:,3) cond2cont3TE(:,3)],ylim, 'Linewidth',1,'Color','r');
+    hold on
+    line([unique(cond2cont3mean) unique(cond2cont3mean)],ylim, 'Linewidth',3,'Color','g');
+    hold off
+    title(sprintf('Hist of Estimated Contrast for %.2f Contrast in %s Trials',cond2cont3TE(1,3),condition2));
+    legend('Estimated Contrasts', 'Actual Contrast Level');
+    
+    subplot (2,6,11)
+    hist(cond2cont4Data(:,4),10);
+    hold on
+    xlim([0 1]);
+    ylim([0 histmax+0.5]);
+    line([cond2cont4TE(:,3) cond2cont4TE(:,3)],ylim, 'Linewidth',1,'Color','r');
+    hold on
+    line([unique(cond2cont4mean) unique(cond2cont4mean)],ylim, 'Linewidth',3,'Color','g');
+    hold off
+    title(sprintf('Hist of Estimated Contrast for %.2f Contrast in %s Trials',cond2cont4TE(1,3),condition2));
+    legend('Estimated Contrasts', 'Actual Contrast Level');
+    
+    subplot (2,6,12)
+    hist(cond2cont5Data(:,4),10);
+    hold on
+    xlim([0 1]);
+    ylim([0 histmax+0.5]);
+    line([cond2cont5TE(:,3) cond2cont5TE(:,3)],ylim, 'Linewidth',1,'Color','r');
+    hold on
+    line([unique(cond2cont5mean) unique(cond2cont5mean)],ylim, 'Linewidth',3,'Color','g');
+    hold off
+    title(sprintf('Hist of Estimated Contrast for %.2f Contrast in %s Trials',cond2cont5TE(1,3),condition2));
+    legend('Estimated Contrasts', 'Actual Contrast Level');
+    
+    % Printing Data %
+    fprintf('\nTRIAL %d\n',i)
+    
+    fprintf('\nContrast Stats for %s Trials:\n',condition1)
+    fprintf('\nThe mean of responses for contrast %f was %f. The absolute difference is: %f',cond1cont1TE(1,3),cond1cont1mean(1), abs(cond1cont1TE(1,3)-cond1cont1mean(1)));
+    fprintf('\nThe mean of responses for contrast %f was %f. The absolute difference is: %f',cond1cont2TE(1,3),cond1cont2mean(1), abs(cond1cont2TE(1,3)-cond1cont2mean(1)));
+    fprintf('\nThe mean of responses for contrast %f was %f. The absolute difference is: %f',cond1cont3TE(1,3),cond1cont3mean(1), abs(cond1cont3TE(1,3)-cond1cont3mean(1)));
+    fprintf('\nThe mean of responses for contrast %f was %f. The absolute difference is: %f',cond1cont4TE(1,3),cond1cont4mean(1), abs(cond1cont4TE(1,3)-cond1cont4mean(1)));
+    fprintf('\nThe mean of responses for contrast %f was %f. The absolute difference is: %f\n',cond1cont5TE(1,3),cond1cont5mean(1), abs(cond1cont5TE(1,3)-cond1cont5mean(1)));
+    
+    fprintf('\nContrast Stats for %s Trials:\n',condition2)
+    fprintf('\nThe mean of responses for contrast %f was %f. The absolute difference is: %f',cond2cont1TE(1,3),cond2cont1mean(1), abs(cond2cont1TE(1,3)-cond2cont1mean(1)));
+    fprintf('\nThe mean of responses for contrast %f was %f. The absolute difference is: %f',cond2cont2TE(1,3),cond2cont2mean(1), abs(cond2cont2TE(1,3)-cond2cont2mean(1)));
+    fprintf('\nThe mean of responses for contrast %f was %f. The absolute difference is: %f',cond2cont3TE(1,3),cond2cont3mean(1), abs(cond2cont3TE(1,3)-cond2cont3mean(1)));
+    fprintf('\nThe mean of responses for contrast %f was %f. The absolute difference is: %f',cond2cont4TE(1,3),cond2cont4mean(1), abs(cond2cont4TE(1,3)-cond2cont4mean(1)));
+    fprintf('\nThe mean of responses for contrast %f was %f. The absolute difference is: %f\n',cond2cont5TE(1,3),cond2cont5mean(1), abs(cond2cont5TE(1,3)-cond2cont5mean(1)));
+    
+    %% LOCATION %%
+    
+    %Y Limit for accurate comparisons
+    yLocMax = max([max(cond1cont1Data(:,2)) max(cond1cont2Data(:,2)) max(cond1cont3Data(:,2)) max(cond1cont4Data(:,2)) max(cond1cont5Data(:,2)) max(cond2cont1Data(:,2)) max(cond2cont2Data(:,2)) max(cond2cont3Data(:,2)) max(cond2cont4Data(:,2)) max(cond2cont5Data(:,2))])+5;
+    figure((i+runsCompleted))
+    set(gcf, 'Name',('Location Statistics over 5 Contrasts'));
+    
+    % General Location Estimation and Trendline
+    subplot(2,6,1)
+    plot(cond1orgData(:,2))
+    hold on
+    ylim([0 yLocMax])
+    xlabel('Lowest to Highest Contrast Trials')
+    ylabel('Estimated vs. Actual Location Difference (°)')
+    title(sprintf('Location Difference for all Contrasts for %s Trials',condition1))
+    fit = polyfit(1:length(cond1orgData(:,2)),cond1orgData(:,2)',1);
+    plot(polyval(fit,1:length(cond1orgData(:,2)))); 
+    hold off
+    legend('Abs value of difference in location','Average Location Difference Trendline')
+    
+    subplot(2,6,7)
+    plot(cond2orgData(:,2))
+    hold on
+    ylim([0 yLocMax])
+    xlabel('Lowest to Highest Contrast Trials')
+    ylabel('Estimated vs. Actual Location Difference (°)')
+    title(sprintf('Location Difference for all Contrasts for %s Trials',condition2))
+    fit = polyfit(1:length(cond2orgData(:,2)),cond2orgData(:,2)',1);
+    plot(polyval(fit,1:length(cond2orgData(:,2)))); 
+    hold off
+    legend('Abs value of difference in location','Average Location Difference Trendline')
+    
+    %% Location Difference Graphs %%
+    
+    fprintf('\nLocation Stats for %s Trials:\n',condition1)
+    %Contrast 1 Location Difference
+    subplot(2,6,2)
+    plot(cond1cont1Data(:,2))
+    xlim([1 length(cond1cont1Data)])
+    ylim([0 yLocMax])
+    xlabel('Trial Number')
+    ylabel('Estimated vs. Actual Location Difference (°)')
+    title(sprintf('Location Difference for %.2f Contrast',cond1cont1TE(1,3)))
+    hold on
+    plot(repmat(mean(cond1cont1Data(:,2)),1,length(cond1cont1Data(:,2))))
+    fprintf('\nThe average location difference for a Contrast of %.2f is %.2f\n',cond1cont1TE(1,3),mean(cond1cont1Data(:,2)));
+    legend('Abs value of difference in location','Average Location Difference')
+
+     %Contrast 2 Location Difference
+    subplot(2,6,3)
+    plot(cond1cont2Data(:,2))
+    xlim([1 length(cond1cont2Data)])
+    ylim([0 yLocMax])
+    xlabel('Trial Number')
+    ylabel('Estimated vs. Actual Location Difference (°)')
+    title(sprintf('Location Difference for %.2f Contrast',cond1cont2TE(1,3)))
+    hold on
+    plot(repmat(mean(cond1cont2Data(:,2)),1,length(cond1cont2Data(:,2))))
+    fprintf('The average location difference for a Contrast of %.2f is %.2f\n',cond1cont2TE(1,3),mean(cond1cont2Data(:,2)));
+    legend('Abs value of difference in location','Average Location Difference')
+    
+     %Contrast 3 Location Difference
+    subplot(2,6,4)
+    plot(cond1cont3Data(:,2))
+    xlim([1 length(cond1cont3Data)])
+    ylim([0 yLocMax])
+    xlabel('Trial Number')
+    ylabel('Estimated vs. Actual Location Difference (°)')
+    title(sprintf('Location Difference for %.2f Contrast',cond1cont3TE(1,3)))
+    hold on
+    plot(repmat(mean(cond1cont3Data(:,2)),1,length(cond1cont3Data(:,2))))
+    fprintf('The average location difference for a Contrast of %.2f is %.2f\n',cond1cont3TE(1,3),mean(cond1cont3Data(:,2)));
+    legend('Abs value of difference in location','Average Location Difference')
+    
+     %Contrast 4 Location Difference
+    subplot(2,6,5)
+    plot(cond1cont4Data(:,2))
+    xlim([1 length(cond1cont4Data)])
+    ylim([0 yLocMax])
+    xlabel('Trial Number')
+    ylabel('Estimated vs. Actual Location Difference (°)')
+    title(sprintf('Location Difference for %.2f Contrast',cond1cont4TE(1,3)))
+    hold on
+    plot(repmat(mean(cond1cont4Data(:,2)),1,length(cond1cont4Data(:,2))))
+    fprintf('The average location difference for a Contrast of %.2f is %.2f\n',cond1cont4TE(1,3),mean(cond1cont4Data(:,2)));
+    legend('Abs value of difference in location','Average Location Difference')
+    
+     %Contrast 5 Location Difference
+    subplot(2,6,6)
+    plot(cond1cont5Data(:,2))
+    xlim([1 length(cond1cont5Data)])
+    ylim([0 yLocMax])
+    xlabel('Trial Number')
+    ylabel('Estimated vs. Actual Location Difference (°)')
+    title(sprintf('Location Difference for %.2f Contrast',cond1cont5TE(1,3)))
+    hold on
+    plot(repmat(mean(cond1cont5Data(:,2)),1,length(cond1cont5Data(:,2))))
+    fprintf('The average location difference for a Contrast of %.2f is %.2f\n',cond1cont5TE(1,3),mean(cond1cont5Data(:,2)));
+    legend('Abs value of difference in location','Average Location Difference')
+
+    % Condition 2 Location Graphs %
+    fprintf('\nLocation Stats for %s Trials:\n',condition2)
+    
+    %Contrast 1 Location Difference
+    subplot(2,6,8)
+    plot(cond2cont1Data(:,2))
+    xlim([1 length(cond2cont1Data)])
+    ylim([0 yLocMax])
+    xlabel('Trial Number')
+    ylabel('Estimated vs. Actual Location Difference (°)')
+    title(sprintf('Location Difference for %.2f Contrast',cond2cont1TE(1,3)))
+    hold on
+    plot(repmat(mean(cond2cont1Data(:,2)),1,length(cond2cont1Data(:,2))))
+    fprintf('\nThe average location difference for a Contrast of %.2f is %.2f\n',cond2cont1TE(1,3),mean(cond2cont1Data(:,2)));
+    legend('Abs value of difference in location','Average Location Difference')
+
+     %Contrast 2 Location Difference
+    subplot(2,6,9)
+    plot(cond2cont2Data(:,2))
+    xlim([1 length(cond2cont2Data)])
+    ylim([0 yLocMax])
+    xlabel('Trial Number')
+    ylabel('Estimated vs. Actual Location Difference (°)')
+    title(sprintf('Location Difference for %.2f Contrast',cond2cont2TE(1,3)))
+    hold on
+    plot(repmat(mean(cond2cont2Data(:,2)),1,length(cond2cont2Data(:,2))))
+    fprintf('The average location difference for a Contrast of %.2f is %.2f\n',cond2cont2TE(1,3),mean(cond2cont2Data(:,2)));
+    legend('Abs value of difference in location','Average Location Difference')
+    
+     %Contrast 3 Location Difference
+    subplot(2,6,10)
+    plot(cond2cont3Data(:,2))
+    xlim([1 length(cond2cont3Data)])
+    ylim([0 yLocMax])
+    xlabel('Trial Number')
+    ylabel('Estimated vs. Actual Location Difference (°)')
+    title(sprintf('Location Difference for %.2f Contrast',cond2cont3TE(1,3)))
+    hold on
+    plot(repmat(mean(cond2cont3Data(:,2)),1,length(cond2cont3Data(:,2))))
+    fprintf('The average location difference for a Contrast of %.2f is %.2f\n',cond2cont3TE(1,3),mean(cond2cont3Data(:,2)));
+    legend('Abs value of difference in location','Average Location Difference')
+    
+     %Contrast 4 Location Difference
+    subplot(2,6,11)
+    plot(cond2cont4Data(:,2))
+    xlim([1 length(cond2cont4Data)])
+    ylim([0 yLocMax])
+    xlabel('Trial Number')
+    ylabel('Estimated vs. Actual Location Difference (°)')
+    title(sprintf('Location Difference for %.2f Contrast',cond2cont4TE(1,3)))
+    hold on
+    plot(repmat(mean(cond2cont4Data(:,2)),1,length(cond2cont4Data(:,2))))
+    fprintf('The average location difference for a Contrast of %.2f is %.2f\n',cond2cont4TE(1,3),mean(cond2cont4Data(:,2)));
+    legend('Abs value of difference in location','Average Location Difference')
+    
+     %Contrast 5 Location Difference
+    subplot(2,6,12)
+    plot(cond2cont5Data(:,2))
+    xlim([1 length(cond2cont5Data)])
+    ylim([0 yLocMax])
+    xlabel('Trial Number')
+    ylabel('Estimated vs. Actual Location Difference (°)')
+    title(sprintf('Location Difference for %.2f Contrast',cond2cont5TE(1,3)))
+    hold on
+    plot(repmat(mean(cond2cont5Data(:,2)),1,length(cond2cont5Data(:,2))))
+    fprintf('The average location difference for a Contrast of %.2f is %.2f\n',cond2cont5TE(1,3),mean(cond2cont5Data(:,2)));
+    legend('Abs value of difference in location','Average Location Difference')
     
     end
 end
+    %% TESTING BETWEEN RUNS %%
+if runsCompleted == 4
+    run1Stats = theData(1);
+    run2Stats = theData(2);
+    run3Stats = theData(3);
+    run4Stats = theData(4);
+   possCombs = nchoosek(4,2);
+% 6 different combinations of comparison for trials 1-4
+% 3 different potential matchups - p & p, wm & wm, wm & p
+
+% Trial 1 vs. Trial 2
+[results.trials12.h,results.trials12.p] = ttest(run1Stats.data(:,5),run2Stats.data(:,5));
+    if results.h12 == 1
+        fprintf('\nThe estimated contrast differences were statistically significant between %s (trial 1) and %s (trial 2) with a calculated probability of %0.3f\n',run1Stats.condition, run2Stats.condition, results.trials12.p);
+    else
+        fprintf('The estimated contrast between %s (trial 1) and %s (trial 2) is not statistically significant\n', run1Stats.condition, run2Stats.condition)
+    end
+ if sum(strcmp(run1Stats.condition,'Perception') || strcmp(run2Stats.condition,'Perception')) == 0
+     results.trials12.condition = 0; % =0 is both working memory conditioned trials
+ elseif sum(strcmp(run1Stats.condition,'Perception') || strcmp(run2Stats.condition,'Perception')) == 1
+     results.trials12.condition = 1; % =1 is one working memory trial, and one perception trial
+ elseif sum(strcmp(run1Stats.condition,'Perception') || strcmp(run2Stats.condition,'Perception')) == 2 
+     results.trials12.condition = 2; % =2 is both perception conditioned trials
+ else
+     error('Error with condition pairings.');
+ end
+
+ % Trial 2 vs. Trial 3
+[results.trials23.h,results.trials23.p] = ttest(run2Stats.data(:,5),run3Stats.data(:,5));
+    if results.h23 == 1
+        fprintf('\nThe estimated contrast differences were statistically significant between %s (trial 2) and %s (trial 3) with a calculated probability of %0.3f\n',run2Stats.condition, run3Stats.condition, results.trials23.p);
+    else
+        fprintf('The estimated contrast between %s (trial 2) and %s (trial 3) is not statistically significant\n', run2Stats.condition, run3Stats.condition)
+    end
+ if sum(strcmp(run2Stats.condition,'Perception') || strcmp(run3Stats.condition,'Perception')) == 0
+     results.trials23.condition = 0; % =0 is both working memory conditioned trials
+ elseif sum(strcmp(run2Stats.condition,'Perception') || strcmp(run3Stats.condition,'Perception')) == 1
+     results.trials23.condition = 1; % =1 is one working memory trial, and one perception trial
+ elseif sum(strcmp(run2Stats.condition,'Perception') || strcmp(run3Stats.condition,'Perception')) == 2 
+     results.trials23.condition = 2; % =2 is both perception conditioned trials
+ else
+     error('Error with condition pairings.');
+ end
+ 
+ % Trial 3 vs. Trial 4
+[results.trials34.h,results.trials34.p] = ttest(run3Stats.data(:,5),run4Stats.data(:,5));
+if results.trials34.h == 1
+    fprintf('\nThe estimated contrast differences were statistically significant between %s (trial 3) and %s (trial 4) with a calculated probability of %0.3f\n',run3Stats.condition, run4Stats.condition, results.trials34.p);
+else
+    fprintf('The estimated contrast between %s (trial 3) and %s (trial 4) is not statistically significant\n', run3Stats.condition, run4Stats.condition)
+end
+ if sum(strcmp(run3Stats.condition,'Perception') || strcmp(run4Stats.condition,'Perception')) == 0
+     results.trials34.condition = 0; % =0 is both working memory conditioned trials
+ elseif sum(strcmp(run3Stats.condition,'Perception') || strcmp(run4Stats.condition,'Perception')) == 1
+     results.trials34.condition = 1; % =1 is one working memory trial, and one perception trial
+ elseif sum(strcmp(run3Stats.condition,'Perception') || strcmp(run4Stats.condition,'Perception')) == 2 
+     results.trials34.condition = 2; % =2 is both perception conditioned trials
+ else
+     error('Error with condition pairings.');
+ end
+
+ % Trial 4 vs. Trial 1
+[results.trials41.h,results.trials41.p] = ttest(run4Stats.data(:,5),run1Stats.data(:,5));
+    if results.trials41.h == 1
+        fprintf('\nThe estimated contrast differences were statistically significant between %s (trial 4) and %s (trial 1) with a calculated probability of %0.3f\n',run4Stats.condition, run1Stats.condition, results.trial41.p);
+    else
+        fprintf('The estimated contrast between %s (trial 4) and %s (trial 1) is not statistically significant\n', run4Stats.condition, run1Stats.condition)
+    end
+ if sum(strcmp(run4Stats.condition,'Perception') || strcmp(run1Stats.condition,'Perception')) == 0
+     results.trials41.condition = 0; % =0 is both working memory conditioned trials
+ elseif sum(strcmp(run4Stats.condition,'Perception') || strcmp(run1Stats.condition,'Perception')) == 1
+     results.trials41.condition = 1; % =1 is one working memory trial, and one perception trial
+ elseif sum(strcmp(run4Stats.condition,'Perception') || strcmp(run1Stats.condition,'Perception')) == 2 
+     results.trials41.condition = 2; %=2 is both perception conditioned trials
+ else
+     error('Error with condition pairings.');
+ end
+ 
+ % Trial 1 vs. Trial 3
+[results.trials13.h,results.trials13.p] = ttest(run1Stats.data(:,5),run3Stats.data(:,5));
+    if results.trials13.h == 1
+        fprintf('\nThe estimated contrast differences were statistically significant between %s (trial 1) and %s (trial 3) with a calculated probability of %0.3f\n',run1Stats.condition, run3Stats.condition, results.trials23.p);
+    else
+        fprintf('The estimated contrast between %s (trial 2) and %s (trial 3) is not statistically significant\n', run1Stats.condition, run3Stats.condition)
+    end
+ if sum(strcmp(run1Stats.condition,'Perception') || strcmp(run3Stats.condition,'Perception')) == 0
+     results.trials13.condition = 0; % =0 is both working memory conditioned trials
+ elseif sum(strcmp(run1Stats.condition,'Perception') || strcmp(run3Stats.condition,'Perception')) == 1
+     results.trials13.condition= 1; % =1 is one working memory trial, and one perception trial
+ elseif sum(strcmp(run1Stats.condition,'Perception') || strcmp(run3Stats.condition,'Perception')) == 2 
+     results.trials23.condition = 2; % =2 is both perception conditioned trials
+ else
+     error('Error with condition pairings.');
+ end
+
+% Trial 2 vs. Trial 4
+[results.trials24.h,results.trials24.p] = ttest(run2Stats.data(:,5),run4Stats.data(:,5));
+    if results.trials24.h == 1
+        fprintf('\nThe estimated contrast differences were statistically significant between %s (trial 2) and %s (trial 4) with a calculated probability of %0.3f\n',run2Stats.condition, run4Stats.condition, results.trials24.p);
+    else
+        fprintf('The estimated contrast between %s (trial 2) and %s (trial 4) is not statistically significant\n', run2Stats.condition, run4Stats.condition)
+    end
+ if sum(strcmp(run2Stats.condition,'Perception') || strcmp(run4Stats.condition,'Perception')) == 0
+     results.trials24.condition = 0; % =0 is both working memory conditioned trials
+ elseif sum(strcmp(run2Stats.condition,'Perception') || strcmp(run4Stats.condition,'Perception')) == 1
+     results.trials24.condition = 1; % =1 is one working memory trial, and one perception trial
+ elseif sum(strcmp(run2Stats.condition,'Perception') || strcmp(run4Stats.condition,'Perception')) == 2 
+     results.trials24.condition = 2; % =2 is both perception conditioned trials
+ else
+     error('Error with condition pairings.');
+ end
+
+% Organize trials by their conditions 
+    % first - both wm
+    % 2-5 - mixes of working memoryt and perception
+    % 6 - both perception
+    % make a counter that matches them equal to 0 1 or 2
+    
+Afields = fieldnames(results);
+Acell = struct2cell(A);
+resultSize = size(Acell);
+Acell = reshape(Acell,resultSize, []);
+Acell = Acell';
+Acell = sortrows(Acell,3); %sorts the cell by the condition, 0 - 2
+Acell = reshape(Acell',resultSize);
+Acell = cell2struct(Acell,Afields,1);
+condSet = [0 1 1 1 1 2];
+%converted back to struct, sorted by condition 0 - 2 starting with condition.
+wm = NaN(1);
+wm_p = NaN(1:4);
+p = NaN(1);
+for i = 1:length(condSet)
+    counter = 1; 
+    %% trials 1-2
+    if condSet(i) == results.trials12.condition
+        if ismember(1,counter) == 1
+            if isnan(wm) == 1
+            wm = results.trials12;
+            else 
+                error('Index into to a condition vector is full');
+            end
+        elseif ismember([2,3,4,5],counter) == 1
+           if sum(isnan(wm_p)) == 4
+                wm_p(1) = results.trials12;
+            elseif sum(isnan(wm_p)) == 3
+                wm_p(2) = results.trials12;
+            elseif sum(isnan(wm_p)) == 2
+                wm_p(3) = results.trials12;
+           elseif sum(isnan(wm_p)) == 1
+               wm_p(4) = results.trials12;
+           else
+               error('Index into w condition vector is full.')
+           end
+        elseif ismember(6,counter) == 1
+           if isnan(p) == 1
+            p = results.trials12;
+            else 
+                error('Index into to a condition vector is full');
+            end
+        end 
+     %%trials 2-3       
+    elseif condSet(i) == results.trials23.condition
+         if ismember(1,counter) == 1
+            if isnan(wm) == 1
+            wm = results.trials23;
+            else 
+                error('Index into to a condition vector is full');
+            end
+        elseif ismember([2,3,4,5],counter) == 1
+           if sum(isnan(wm_p)) == 4
+                wm_p(1) = results.trials23;
+            elseif sum(isnan(wm_p)) == 3
+                wm_p(2) = results.trials23;
+            elseif sum(isnan(wm_p)) == 2
+                wm_p(3) = results.trials23;
+           elseif sum(isnan(wm_p)) == 1
+               wm_p(4) = results.trials23;
+           else
+               error('Index into w condition vector is full.')
+           end
+        elseif ismember(6,counter) == 1
+           if isnan(p) == 1
+            p = results.trials23;
+            else 
+                error('Index into to a condition vector is full');
+            end
+         end 
+        %%trials 3-4
+    elseif condSet(i) == results.trials34.condition
+        if ismember(1,counter) == 1
+            if isnan(wm) == 1
+            wm = results.trials34;
+            else 
+                error('Index into to a condition vector is full');
+            end
+        elseif ismember([2,3,4,5],counter) == 1
+           if sum(isnan(wm_p)) == 4
+                wm_p(1) = results.trials12;
+            elseif sum(isnan(wm_p)) == 3
+                wm_p(2) = results.trials12;
+            elseif sum(isnan(wm_p)) == 2
+                wm_p(3) = results.trials12;
+           elseif sum(isnan(wm_p)) == 1
+               wm_p(4) = results.trials12;
+           else
+               error('Index into w condition vector is full.')
+           end
+        elseif ismember(6,counter) == 1
+           if isnan(p) == 1
+            p = results.trials12;
+            else 
+                error('Index into to a condition vector is full');
+            end
+        end
+   %% Trials 4-1
+    elseif condSet(i) == results.trials41.condition
+        if ismember(1,counter) == 1
+            if isnan(wm) == 1
+            wm = results.trials41;
+            else 
+                error('Index into to a condition vector is full');
+            end
+        elseif ismember([2,3,4,5],counter) == 1
+           if sum(isnan(wm_p)) == 4
+                wm_p(1) = results.trials41;
+            elseif sum(isnan(wm_p)) == 3
+                wm_p(2) = results.trials41;
+            elseif sum(isnan(wm_p)) == 2
+                wm_p(3) = results.trials41;
+           elseif sum(isnan(wm_p)) == 1
+               wm_p(4) = results.trials41;
+           else
+               error('Index into w condition vector is full.')
+           end
+        elseif ismember(6,counter) == 1
+           if isnan(p) == 1
+            p = results.trials41;
+            else 
+                error('Index into to a condition vector is full');
+           end
+       end 
+        
+    %trials 1-3
+    elseif condSet(i) == results.trials13.condition
+        if ismember(1,counter) == 1
+            if isnan(wm) == 1
+            wm = results.trials13;
+            else 
+                error('Index into to a condition vector is full');
+            end
+        elseif ismember([2,3,4,5],counter) == 1
+           if sum(isnan(wm_p)) == 4
+                wm_p(1) = results.trials13;
+            elseif sum(isnan(wm_p)) == 3
+                wm_p(2) = results.trials13;
+            elseif sum(isnan(wm_p)) == 2
+                wm_p(3) = results.trials13;
+           elseif sum(isnan(wm_p)) == 1
+               wm_p(4) = results.trials13;
+           else
+               error('Index into w condition vector is full.')
+           end
+        elseif ismember(6,counter) == 1
+           if isnan(p) == 1
+            p = results.trials13;
+            else 
+                error('Index into to a condition vector is full');
+            end
+        end 
+        
+        %trials 2-4
+    elseif condSet(i) == results.trials24
+        if ismember(1,counter) == 1
+            if isnan(wm) == 1
+            wm = results.trials12;
+            else 
+                error('Index into to a condition vector is full');
+            end
+        elseif ismember([2,3,4,5],counter) == 1
+           if sum(isnan(wm_p)) == 4
+                wm_p(1) = results.trials12;
+            elseif sum(isnan(wm_p)) == 3
+                wm_p(2) = results.trials12;
+            elseif sum(isnan(wm_p)) == 2
+                wm_p(3) = results.trials12;
+           elseif sum(isnan(wm_p)) == 1
+               wm_p(4) = results.trials12;
+           else
+               error('Index into w condition vector is full.')
+           end
+        elseif ismember(6,counter) == 1
+           if isnan(p) == 1
+            p = results.trials12;
+            else 
+                error('Index into to a condition vector is full');
+            end
+        end 
+    counter = counter + 1;
+    end
+end
+else
+    fprintf('\nNot a complete data set.') % Add choice to still run data on not complete runs
+end 
