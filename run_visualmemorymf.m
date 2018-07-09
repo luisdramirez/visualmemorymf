@@ -13,12 +13,12 @@ test_env = 1;
 p.repetitions = 20; % data will be saved if repetitions > 5
 
 % Experiment & Subject Name
-p.experiment = 'test'; % 'test_HC'=1 contrast, no WM; 'test'=5 contrasts, no WM; 'exp1=5 contrasts, w/WM
+p.experiment = 'exp1'; % 'test_HC'=1 contrast, no WM; 'test'=5 contrasts, no WM; 'exp1=5 contrasts, w/WM
 p.subject = 'LR';
 
 if sum(strcmp(p.experiment,{'test','test_HC'})) == 0
-load('visualmemory_condition_order')
-load('visualmemory_subjectsRan')    
+load('visualmemory_condition_order.mat')
+load('visualmemory_subjectsRan.mat')    
 end
 
 
@@ -44,11 +44,11 @@ if exist(['data_visualmemorymf_' p.experiment '_' p.subject '.mat'],'file') ~= 0
 else 
     p.runNumber = 1;
     if sum(strcmp(p.experiment,{'test','test_HC'})) == 0
-        p.orderRow = length(subjectsRan)+1;
+        p.orderRow = length(visualmemory_subjectsRan)+1;
         if p.orderRow > length(visualmemory_condition_order)
             p.orderRow = p.orderRow - length(visualmemory_condition_order); 
         end
-        subjectsRan{end+1} = p.subject;
+        visualmemory_subjectsRan{end+1} = p.subject;
         p.trialSchedule = visualmemory_condition_order(p.orderRow,:);
         % Which Test condition, run these test conditions on different days
         p.testCondition = p.trialSchedule(1);
