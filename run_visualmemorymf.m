@@ -4,7 +4,7 @@ close all; clear all; clc;
 commandwindow;
 Screen('Preference', 'SkipSyncTests', 1);
 commandwindow;
-test_env = 1;
+test_env = 0;
 
 % visualmemory_condition_order = perms([1 2 1 2]);
 % visualmemory_subjectsRan = {};
@@ -62,13 +62,13 @@ cd(expDir);
 
 deviceNumber = 0;
 [keyBoardIndices, ProductNames] = GetKeyboardIndices;
-% deviceString = 'Lenovo Traditional USB Keyboard';
-% deviceString = 'Apple Internal Keyboard / Trackpad';
-deviceString = 'USB-HID Keyboard'; 
+deviceString = 'Lenovo Traditional USB Keyboard';
+%deviceString = 'Apple Internal Keyboard / Trackpad';
+%deviceString = 'USB-HID Keyboard'; 
 %deviceString = 'Wired USB Keyboard';
 %deviceString = 'Apple Keyboard';
 %deviceString = 'USB Keyboard';
-% deviceString = 'Wired Keyboard 400';
+%deviceString = 'Wired Keyboard 400';
 
 for nTrial = 1:length(ProductNames)
     if strcmp(ProductNames{nTrial}, deviceString)
@@ -98,9 +98,9 @@ end
 end
 %% SCREEN PARAMTERS
 screens=Screen('Screens');
-if test_env
+if test_env == 1
     useScreen=max(screens);
-else test_env
+elseif test_env == 0
     useScreen=min(screens);
 end
 p.screenWidthPixels = Screen('Rect', useScreen);
@@ -193,7 +193,7 @@ if strcmp(p.experiment,{'test_HC'})
     p.numTrials = length(col1);
     p.numSets = p.numTrials/p.numTrialsPerSet;
 
-elseif strcmp(p.experiment, 'test')
+else
     p.stimConfigurations = 1:length(p.centerContrast)*length(conds);
     [combs] = BalanceFactors(p.repetitions,0,p.stimConfigurations);
 
