@@ -62,9 +62,9 @@ cd(expDir);
 
 deviceNumber = 0;
 [keyBoardIndices, ProductNames] = GetKeyboardIndices;
-% deviceString = 'Lenovo Traditional USB Keyboard';
+deviceString = 'Lenovo Traditional USB Keyboard';
 % deviceString = 'Apple Internal Keyboard / Trackpad';
-deviceString = 'USB-HID Keyboard'; 
+%deviceString = 'USB-HID Keyboard'; 
 %deviceString = 'Wired USB Keyboard';
 %deviceString = 'Apple Keyboard';
 %deviceString = 'USB Keyboard';
@@ -193,7 +193,7 @@ if strcmp(p.experiment,{'test_HC'})
     p.numTrials = length(col1);
     p.numSets = p.numTrials/p.numTrialsPerSet;
 
-elseif strcmp(p.experiment, 'test')
+elseif sum(strcmp(p.experiment, {'test','exp'})) == 1
     p.stimConfigurations = 1:length(p.centerContrast)*length(conds);
     [combs] = BalanceFactors(p.repetitions,0,p.stimConfigurations);
 
@@ -348,7 +348,7 @@ end
 
 %% WINDOW SETUP
 
-[window,rect] = Screen('OpenWindow', useScreen, colors.black, []); %test screen size [0 0 700 500]
+[window,rect] = Screen('OpenWindow', useScreen, colors.black, [ 0 0 700 500]); %test screen size [0 0 700 500]
 
 OriginalCLUT = Screen('ReadNormalizedGammaTable', window);
 if ~test_env
