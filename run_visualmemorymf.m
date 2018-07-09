@@ -62,9 +62,9 @@ cd(expDir);
 
 deviceNumber = 0;
 [keyBoardIndices, ProductNames] = GetKeyboardIndices;
-deviceString = 'Lenovo Traditional USB Keyboard';
+% deviceString = 'Lenovo Traditional USB Keyboard';
 % deviceString = 'Apple Internal Keyboard / Trackpad';
-%deviceString = 'USB-HID Keyboard';
+deviceString = 'USB-HID Keyboard'; 
 %deviceString = 'Wired USB Keyboard';
 %deviceString = 'Apple Keyboard';
 %deviceString = 'USB Keyboard';
@@ -243,11 +243,26 @@ col5(col5>p.maxContrast)=p.maxContrast; col5(col5<p.minContrast)=p.minContrast;
 % bring all 3 together
 p.trialEvents = [col1 col2 col3 col4 col5]; %[condition targetLocation targetContrast probeLocation probeContrast]
 
-if sum(strcmp(p.experiment,{'test', 'test_HC'})) == 1 || test_env
-    test = 1;
-else
-    test = 0;
+%--------------------%
+%    Check Distr.    %
+%--------------------%
+%Verify #contrasts, #locations, #trials per cond.
+checkContrasts = zeros(length(conds),p.numContrasts);
+checkLoc = zeros(length(conds),p.numContrasts);
+for nCond = 1:length(conds)
+    % check #contrasts
+    % determine the indx of trials with a certain comb, grab the contrast
+    % for those trials, determine the distrib. of specific contrasts
+    for nContrast = 1:p.numContrasts
+        checkContrasts(nCond,nContrast) = sum(p.trialEvents(p.trialEvents(:,1)==conds(nCond),3)==p.centerContrast(nContrast));
+        checkLoc(nCond,nContrast) = length(unique(p.trialEvents(p.trialEvents(:,1)==conds(nCond),2)));
+    end
 end
+% These two lines verify whether there are an equal amnt of instances of
+% each contrast per condition, and that there are a similar amnt of unique
+% locations per condition. p.repetitions = #trials per cond. for exp.
+length(unique(checkContrasts)) == 1 && unique(checkContrasts) == p.repetitions;
+length(unique(checkLoc)) == 1 || length(unique(checkLoc)) == 2;
 
 p.trialEvents; % [condition targetLocation targetContrast probeLocation probeContrast]
 
@@ -607,7 +622,7 @@ for nTrial = 1:size(p.trialEvents,1)
     %--------------------%
     %       Break        %
     %--------------------% 
-    if mod(nTrial,p.numTrialsPerSet) == 0 && nTrial == p.numTrialsPerSet*nSet 
+    if mod(nTrial,p.numTrialsPerSet) == 0 && nTrial == p.numTrialsPerSet*nSet && nSet < p.numSets
     rest = GetSecs; 
     Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
     Screen('TextStyle', window, 1);
@@ -632,7 +647,7 @@ for nTrial = 1:size(p.trialEvents,1)
     nSet = nSet + 1;
     end
     end
-    if nSet < p.numSets
+    if nSet <= p.numSets
         % ITI
         Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
         Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation]);
