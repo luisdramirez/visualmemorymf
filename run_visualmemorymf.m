@@ -4,13 +4,13 @@ close all; clear all; clc;
 commandwindow;
 Screen('Preference', 'SkipSyncTests', 1);
 commandwindow;
-test_env = 0;
+test_env = 1;
 
 % visualmemory_condition_order = perms([1 2 1 2]);
 % visualmemory_subjectsRan = {};
 
 %% PREPARE
-p.repetitions = 20; % data will be saved if repetitions > 5
+p.repetitions = 1; % data will be saved if repetitions > 5
 
 % Experiment & Subject Name
 p.experiment = 'exp1'; % 'test_HC'=1 contrast, no WM; 'test'=5 contrasts, no WM; 'exp1=5 contrasts, w/WM
@@ -62,9 +62,9 @@ cd(expDir);
 
 deviceNumber = 0;
 [keyBoardIndices, ProductNames] = GetKeyboardIndices;
-deviceString = 'Lenovo Traditional USB Keyboard';
+% deviceString = 'Lenovo Traditional USB Keyboard';
 %deviceString = 'Apple Internal Keyboard / Trackpad';
-%deviceString = 'USB-HID Keyboard'; 
+deviceString = 'USB-HID Keyboard'; %luis' desk keyboard
 %deviceString = 'Wired USB Keyboard';
 %deviceString = 'Apple Keyboard';
 %deviceString = 'USB Keyboard';
@@ -84,7 +84,7 @@ if ~test_env
 %Check which devicenumber the powermate is assigned to
 powermate = PsychPowerMate('Open');
 if isempty(powermate)
-    error('problem with the powermate');
+    error('problem with the powermate or test_env has not been set to 0');
 end
 % % Controls the brightness of the powermate color
 PsychPowerMate('SetBrightness', powermate, 20);
