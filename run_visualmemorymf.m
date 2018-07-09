@@ -63,12 +63,13 @@ cd(expDir);
 deviceNumber = 0;
 [keyBoardIndices, ProductNames] = GetKeyboardIndices;
 deviceString = 'Lenovo Traditional USB Keyboard';
-% deviceString = 'Apple Internal Keyboard / Trackpad';
+%deviceString = 'Apple Internal Keyboard / Trackpad';
+%deviceString = 'USB-HID Keyboard 
 %deviceString = 'USB-HID Keyboard'; 
 %deviceString = 'Wired USB Keyboard';
 %deviceString = 'Apple Keyboard';
 %deviceString = 'USB Keyboard';
-% deviceString = 'Wired Keyboard 400';
+%deviceString = 'Wired Keyboard 400';
 
 for nTrial = 1:length(ProductNames)
     if strcmp(ProductNames{nTrial}, deviceString)
@@ -98,9 +99,9 @@ end
 end
 %% SCREEN PARAMTERS
 screens=Screen('Screens');
-if test_env
+if test_env == 1
     useScreen=max(screens);
-else test_env
+elseif test_env == 0
     useScreen=min(screens);
 end
 p.screenWidthPixels = Screen('Rect', useScreen);
@@ -396,6 +397,8 @@ if ~test_env
          end
     end
 end
+close all; clear all; clc;
+commandwindow;
 
 % Starting Screen
 Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
