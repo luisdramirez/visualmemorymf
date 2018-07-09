@@ -648,6 +648,11 @@ for i = 1:runsCompleted
     fprintf('The average location difference for a Contrast of %.2f is %.2f\n',cond2cont5TE(1,3),mean(cond2cont5Data(:,2)));
     legend('Abs value of difference in location','Average Location Difference')
     
+    
+    %% STATISTICS WITHIN A RUN %%
+     rCont = corrcoef(data(:,5),data(:,6)); %correlation coefficient between contrast difference and response time
+     rLoc = corrcoef(data(:,2),data(:,3)); %correlation coefficient between location difference and repsonse time
+
     end
 end
     %% TESTING BETWEEN RUNS %%
