@@ -23,6 +23,11 @@ end
 %% LOOP FOR ALL TRIALS POSSIBLE %%
 
 [fields, runsCompleted] = size(theData);
+
+analysis.avgEstContrast = nan(runsCompleted,theData(1).p.numContrasts,3);
+analysis.avgDiffContrast = nan(runsCompleted,theData(1).p.numContrasts,3);
+analysis.avgDiffLoc = nan(runsCompleted,theData(1).p.numContrasts,3);
+
 for i = 1:runsCompleted
     if length(theData) > runsCompleted
         theData(runsCompleted+1:end) = [];
@@ -302,12 +307,34 @@ for i = 1:runsCompleted
     cond2cont5mean = ones([1 length(cond2cont5Data)])*mean(cond2cont5Data(:,4));
     cond2meanVec = [cond2cont1mean  cond2cont2mean cond2cont3mean cond2cont4mean cond2cont5mean];
     
+    %Estimated Location Means
+   
+    cond1cont1LocMean = ones([1 length(cond1cont1Data)])*mean(cond1cont1Data(:,2));
+    cond1cont2LocMean = ones([1 length(cond1cont2Data)])*mean(cond1cont2Data(:,2));
+    cond1cont3LocMean = ones([1 length(cond1cont3Data)])*mean(cond1cont3Data(:,2));
+    cond1cont4LocMean = ones([1 length(cond1cont4Data)])*mean(cond1cont4Data(:,2));
+    cond1cont5LocMean = ones([1 length(cond1cont5Data)])*mean(cond1cont5Data(:,2));
+    cond1LocMeanVec = [cond1cont1LocMean  cond1cont2LocMean cond1cont3LocMean cond1cont4LocMean cond1cont5LocMean];
+    cond1LocMeanVec = unique(cond1LocMeanVec);
+    
+    cond2cont1LocMean = ones([1 length(cond2cont1Data)])*mean(cond2cont1Data(:,2));
+    cond2cont2LocMean = ones([1 length(cond2cont2Data)])*mean(cond2cont2Data(:,2));
+    cond2cont3LocMean = ones([1 length(cond2cont3Data)])*mean(cond2cont3Data(:,2));
+    cond2cont4LocMean = ones([1 length(cond2cont4Data)])*mean(cond2cont4Data(:,2));
+    cond2cont5LocMean = ones([1 length(cond2cont5Data)])*mean(cond2cont5Data(:,2));
+    cond2LocMeanVec = [cond2cont1LocMean  cond2cont2LocMean cond2cont3LocMean cond2cont4LocMean cond2cont5LocMean];
+    cond2LocMeanVec = unique(cond2LocMeanVec);
+    
+    analysis.avgDiffLoc(i,:,2) = cond1LocMeanVec; %page 2 is perception, page 3 is wm
+    analysis.avgDiffLoc(i,:,1) = cond2LocMeanVec; %page 1 is baseline
+
      %% Contrast Plotting %%
     
     %%% Contrast Graph Overview %%%
     figure(i)
     set(gcf, 'Name', sprintf('Contrast Statistics over 5 Contrasts for %s versus %s Trials',condition1,condition2));
     subplot(2,6,1)
+    
     %Cond 1 - WM/P
     plot(cond1orgData(:,4));
     hold on
@@ -317,6 +344,7 @@ for i = 1:runsCompleted
     hold on
     plot(1:length(cond1meanVec),cond1meanVec);
     legend('Estimated Contrast','Actual Contrast','Avg. Estimated Contrast per Level');
+    
     %Cond 2 - BL
     subplot(2,6,7)
     plot(cond2orgData(:,4));
@@ -491,12 +519,14 @@ for i = 1:runsCompleted
     ylabel('Perceived Contrast')
     xlim([0.1 0.8])
     ylim([0.1 0.8])
-    plot(p.centerContrast,unique(cond1meanVec),'-o')
+    loglog(p.centerContrast,unique(cond1meanVec),'-o') %perception condition
     hold on
-    plot(p.centerContrast,unique(cond2meanVec),'-o')
-    plot([0.1 0.8],[0.1 0.8], ':')
+    loglog(p.centerContrast,unique(cond2meanVec),'-o') %baseline condition
+    loglog([0.1 0.8],[0.1 0.8], ':')
     legend(sprintf('%s Trials',condition1),sprintf('%s Trials',condition2))
     
+    analysis.avgEstContrast(i,:,1) = unique(cond2meanVec); % save baseline
+    analysis.avgEstContrast(i,:,2) = unique(cond1meanVec); % save perception
     
     %% LOCATION %%
     
@@ -668,34 +698,34 @@ for i = 1:runsCompleted
     
     
     %% STATISTICS WITHIN A RUN %%
-    fprintf('Correlation Statistics\n')
+    fprintf('\nCorrelation Statistics\n')
     
      rCont = corrcoef(data(:,5),data(:,6)); %correlation coefficient between contrast difference and response time
-     fprintf('\n The correlation coefficient between the difference in contrast and response time is %.2f',rCont(1,2))
+     fprintf('\nThe correlation coefficient between the difference in contrast and response time is %.2f',rCont(1,2))
      rLoc = corrcoef(data(:,2),data(:,3)); %correlation coefficient between location difference and repsonse time
-     fprintf('\n The correlation coefficient between the difference in location and response time is %.2f',rCont(1,2))
+     fprintf('\nThe correlation coefficient between the difference in location and response time is %.2f',rCont(1,2))
      rContLoc = corrcoef(data(:,2),data(:,5));
-     fprintf('\n The correlation coefficient between estimated contrast and estimated location is %.2f\n',rContLoc(1,2))
+     fprintf('\nThe correlation coefficient between contrast difference and lcation difference is %.2f\n',rContLoc(1,2))
      
      
     end
 end
     %% TESTING BETWEEN RUNS %%
     
-    fprintf('\nTESTING BETWEEN RUNS\n\n');
-    if strcmp(p.experiment,'test')==1
-        fprintf('(Test Experiment: only comparing perception trials to each other)\n\n')
-    end
-    if runsCompleted == 4
-    run1Stats = theData(1);
+fprintf('\nTESTING BETWEEN RUNS\n\n');
+if strcmp(p.experiment,'test')==1
+   fprintf('(Test Experiment: only comparing perception trials to each other)\n\n')
+end
+if runsCompleted == 4
+   run1Stats = theData(1);
         if any(run1Stats.p.trialEvents(:,1) == 1)
             run1Stats.condition = 'Perception';
         elseif any(run1Stats.p.trialEvents(:,1) == 2)
-            run2Stats.condition = 'Working Memory';
+            run1Stats.condition = 'Working Memory';
         else
             error('Problem with setting up conditions from trial events')
         end
-    run2Stats = theData(2);
+   run2Stats = theData(2);
         if any(run2Stats.p.trialEvents(:,1) == 1)
         run2Stats.condition = 'Perception';
         elseif any(run2Stats.p.trialEvents(:,1) == 2)
@@ -703,7 +733,7 @@ end
         else
             error('Problem with setting up conditions from trial events')
         end
-    run3Stats = theData(3);
+   run3Stats = theData(3);
         if any(run3Stats.p.trialEvents(:,1) == 1)
             run3Stats.condition = 'Perception';
         elseif any(run3Stats.p.trialEvents(:,1) == 2)
@@ -711,7 +741,7 @@ end
         else
             error('Problem with setting up conditions from trial events')
         end
-    run4Stats = theData(4);
+   run4Stats = theData(4);
         if any(run4Stats.p.trialEvents(:,1) == 1)
             run4Stats.condition = 'Perception';
         elseif any(run4Stats.p.trialEvents(:,1) == 2)
@@ -724,109 +754,140 @@ end
     run2Data = run2Stats.p.cond1Data;
     run3Data = run3Stats.p.cond1Data;
     run4Data = run4Stats.p.cond1Data;
-% 6 different combinations of comparison for trials 1-4
-% 3 different potential matchups - p & p, wm & wm, wm & p
+    
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % 6 different combinations of comparison for trials 1-4
+        % 3 different potential matchups - p & p, wm & wm, wm & p
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+        % Trial 1 vs. Trial 2
+        [results.trials12.h,results.trials12.p] = ttest(run1Data(:,5),run2Data(:,5));
+        if results.trials12.h == 1
+            fprintf('\nThe estimated contrast differences were statistically significant between %s (trial 1) and %s (trial 2) with a calculated probability of %0.3f\n',run1Stats.condition, run2Stats.condition, results.trials12.p);
+        else
+            fprintf('The estimated contrast between %s (trial 1) and %s (trial 2) is not statistically significant\n', run1Stats.condition, run2Stats.condition)
+        end
+             if sum(strcmp(run1Stats.condition,'Perception') || strcmp(run2Stats.condition,'Perception')) == 0
+                 results.trials12.condition = 0; % =0 is both working memory conditioned trials
+             elseif sum(strcmp(run1Stats.condition,'Perception') || strcmp(run2Stats.condition,'Perception')) == 1
+                 results.trials12.condition = 1; % =1 is one working memory trial, and one perception trial
+             elseif sum(strcmp(run1Stats.condition,'Perception') || strcmp(run2Stats.condition,'Perception')) == 2 
+                 results.trials12.condition = 2; % =2 is both perception conditioned trials
+             else
+                 error('Error with condition pairings.');
+             end
 
-% Trial 1 vs. Trial 2
-[results.trials12.h,results.trials12.p] = ttest(run1Data(:,5),run2Data(:,5));
-    if results.trials12.h == 1
-        fprintf('\nThe estimated contrast differences were statistically significant between %s (trial 1) and %s (trial 2) with a calculated probability of %0.3f\n',run1Stats.condition, run2Stats.condition, results.trials12.p);
-    else
-        fprintf('The estimated contrast between %s (trial 1) and %s (trial 2) is not statistically significant\n', run1Stats.condition, run2Stats.condition)
-    end
-     if sum(strcmp(run1Stats.condition,'Perception') || strcmp(run2Stats.condition,'Perception')) == 0
-         results.trials12.condition = 0; % =0 is both working memory conditioned trials
-     elseif sum(strcmp(run1Stats.condition,'Perception') || strcmp(run2Stats.condition,'Perception')) == 1
-         results.trials12.condition = 1; % =1 is one working memory trial, and one perception trial
-     elseif sum(strcmp(run1Stats.condition,'Perception') || strcmp(run2Stats.condition,'Perception')) == 2 
-         results.trials12.condition = 2; % =2 is both perception conditioned trials
-     else
-         error('Error with condition pairings.');
-     end
-
- % Trial 2 vs. Trial 3
-[results.trials23.h,results.trials23.p] = ttest(run2Data(:,5),run3Data(:,5));
-    if results.trials23.h == 1
-        fprintf('\nThe estimated contrast differences were statistically significant between %s (trial 2) and %s (trial 3) with a calculated probability of %0.3f\n',run2Stats.condition, run3Stats.condition, results.trials23.p);
-    else
-        fprintf('The estimated contrast between %s (trial 2) and %s (trial 3) is not statistically significant\n', run2Stats.condition, run3Stats.condition)
-    end
-     if sum(strcmp(run2Stats.condition,'Perception') || strcmp(run3Stats.condition,'Perception')) == 0
-         results.trials23.condition = 0; % =0 is both working memory conditioned trials
-     elseif sum(strcmp(run2Stats.condition,'Perception') || strcmp(run3Stats.condition,'Perception')) == 1
-         results.trials23.condition = 1; % =1 is one working memory trial, and one perception trial
-     elseif sum(strcmp(run2Stats.condition,'Perception') || strcmp(run3Stats.condition,'Perception')) == 2 
-         results.trials23.condition = 2; % =2 is both perception conditioned trials
-     else
-         error('Error with condition pairings.');
-     end
+         % Trial 2 vs. Trial 3
+        [results.trials23.h,results.trials23.p] = ttest(run2Data(:,5),run3Data(:,5));
+        if results.trials23.h == 1
+            fprintf('\nThe estimated contrast differences were statistically significant between %s (trial 2) and %s (trial 3) with a calculated probability of %0.3f\n',run2Stats.condition, run3Stats.condition, results.trials23.p);
+        else
+            fprintf('The estimated contrast between %s (trial 2) and %s (trial 3) is not statistically significant\n', run2Stats.condition, run3Stats.condition)
+        end
+             if sum(strcmp(run2Stats.condition,'Perception') || strcmp(run3Stats.condition,'Perception')) == 0
+                 results.trials23.condition = 0; % =0 is both working memory conditioned trials
+             elseif sum(strcmp(run2Stats.condition,'Perception') || strcmp(run3Stats.condition,'Perception')) == 1
+                 results.trials23.condition = 1; % =1 is one working memory trial, and one perception trial
+             elseif sum(strcmp(run2Stats.condition,'Perception') || strcmp(run3Stats.condition,'Perception')) == 2 
+                 results.trials23.condition = 2; % =2 is both perception conditioned trials
+             else
+                 error('Error with condition pairings.');
+             end
  
- % Trial 3 vs. Trial 4
-[results.trials34.h,results.trials34.p] = ttest(run3Data(:,5),run4Data(:,5));
-    if results.trials34.h == 1
-        fprintf('\nThe estimated contrast differences were statistically significant between %s (trial 3) and %s (trial 4) with a calculated probability of %0.3f\n',run3Stats.condition, run4Stats.condition, results.trials34.p);
-    else
-        fprintf('The estimated contrast between %s (trial 3) and %s (trial 4) is not statistically significant\n', run3Stats.condition, run4Stats.condition)
-    end
-     if sum(strcmp(run3Stats.condition,'Perception') || strcmp(run4Stats.condition,'Perception')) == 0
-         results.trials34.condition = 0; % =0 is both working memory conditioned trials
-     elseif sum(strcmp(run3Stats.condition,'Perception') || strcmp(run4Stats.condition,'Perception')) == 1
-         results.trials34.condition = 1; % =1 is one working memory trial, and one perception trial
-     elseif sum(strcmp(run3Stats.condition,'Perception') || strcmp(run4Stats.condition,'Perception')) == 2 
-         results.trials34.condition = 2; % =2 is both perception conditioned trials
-     else
-         error('Error with condition pairings.');
-     end
+         % Trial 3 vs. Trial 4
+        [results.trials34.h,results.trials34.p] = ttest(run3Data(:,5),run4Data(:,5));
+        if results.trials34.h == 1
+             fprintf('\nThe estimated contrast differences were statistically significant between %s (trial 3) and %s (trial 4) with a calculated probability of %0.3f\n',run3Stats.condition, run4Stats.condition, results.trials34.p);
+        else
+             fprintf('The estimated contrast between %s (trial 3) and %s (trial 4) is not statistically significant\n', run3Stats.condition, run4Stats.condition)
+        end
+             if sum(strcmp(run3Stats.condition,'Perception') || strcmp(run4Stats.condition,'Perception')) == 0
+                 results.trials34.condition = 0; % =0 is both working memory conditioned trials
+             elseif sum(strcmp(run3Stats.condition,'Perception') || strcmp(run4Stats.condition,'Perception')) == 1
+                 results.trials34.condition = 1; % =1 is one working memory trial, and one perception trial
+             elseif sum(strcmp(run3Stats.condition,'Perception') || strcmp(run4Stats.condition,'Perception')) == 2 
+                 results.trials34.condition = 2; % =2 is both perception conditioned trials
+             else
+                 error('Error with condition pairings.');
+             end
 
- % Trial 4 vs. Trial 1
-[results.trials41.h,results.trials41.p] = ttest(run4Data(:,5),run1Data(:,5));
-    if results.trials41.h == 1
-        fprintf('\nThe estimated contrast differences were statistically significant between %s (trial 4) and %s (trial 1) with a calculated probability of %0.3f\n',run4Stats.condition, run1Stats.condition, results.trials41.p);
-    else
-        fprintf('The estimated contrast between %s (trial 4) and %s (trial 1) is not statistically significant\n', run4Stats.condition, run1Stats.condition)
-    end
-     if sum(strcmp(run4Stats.condition,'Perception') || strcmp(run1Stats.condition,'Perception')) == 0
-         results.trials41.condition = 0; % =0 is both working memory conditioned trials
-     elseif sum(strcmp(run4Stats.condition,'Perception') || strcmp(run1Stats.condition,'Perception')) == 1
-         results.trials41.condition = 1; % =1 is one working memory trial, and one perception trial
-     elseif sum(strcmp(run4Stats.condition,'Perception') || strcmp(run1Stats.condition,'Perception')) == 2 
-         results.trials41.condition = 2; %=2 is both perception conditioned trials
-     else
-         error('Error with condition pairings.');
-     end
+         % Trial 4 vs. Trial 1
+        [results.trials41.h,results.trials41.p] = ttest(run4Data(:,5),run1Data(:,5));
+        if results.trials41.h == 1
+            fprintf('\nThe estimated contrast differences were statistically significant between %s (trial 4) and %s (trial 1) with a calculated probability of %0.3f\n',run4Stats.condition, run1Stats.condition, results.trials41.p);
+        else
+            fprintf('The estimated contrast between %s (trial 4) and %s (trial 1) is not statistically significant\n', run4Stats.condition, run1Stats.condition)
+        end
+             if sum(strcmp(run4Stats.condition,'Perception') || strcmp(run1Stats.condition,'Perception')) == 0
+                 results.trials41.condition = 0; % =0 is both working memory conditioned trials
+             elseif sum(strcmp(run4Stats.condition,'Perception') || strcmp(run1Stats.condition,'Perception')) == 1
+                 results.trials41.condition = 1; % =1 is one working memory trial, and one perception trial
+             elseif sum(strcmp(run4Stats.condition,'Perception') || strcmp(run1Stats.condition,'Perception')) == 2 
+                 results.trials41.condition = 2; %=2 is both perception conditioned trials
+             else
+                 error('Error with condition pairings.');
+             end
  
- % Trial 1 vs. Trial 3
-[results.trials13.h,results.trials13.p] = ttest(run1Data(:,5),run3Data(:,5));
-    if results.trials13.h == 1
-        fprintf('\nThe estimated contrast differences were statistically significant between %s (trial 1) and %s (trial 3) with a calculated probability of %0.3f\n',run1Stats.condition, run3Stats.condition, results.trials23.p);
-    else
-        fprintf('The estimated contrast between %s (trial 2) and %s (trial 3) is not statistically significant\n', run1Stats.condition, run3Stats.condition)
-    end
-     if sum(strcmp(run1Stats.condition,'Perception') || strcmp(run3Stats.condition,'Perception')) == 0
-         results.trials13.condition = 0; % =0 is both working memory conditioned trials
-     elseif sum(strcmp(run1Stats.condition,'Perception') || strcmp(run3Stats.condition,'Perception')) == 1
-         results.trials13.condition= 1; % =1 is one working memory trial, and one perception trial
-     elseif sum(strcmp(run1Stats.condition,'Perception') || strcmp(run3Stats.condition,'Perception')) == 2 
-         results.trials23.condition = 2; % =2 is both perception conditioned trials
-     else
-         error('Error with condition pairings.');
-     end
+         % Trial 1 vs. Trial 3
+        [results.trials13.h,results.trials13.p] = ttest(run1Data(:,5),run3Data(:,5));
+        if results.trials13.h == 1
+            fprintf('\nThe estimated contrast differences were statistically significant between %s (trial 1) and %s (trial 3) with a calculated probability of %0.3f\n',run1Stats.condition, run3Stats.condition, results.trials23.p);
+        else
+            fprintf('The estimated contrast between %s (trial 2) and %s (trial 3) is not statistically significant\n', run1Stats.condition, run3Stats.condition)
+        end
+             if sum(strcmp(run1Stats.condition,'Perception') || strcmp(run3Stats.condition,'Perception')) == 0
+                 results.trials13.condition = 0; % =0 is both working memory conditioned trials
+             elseif sum(strcmp(run1Stats.condition,'Perception') || strcmp(run3Stats.condition,'Perception')) == 1
+                 results.trials13.condition= 1; % =1 is one working memory trial, and one perception trial
+             elseif sum(strcmp(run1Stats.condition,'Perception') || strcmp(run3Stats.condition,'Perception')) == 2 
+                 results.trials23.condition = 2; % =2 is both perception conditioned trials
+             else
+                 error('Error with condition pairings.');
+             end
 
-% Trial 2 vs. Trial 4
-[results.trials24.h,results.trials24.p] = ttest(run2Data(:,5),run4Data(:,5));
-    if results.trials24.h == 1
-        fprintf('\nThe estimated contrast differences were statistically significant between %s (trial 2) and %s (trial 4) with a calculated probability of %0.3f\n',run2Stats.condition, run4Stats.condition, results.trials24.p);
-    else
-        fprintf('The estimated contrast between %s (trial 2) and %s (trial 4) is not statistically significant\n', run2Stats.condition, run4Stats.condition)
-    end
-     if sum(strcmp(run2Stats.condition,'Perception') || strcmp(run4Stats.condition,'Perception')) == 0
-         results.trials24.condition = 0; % =0 is both working memory conditioned trials
-     elseif sum(strcmp(run2Stats.condition,'Perception') || strcmp(run4Stats.condition,'Perception')) == 1
-         results.trials24.condition = 1; % =1 is one working memory trial, and one perception trial
-     elseif sum(strcmp(run2Stats.condition,'Perception') || strcmp(run4Stats.condition,'Perception')) == 2 
-         results.trials24.condition = 2; % =2 is both perception conditioned trials
-     else
-         error('Error with condition pairings.');
-     end
+        % Trial 2 vs. Trial 4
+        [results.trials24.h,results.trials24.p] = ttest(run2Data(:,5),run4Data(:,5));
+        if results.trials24.h == 1
+            fprintf('\nThe estimated contrast differences were statistically significant between %s (trial 2) and %s (trial 4) with a calculated probability of %0.3f\n',run2Stats.condition, run4Stats.condition, results.trials24.p);
+        else
+            fprintf('The estimated contrast between %s (trial 2) and %s (trial 4) is not statistically significant\n', run2Stats.condition, run4Stats.condition)
+        end
+             if sum(strcmp(run2Stats.condition,'Perception') || strcmp(run4Stats.condition,'Perception')) == 0
+                 results.trials24.condition = 0; % =0 is both working memory conditioned trials
+             elseif sum(strcmp(run2Stats.condition,'Perception') || strcmp(run4Stats.condition,'Perception')) == 1
+                 results.trials24.condition = 1; % =1 is one working memory trial, and one perception trial
+             elseif sum(strcmp(run2Stats.condition,'Perception') || strcmp(run4Stats.condition,'Perception')) == 2 
+                 results.trials24.condition = 2; % =2 is both perception conditioned trials
+             else
+                 error('Error with condition pairings.');
+             end
 end
-                                                                                                                                                                                                                                                                                                                                                                                                                       
+
+
+%%
+
+figure
+loglog(p.centerContrast,mean(analysis.avgEstContrast(:,:,2),1),'-o') %perception condition
+hold on
+loglog(p.centerContrast,mean(analysis.avgEstContrast(:,:,1),1),'-o') %baseline condition
+loglog([0.1 0.8],[0.1 0.8], 'k--')
+legend(sprintf('%s Trials',condition1),sprintf('%s Trials',condition2))
+set(gcf, 'Name',('Perceived Contrast versus center contrast'));
+xticks([0.1 0.8]); yticks([0.1 0.8]);
+xticklabels({'10','80'});yticklabels({'10','80'});
+xlabel('Center Contrast')
+ylabel('Perceived Contrast')
+xlim([0.1 0.8])
+ylim([0.1 0.8])
+
+figure
+loglog(p.centerContrast,mean(analysis.avgDiffLoc(:,:,2),1),'-o') %perception second page
+hold on
+loglog(p.centerContrast,mean(analysis.avgDiffLoc(:,:,1),1),'-o') % baseline first page
+legend(sprintf('%s Trials',condition1),sprintf('%s Trials',condition2))
+set(gcf, 'Name',('Location Difference versus Center Contrast'));
+xlabel('Center Contrast')
+ylabel('Difference in Location')
+
+
+
