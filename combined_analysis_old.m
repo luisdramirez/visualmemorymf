@@ -2,7 +2,7 @@
 % Preliminary data loading and setup %
 clear all;
 close all;
-expDir = 'visualmemorymf';
+
 dataDir = 'data_master';
 p.experiment = 'test';
 p.subject = 'JS';
@@ -10,7 +10,7 @@ cd(dataDir)
 
 if exist(['data_visualmemorymf_' p.experiment '_' p.subject '.mat'],'file') ~= 0
     load(['data_visualmemorymf_' p.experiment '_' p.subject '.mat']); %works for HC, test, and regular trials
-    theDatacurr = theData(1); %index to trial number
+    theDatacurr = theData(2); %index to trial number
     p = theDatacurr.p; data = theDatacurr.data; t = theDatacurr.t;
     data = cell2mat(struct2cell(data));
     data = data';
@@ -196,8 +196,8 @@ if p.numContrasts == 1 && p.numConditions == 2
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 elseif p.numContrasts == 5 && p.numConditions == 2
-  for i = 1:length(theData)
-      theDatacurr = theData(i); %index to trial number
+  %for i = 1:length(theData)
+    theDatacurr = theData(1); %index to trial number
     p = theDatacurr.p; data = theDatacurr.data; t = theDatacurr.t;
     data = cell2mat(struct2cell(data));
     %% Setup of seperate trial Events and data matrices, & misc. statistical data  %%
@@ -205,7 +205,10 @@ elseif p.numContrasts == 5 && p.numConditions == 2
         %2 - WORKING MEMORY
         %3 - BASELINE
     % NOTE: For each subject, index into their data file will give only 1 condition
-    sortedTE = sortrows(p.trialEvents,3); %sorts rows based on contrasts
+    contrastlist = [10.^linspace(log10(p.minContrast),log10(p.maxContrast),p.numContrasts)];
+    col6 = (repmat(contrastlist,1,length(p.trialEvents)/5))';
+    p.trialEvents = [p.trialEvents col6];
+    sortedTE = sortrows(p.trialEvents,3); %sorts rows based on contrasts        
     col6 = p.trialEvents(:,6);
     data = [data' col6];
     [dataTrials,dataParams] = size(data);
@@ -221,11 +224,11 @@ elseif p.numContrasts == 5 && p.numConditions == 2
     
     %Seperate trial events based on contrast level
     p.trialEvents = [p.trialEvents (1:length(p.trialEvents))']; %adds run number to seventh column in p.trialEvents for sorting purposes
-    TE1 = p.trialEvents(p.trialEvents(:,6)==1,:);
-    TE2 = p.trialEvents(p.trialEvents(:,6)==2,:);
-    TE3 = p.trialEvents(p.trialEvents(:,6)==3,:);
-    TE4 = p.trialEvents(p.trialEvents(:,6)==4,:);
-    TE5 = p.trialEvents(p.trialEvents(:,6)==5,:);
+    TE1 = p.trialEvents(p.trialEvents(:,6)==contrastlist(1),:);
+    TE2 = p.trialEvents(p.trialEvents(:,6)==contrastlist(2),:);
+    TE3 = p.trialEvents(p.trialEvents(:,6)==contrastlist(3),:);
+    TE4 = p.trialEvents(p.trialEvents(:,6)==contrastlist(4),:);
+    TE5 = p.trialEvents(p.trialEvents(:,6)==contrastlist(5),:);
     orgTE = [TE1; TE2; TE3; TE4; TE5];
     
     data1 = zeros(length(TE1),dataParams);
@@ -254,12 +257,17 @@ elseif p.numContrasts == 5 && p.numConditions == 2
     subplot(2,6,1)
     plot(sortedData(:,4));
     hold on
+    set(gcf, 'Name', sprintf('Contrast Statistics over 5 Contrasts for %s',condition));
+    subplot(2,6,1)
+    plot(sortedData(:,4));
+    hold on
     plot(orgTE(:,3));
     ylim([0 1]);
     title('Estimated Vs. Actual Contrast')
     hold on
     plot(1:length(meanVec),meanVec);
     legend('Estimated Contrast','Actual Contrast','Avg. Estimated Contrast per Level');
+   
     
     %Display Trendline
     subplot(2,6,7)
@@ -464,7 +472,7 @@ elseif p.numContrasts == 5 && p.numConditions == 2
     title(sprintf('Location Difference for %.2f Contrast',TE1(1,3)))
     hold on
     plot(repmat(mean(data1(:,2)),1,length(data1(:,2))))
-    fprintf('\nThe average location difference for a Contrast of %.2f is %.2f\n',TE1(1,3),mean(data1(:,2)));
+    ('\nThe average location difference for a Contrast of %.2f is %.2f\n',TE1(1,3),mean(data1(:,2)));
     legend('Abs value of difference in location','Average Location Difference')
 
     %Contrast 2 Location Difference
@@ -633,8 +641,6 @@ elseif p.numContrasts == 5 && p.numConditions == 2
     stats.condition = condition;
     theData(p.runNumber).stats = stats;
     save(['data_visualmemorymf_' p.experiment '_' p.subject '.mat'], 'theData')
-  end
-    else
+else
         disp('Number of contrasts or conditions does not correspond to experiment design.')
-
-cd(expDir)
+end

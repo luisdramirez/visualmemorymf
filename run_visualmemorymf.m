@@ -161,7 +161,7 @@ p.surroundPhase = p.centerPhase;
 %% TRIAL EVENTS
 % Create matrix with all unique trial events based on the number of
 % repetitions, which will be saved as p.trialEvents. Stimulus
-% configurations are the number of possible conditionn, manually inserted
+% configurations are the number of possible conditions, manually inserted
 % into BalanceFactors. BalanceFactors will output the possible combinations
 % of given parameters, repeated as many times as specified. Grating
 % orientation, cue, and which staircase to be fed will be specified here.
