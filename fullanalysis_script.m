@@ -328,6 +328,24 @@ for i = 1:runsCompleted
     analysis.avgDiffLoc(i,:,2) = cond1LocMeanVec; %page 2 is perception, page 3 is wm
     analysis.avgDiffLoc(i,:,1) = cond2LocMeanVec; %page 1 is baseline
 
+    % Contrast Difference Means
+    cond1cont1ContDiffMean = ones([1 length(cond1cont1Data)])*mean(cond1cont1Data(:,5));
+    cond1cont2ContDiffMean = ones([1 length(cond1cont2Data)])*mean(cond1cont2Data(:,5));
+    cond1cont3ContDiffMean = ones([1 length(cond1cont3Data)])*mean(cond1cont3Data(:,5));
+    cond1cont4ContDiffMean = ones([1 length(cond1cont4Data)])*mean(cond1cont4Data(:,5));
+    cond1cont5ContDiffMean = ones([1 length(cond1cont5Data)])*mean(cond1cont5Data(:,5));
+    cond1ContDiffMeanVec = abs(unique([cond1cont1ContDiffMean  cond1cont2ContDiffMean cond1cont3ContDiffMean cond1cont4ContDiffMean cond1cont5ContDiffMean]));
+    
+    cond2cont1ContDiffMean = ones([1 length(cond2cont1Data)])*mean(cond2cont1Data(:,5));
+    cond2cont2ContDiffMean = ones([1 length(cond2cont2Data)])*mean(cond2cont2Data(:,5));
+    cond2cont3ContDiffMean = ones([1 length(cond2cont3Data)])*mean(cond2cont3Data(:,5));
+    cond2cont4ContDiffMean = ones([1 length(cond2cont4Data)])*mean(cond2cont4Data(:,5));
+    cond2cont5ContDiffMean = ones([1 length(cond2cont5Data)])*mean(cond2cont5Data(:,5));
+    cond2ContDiffMeanVec = abs(unique([cond2cont1ContDiffMean  cond2cont2ContDiffMean cond2cont3ContDiffMean cond2cont4ContDiffMean cond2cont5ContDiffMean]));
+    
+    analysis.avgContDiff(i,:,2) = cond1ContDiffMeanVec;%page 2 is perception, page 3 is wm
+    analysis.avgContDiff(i,:,1) = cond2ContDiffMeanVec;%page 1 is baseline
+    
      %% Contrast Plotting %%
     
     %%% Contrast Graph Overview %%%
@@ -888,6 +906,15 @@ legend(sprintf('%s Trials',condition1),sprintf('%s Trials',condition2))
 set(gcf, 'Name',('Location Difference versus Center Contrast'));
 xlabel('Center Contrast')
 ylabel('Difference in Location')
+
+figure
+loglog(p.centerContrast,mean(analysis.avgContDiff(:,:,2),1),'-o') %perception second page
+hold on
+loglog(p.centerContrast,mean(analysis.avgContDiff(:,:,1),1),'-o') % baseline first page
+legend(sprintf('%s Trials',condition1),sprintf('%s Trials',condition2))
+set(gcf, 'Name',('Contrast Difference versus Center Contrast'));
+xlabel('Center Contrast')
+ylabel('Difference in Contrast')
 
 
 
