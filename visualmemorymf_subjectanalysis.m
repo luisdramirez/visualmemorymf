@@ -24,14 +24,12 @@ end
 
 [fields, runsCompleted] = size(theData);
 
-analysis.avgEstContrast = nan(runsCompleted,theData(1).p.numContrasts,3);
-analysis.avgDiffContrast = nan(runsCompleted,theData(1).p.numContrasts,3);
-analysis.avgDiffLoc = nan(runsCompleted,theData(1).p.numContrasts,3);
+%Save out Relevant Information
+subject.avgEstContrast = nan(runsCompleted,theData(1).p.numContrasts,3);
+subject.avgDiffContrast = nan(runsCompleted,theData(1).p.numContrasts,3);
+subject.avgDiffLoc = nan(runsCompleted,theData(1).p.numContrasts,3);
 
 for i = 1:runsCompleted
-    if length(theData) > runsCompleted
-        theData(runsCompleted+1:end) = [];
-    end
     theDataCurrent = theData(i); %index to trial number
     p = theDataCurrent.p; data = theDataCurrent.data; t = theDataCurrent.t;
     data = cell2mat(struct2cell(data));
@@ -246,7 +244,7 @@ for i = 1:runsCompleted
         cond1Data(j,:) = data(cond1TE(j,6),:);
         cond2Data(j,:) = data(cond2TE(j,6),:);
     end
-    theData(i).p.cond1Data = cond1Data;
+    theData(i).p.cond1Data = cond1Data; %THIS ISNT QWORKING FOR SOME REASON COME BACK
     theData(i).p.cond2Data = cond2Data;
     p.centerContrast = [10.^linspace(log10(p.minContrast),log10(p.maxContrast),p.numContrasts)]; %change if contrasts change
     % Seperate trials based off of contrast (within their condition)
@@ -325,8 +323,8 @@ for i = 1:runsCompleted
     cond2LocMeanVec = [cond2cont1LocMean  cond2cont2LocMean cond2cont3LocMean cond2cont4LocMean cond2cont5LocMean];
     cond2LocMeanVec = unique(cond2LocMeanVec);
     
-    analysis.avgDiffLoc(i,:,2) = cond1LocMeanVec; %page 2 is perception, page 3 is wm
-    analysis.avgDiffLoc(i,:,1) = cond2LocMeanVec; %page 1 is baseline
+    subject.avgDiffLoc(i,:,2) = cond1LocMeanVec; %page 2 is perception, page 3 is wm
+    subject.avgDiffLoc(i,:,1) = cond2LocMeanVec; %page 1 is baseline
 
     % Contrast Difference Means
     cond1cont1ContDiffMean = ones([1 length(cond1cont1Data)])*mean(cond1cont1Data(:,5));
@@ -343,8 +341,8 @@ for i = 1:runsCompleted
     cond2cont5ContDiffMean = ones([1 length(cond2cont5Data)])*mean(cond2cont5Data(:,5));
     cond2ContDiffMeanVec = abs(unique([cond2cont1ContDiffMean  cond2cont2ContDiffMean cond2cont3ContDiffMean cond2cont4ContDiffMean cond2cont5ContDiffMean]));
     
-    analysis.avgContDiff(i,:,2) = cond1ContDiffMeanVec;%page 2 is perception, page 3 is wm
-    analysis.avgContDiff(i,:,1) = cond2ContDiffMeanVec;%page 1 is baseline
+    subject.avgContDiff(i,:,2) = cond1ContDiffMeanVec;%page 2 is perception, page 3 is wm
+    subject.avgContDiff(i,:,1) = cond2ContDiffMeanVec;%page 1 is baseline
     
      %% Contrast Plotting %%
     
@@ -543,8 +541,8 @@ for i = 1:runsCompleted
     loglog([0.1 0.8],[0.1 0.8], ':')
     legend(sprintf('%s Trials',condition1),sprintf('%s Trials',condition2))
     
-    analysis.avgEstContrast(i,:,1) = unique(cond2meanVec); % save baseline
-    analysis.avgEstContrast(i,:,2) = unique(cond1meanVec); % save perception
+    subject.avgEstContrast(i,:,1) = unique(cond2meanVec); % save baseline
+    subject.avgEstContrast(i,:,2) = unique(cond1meanVec); % save perception
     
     %% LOCATION %%
     
@@ -726,8 +724,8 @@ for i = 1:runsCompleted
      fprintf('\nThe correlation coefficient between contrast difference and lcation difference is %.2f\n',rContLoc(1,2))
      
      
-    end
-end
+    
+
     %% TESTING BETWEEN RUNS %%
     
 fprintf('\nTESTING BETWEEN RUNS\n\n');
@@ -879,15 +877,15 @@ if runsCompleted == 4
              else
                  error('Error with condition pairings.');
              end
-end
+
 
 
 %%
 
 figure
-loglog(p.centerContrast,mean(analysis.avgEstContrast(:,:,2),1),'-o') %perception condition
+loglog(p.centerContrast,mean(subject.avgEstContrast(:,:,2),1),'-o') %perception condition
 hold on
-loglog(p.centerContrast,mean(analysis.avgEstContrast(:,:,1),1),'-o') %baseline condition
+loglog(p.centerContrast,mean(subject.avgEstContrast(:,:,1),1),'-o') %baseline condition
 loglog([0.1 0.8],[0.1 0.8], 'k--')
 legend(sprintf('%s Trials',condition1),sprintf('%s Trials',condition2))
 set(gcf, 'Name',('Perceived Contrast versus center contrast'));
@@ -899,22 +897,24 @@ xlim([0.1 0.8])
 ylim([0.1 0.8])
 
 figure
-loglog(p.centerContrast,mean(analysis.avgDiffLoc(:,:,2),1),'-o') %perception second page
+loglog(p.centerContrast,mean(subject.avgDiffLoc(:,:,2),1),'-o') %perception second page
 hold on
-loglog(p.centerContrast,mean(analysis.avgDiffLoc(:,:,1),1),'-o') % baseline first page
+loglog(p.centerContrast,mean(subject.avgDiffLoc(:,:,1),1),'-o') % baseline first page
 legend(sprintf('%s Trials',condition1),sprintf('%s Trials',condition2))
 set(gcf, 'Name',('Location Difference versus Center Contrast'));
 xlabel('Center Contrast')
 ylabel('Difference in Location')
 
 figure
-loglog(p.centerContrast,mean(analysis.avgContDiff(:,:,2),1),'-o') %perception second page
+loglog(p.centerContrast,mean(subject.avgContDiff(:,:,2),1),'-o') %perception second page
 hold on
-loglog(p.centerContrast,mean(analysis.avgContDiff(:,:,1),1),'-o') % baseline first page
+loglog(p.centerContrast,mean(subject.avgContDiff(:,:,1),1),'-o') % baseline first page
 legend(sprintf('%s Trials',condition1),sprintf('%s Trials',condition2))
 set(gcf, 'Name',('Contrast Difference versus Center Contrast'));
 xlabel('Center Contrast')
 ylabel('Difference in Contrast')
-
+end
+end
+end
 
 
