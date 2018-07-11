@@ -2,7 +2,7 @@
 % This script is meant to loop through all trials with either hardcoded
 % test runs, test runs, or actual experiment runs. It will show represent
 % meaningful data within one single run, or if there are multiple runs for
-% one single subject/experiemtn matching, it will loop through to collect
+% one single subject/experiment matching, it will loop through to collect
 % meaningful results between data sets.
 
 % Preliminary data loading and setup %
@@ -244,7 +244,7 @@ for i = 1:runsCompleted
         cond1Data(j,:) = data(cond1TE(j,6),:);
         cond2Data(j,:) = data(cond2TE(j,6),:);
     end
-    theData(i).p.cond1Data = cond1Data; %THIS ISNT WORKING FOR SOME REASON COME BACK
+    theData(i).p.cond1Data = cond1Data; 
     theData(i).p.cond2Data = cond2Data;
     p.centerContrast = [10.^linspace(log10(p.minContrast),log10(p.maxContrast),p.numContrasts)]; %change if contrasts change
     % Seperate trials based off of contrast (within their condition)

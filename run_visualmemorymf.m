@@ -250,7 +250,6 @@ else
 end
 
 p.trialEvents; % [condition targetLocation targetContrast probeLocation probeContrast]
-
 %% TIMING PARAMETERS
 % timing is in seconds
 t.stimOn1 = 2; % stimulus 1 duration 
