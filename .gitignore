@@ -1,5 +1,6 @@
 *.fig
 *.m~
+*.mat
 data_master
 .DS_Store
 linearizedCLUT.mat
