@@ -244,7 +244,7 @@ for i = 1:runsCompleted
         cond1Data(j,:) = data(cond1TE(j,6),:);
         cond2Data(j,:) = data(cond2TE(j,6),:);
     end
-    theData(i).p.cond1Data = cond1Data; %THIS ISNT QWORKING FOR SOME REASON COME BACK
+    theData(i).p.cond1Data = cond1Data; %THIS ISNT WORKING FOR SOME REASON COME BACK
     theData(i).p.cond2Data = cond2Data;
     p.centerContrast = [10.^linspace(log10(p.minContrast),log10(p.maxContrast),p.numContrasts)]; %change if contrasts change
     % Seperate trials based off of contrast (within their condition)
@@ -721,11 +721,9 @@ for i = 1:runsCompleted
      rLoc = corrcoef(data(:,2),data(:,3)); %correlation coefficient between location difference and repsonse time
      fprintf('\nThe correlation coefficient between the difference in location and response time is %.2f',rCont(1,2))
      rContLoc = corrcoef(data(:,2),data(:,5));
-     fprintf('\nThe correlation coefficient between contrast difference and lcation difference is %.2f\n',rContLoc(1,2))
-     
-     
-    
-
+     fprintf('\nThe correlation coefficient between contrast difference and lcation difference is %.2f\n',rContLoc(1,2)) 
+    end
+end
     %% TESTING BETWEEN RUNS %%
     
 fprintf('\nTESTING BETWEEN RUNS\n\n');
@@ -878,10 +876,7 @@ if runsCompleted == 4
                  error('Error with condition pairings.');
              end
 
-
-
-%%
-
+%% GRAPHS OF SAVED OUT DATA %%
 figure
 loglog(p.centerContrast,mean(subject.avgEstContrast(:,:,2),1),'-o') %perception condition
 hold on
@@ -914,7 +909,3 @@ set(gcf, 'Name',('Contrast Difference versus Center Contrast'));
 xlabel('Center Contrast')
 ylabel('Difference in Contrast')
 end
-end
-end
-
-
