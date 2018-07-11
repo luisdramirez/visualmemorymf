@@ -265,6 +265,11 @@ length(unique(checkContrasts)) == 1 && unique(checkContrasts) == p.repetitions;
 length(unique(checkLoc)) == 1 || length(unique(checkLoc)) == 2;
 
 p.trialEvents; % [condition targetLocation targetContrast probeLocation probeContrast]
+shuffled = 0;
+if sum(strcmp(p.experiment,{'test' 'test_HC'})) == 0
+    p.trialEvents = Shuffle(p.trialEvents,2);
+    shuffled = 1;
+end
 
 %% TIMING PARAMETERS
 % timing is in seconds
@@ -395,6 +400,8 @@ if ~test_env
             break;
          end
     end
+elseif ~test_env && sum(strcmp(p.experiment,{'test' 'test_HC'})) == 0 && shuffled == 0 
+    error('You are trying to run the main version of the exp., but the trials are not shuffled.')
 end
 
 % Starting Screen
