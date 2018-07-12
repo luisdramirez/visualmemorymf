@@ -4,23 +4,22 @@ close all; clear all; clc;
 commandwindow;
 Screen('Preference', 'SkipSyncTests', 1);
 commandwindow;
-test_env = 1;
+test_env = 0;
 
 % visualmemory_condition_order = perms([1 2 1 2]);
 % visualmemory_subjectsRan = {};
 
 %% PREPARE
-p.repetitions = 1; % data will be saved if repetitions > 5
+p.repetitions = 20; % set to 20 for ~40min; data will be saved if repetitions > 5
 
 % Experiment & Subject Name
-p.experiment = 'test'; % 'test_HC'=1 contrast, no WM; 'test'=5 contrasts, no WM; 'exp1=5 contrasts, w/WM
-p.subject = 'JP';
+p.experiment = 'exp1'; % 'exp1=5 contrasts, w/WM; 'test_HC'=1 contrast, no WM; 'test'=5 contrasts, no WM; 
+p.subject = 'test';
 
 if sum(strcmp(p.experiment,{'test','test_HC'})) == 0
 load('visualmemory_condition_order.mat')
 load('visualmemory_subjectsRan.mat')    
 end
-
 
 % Set directories
 expDir = pwd; % set the experimental directory to the current directory 'pwd'
@@ -62,9 +61,9 @@ cd(expDir);
 
 deviceNumber = 0;
 [keyBoardIndices, ProductNames] = GetKeyboardIndices;
-% deviceString = 'Lenovo Traditional USB Keyboard';
+deviceString = 'Lenovo Traditional USB Keyboard';
 %deviceString = 'Apple Internal Keyboard / Trackpad';
-deviceString = 'USB-HID Keyboard'; %luis' desk keyboard
+% deviceString = 'USB-HID Keyboard'; %luis' desk keyboard
 %deviceString = 'Wired USB Keyboard';
 %deviceString = 'Apple Keyboard';
 %deviceString = 'USB Keyboard';
@@ -130,8 +129,11 @@ p.surroundContrast = 1;
 
 % Grating Size 
 p.centerSize = round(2*p.pixPerDeg);
+p.centerSizeDeg = p.centerSize/p.pixPerDeg;
 p.centerRadius = round(p.centerSize/2 + p.pixPerDeg/2);
+
 p.surroundSize = p.screenWidthPixels(:,3);
+p.surroundSizeDeg = p.surroundSize/p.pixPerDeg;
 p.surroundRadius = round(p.surroundSize/2 + p.pixPerDeg/2);
 if mod(p.surroundRadius,2) ~= 0
     p.surroundRadius = p.surroundRadius-1;
@@ -151,9 +153,9 @@ p.outerFixation = round(0.75*p.pixPerDeg);
 % Grating frequency, orientation, phase
 p.orientation = 0;
 p.stimorientation = 90;
-p.freq = 2;
-p.frequency_center = p.centerRadius/p.pixPerDeg * p.freq;
-p.frequency_surround = p.surroundRadius/p.pixPerDeg * p.freq;
+p.freq = 1;
+p.frequency_center = (2*p.centerRadius/p.pixPerDeg) * p.freq;
+p.frequency_surround = (2*p.surroundRadius/p.pixPerDeg) * p.freq;
 p.numPhases = 1;
 p.centerPhase = 360;
 p.surroundPhase = p.centerPhase;
@@ -327,7 +329,7 @@ surroundGrating = tmpSurround;
 %% MASK
 
 %sf filter
-cutoff = [1 3] .*round(size(Annulus,1)/p.pixPerDeg);
+cutoff = [0.5 1.5] .*round(size(Annulus,1)/p.pixPerDeg);
 f = freqspace(size(Annulus,1));
 
 %bandpass filter
@@ -389,8 +391,13 @@ if ~test_env
     % Welcome Screen
     Screen('TextStyle', window, 1);
     Screen('TextSize', window, 16);
-    welcomeText = ['Hello' '\n' ...
-     'Click powermate to start experiment.'];
+    if p.testCondition == 1 %perception
+        welcomeText = ['Hello' '\n' ...
+        'Click powermate to start experiment.'];
+    elseif p.testCondition == 2 % WM
+        welcomeText = ['Hello' '\n' ...
+        'Click powermate to start experiment.'];
+    end
     DrawFormattedText(window, welcomeText, 'center', 'center', 255);
     Screen('Flip', window);
     % Check powermate works by forcing a click
@@ -403,11 +410,6 @@ if ~test_env
 elseif ~test_env && sum(strcmp(p.experiment,{'test' 'test_HC'})) == 0 && shuffled == 0 
     error('You are trying to run the main version of the exp., but the trials are not shuffled.')
 end
-<<<<<<< HEAD
-% close all; clear all; clc;
-commandwindow;
-=======
->>>>>>> 976c8b869c34fdd09cdad581464ecafbc4fcbd9f
 
 % Starting Screen
 Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
