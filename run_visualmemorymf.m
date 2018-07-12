@@ -4,7 +4,7 @@ close all; clear all; clc;
 commandwindow;
 Screen('Preference', 'SkipSyncTests', 1);
 commandwindow;
-test_env = 0;
+test_env = 1;
 
 % visualmemory_condition_order = perms([1 2 1 2]);
 % visualmemory_subjectsRan = {};
@@ -62,10 +62,9 @@ cd(expDir);
 
 deviceNumber = 0;
 [keyBoardIndices, ProductNames] = GetKeyboardIndices;
-deviceString = 'Lenovo Traditional USB Keyboard';
+% deviceString = 'Lenovo Traditional USB Keyboard';
 %deviceString = 'Apple Internal Keyboard / Trackpad';
-%deviceString = 'USB-HID Keyboard 
-%deviceString = 'USB-HID Keyboard'; 
+deviceString = 'USB-HID Keyboard'; %luis' desk keyboard
 %deviceString = 'Wired USB Keyboard';
 %deviceString = 'Apple Keyboard';
 %deviceString = 'USB Keyboard';
@@ -85,7 +84,7 @@ if ~test_env
 %Check which devicenumber the powermate is assigned to
 powermate = PsychPowerMate('Open');
 if isempty(powermate)
-    error('problem with the powermate');
+    error('problem with the powermate or test_env has not been set to 0');
 end
 % % Controls the brightness of the powermate color
 PsychPowerMate('SetBrightness', powermate, 20);
@@ -194,7 +193,7 @@ if strcmp(p.experiment,{'test_HC'})
     p.numTrials = length(col1);
     p.numSets = p.numTrials/p.numTrialsPerSet;
 
-elseif sum(strcmp(p.experiment, {'test','exp'})) == 1
+else
     p.stimConfigurations = 1:length(p.centerContrast)*length(conds);
     [combs] = BalanceFactors(p.repetitions,0,p.stimConfigurations);
 
@@ -266,6 +265,11 @@ length(unique(checkContrasts)) == 1 && unique(checkContrasts) == p.repetitions;
 length(unique(checkLoc)) == 1 || length(unique(checkLoc)) == 2;
 
 p.trialEvents; % [condition targetLocation targetContrast probeLocation probeContrast]
+shuffled = 0;
+if sum(strcmp(p.experiment,{'test' 'test_HC'})) == 0
+    p.trialEvents = Shuffle(p.trialEvents,2);
+    shuffled = 1;
+end
 
 %% TIMING PARAMETERS
 % timing is in seconds
@@ -396,9 +400,14 @@ if ~test_env
             break;
          end
     end
+elseif ~test_env && sum(strcmp(p.experiment,{'test' 'test_HC'})) == 0 && shuffled == 0 
+    error('You are trying to run the main version of the exp., but the trials are not shuffled.')
 end
+<<<<<<< HEAD
 % close all; clear all; clc;
 commandwindow;
+=======
+>>>>>>> 976c8b869c34fdd09cdad581464ecafbc4fcbd9f
 
 % Starting Screen
 Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
