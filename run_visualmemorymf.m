@@ -10,11 +10,11 @@ test_env = 0;
 % visualmemory_subjectsRan = {};
 
 %% PREPARE
-p.repetitions = 20; % data will be saved if repetitions > 5
+p.repetitions = 1; % data will be saved if repetitions > 5
 
 % Experiment & Subject Name
-p.experiment = 'exp'; % 'test_HC'=1 contrast, no WM; 'test'=5 contrasts, no WM; 'exp1=5 contrasts, w/WM
-p.subject = 'JS';
+p.experiment = 'test'; % 'test_HC'=1 contrast, no WM; 'test'=5 contrasts, no WM; 'exp1=5 contrasts, w/WM
+p.subject = 'JP';
 
 if sum(strcmp(p.experiment,{'test','test_HC'})) == 0
 load('visualmemory_condition_order.mat')
@@ -349,7 +349,7 @@ end
 
 %% WINDOW SETUP
 
-[window,rect] = Screen('OpenWindow', useScreen, colors.black, [ 0 0 700 500]); %test screen size [0 0 700 500]
+[window,rect] = Screen('OpenWindow', useScreen, colors.black, []); %test screen size [0 0 700 500]
 
 OriginalCLUT = Screen('ReadNormalizedGammaTable', window);
 if ~test_env
@@ -397,7 +397,7 @@ if ~test_env
          end
     end
 end
-close all; clear all; clc;
+% close all; clear all; clc;
 commandwindow;
 
 % Starting Screen
