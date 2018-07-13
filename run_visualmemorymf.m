@@ -13,8 +13,8 @@ test_env = 0;
 p.repetitions = 20; % set to 20 for ~40min; data will be saved if repetitions > 5
 
 % Experiment & Subject Name
-p.experiment = 'exp1'; % 'exp1=5 contrasts, w/WM; 'test_HC'=1 contrast, no WM; 'test'=5 contrasts, no WM; 
-p.subject = 'test';
+p.experiment = 'exp'; % 'exp1=5 contrasts, w/WM; 'test_HC'=1 contrast, no WM; 'test'=5 contrasts, no WM; 
+p.subject = 'JP';
 
 if sum(strcmp(p.experiment,{'test','test_HC'})) == 0
 load('visualmemory_condition_order.mat')
