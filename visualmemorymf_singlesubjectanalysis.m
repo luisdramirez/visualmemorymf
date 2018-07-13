@@ -1,9 +1,8 @@
-%%  MASTER ANALYSIS %%
+%%  SINGLE SUBJECT ANALYSIS %%
 % This script is meant to loop through all trials with either hardcoded
-% test runs, test runs, or actual experiment runs. It will show represent
-% meaningful data within one single run, or if there are multiple runs for
-% one single subject/experiment matching, it will loop through to collect
-% meaningful results between data sets.
+% test runs, test runs, or actual experiment runs for one single subject.
+% It will show or print meaningful data for all runs completed for one
+% subject.
 
 %% SETUP %%
 % Preliminary data loading and setup %
@@ -11,8 +10,8 @@ clear;
 close all;
 expDir = '/Users/juliaschwartz/Desktop/visualmemorymf';
 dataDir = 'data_master';
-allP.experiment = 'test';
-allP.subject = 'JS';
+allP.experiment = 'exp';
+allP.subject = 'JP';
 cd(dataDir)
 
 %Load run data
@@ -41,19 +40,19 @@ for nRun = 1:nTrials
     allP{nRun} = theData(nRun).p;
     allT{nRun} = theData(nRun).t;
     allData{nRun} = theData(nRun).data;
-    stats{nRun} = theData(nRun).stats;
 end
-
+%%%%% HARDCODE FIX BUG LATER
 %Finding subject name and indexing to condition order
-if sum(strcmp(allP{1,1}.experiment,{'test','test_HC'})) == 1
-    subjectCondSchedule = [1 1 1 1]; % Fixed to perception for test trials.
-else
-condIndex = find(strcmp(visualmemory_subjectsRan,allP{1,1}.subject));
-    if condIndex > 24
-        condIndex = condIndex - 24; %The condition order resets after 24, this matches to the reset.
-    end
+% if sum(strcmp(allP{1,1}.experiment,{'test','test_HC'})) == 1
+%     subjectCondSchedule = [1 1 1 1]; % Fixed to perception for test trials.
+% else
+% condIndex = find(strcmp(visualmemory_subjectsRan,allP{1,1}.subject));
+%     if condIndex > 24
+%         condIndex = condIndex - 24; %The condition order resets after 24, this matches to the reset.
+%     end
+condIndex = 1;
 subjectCondSchedule = visualmemory_condition_order(condIndex,:); %Gives the current condition schedule, indexes to the row we are on, columns 1-4 represent the condition for each run.
-end
+% end
 
 %Save out Relevant Information, 3 for bl+percep+wm
 subject.avgEstContrast = nan(nTrials,theData(1).p.numContrasts,3);
@@ -70,7 +69,8 @@ subject.avgDiffLoc = nan(nTrials,theData(1).p.numContrasts,3);
         % 3 = BASELINE
         
 % Shortens the condition schedule to only go through trials already ran.
- if nTrials < 4
+ if nTrials == 1
+     subjectCondSchedule = 1
      subjectCondSchedule = subjectCondSchedule(1:nTrials);
  end
  
