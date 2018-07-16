@@ -43,16 +43,15 @@ for nRun = 1:nTrials
 end
 %%%%% HARDCODE FIX BUG LATER
 %Finding subject name and indexing to condition order
-% if sum(strcmp(allP{1,1}.experiment,{'test','test_HC'})) == 1
-%     subjectCondSchedule = [1 1 1 1]; % Fixed to perception for test trials.
-% else
-% condIndex = find(strcmp(visualmemory_subjectsRan,allP{1,1}.subject));
-%     if condIndex > 24
-%         condIndex = condIndex - 24; %The condition order resets after 24, this matches to the reset.
-%     end
-condIndex = 1;
+if sum(strcmp(allP{1,1}.experiment,{'test','test_HC'})) == 1
+    subjectCondSchedule = [1 1 1 1]; % Fixed to perception for test trials.
+else
+condIndex = find(strcmp(visualmemory_subjectsRan,allP{1,1}.subject));
+    if condIndex > 24
+        condIndex = condIndex - 24; %The condition order resets after 24, this matches to the reset.
+    end
 subjectCondSchedule = visualmemory_condition_order(condIndex,:); %Gives the current condition schedule, indexes to the row we are on, columns 1-4 represent the condition for each run.
-% end
+end
 
 %Save out Relevant Information, 3 for bl+percep+wm
 subject.avgEstContrast = nan(nTrials,theData(1).p.numContrasts,3);
