@@ -41,16 +41,16 @@ for nRun = 1:nTrials
     allT{nRun} = theData(nRun).t;
     allData{nRun} = theData(nRun).data;
 end
-%%%%% HARDCODE FIX BUG LATER
+
 %Finding subject name and indexing to condition order
 if sum(strcmp(allP{1,1}.experiment,{'test','test_HC'})) == 1
     subjectCondSchedule = [1 1 1 1]; % Fixed to perception for test trials.
 else
-condIndex = find(strcmp(visualmemory_subjectsRan,allP{1,1}.subject));
+    condIndex = find(strcmp(visualmemory_subjectsRan,allP{1,1}.subject));
     if condIndex > 24
         condIndex = condIndex - 24; %The condition order resets after 24, this matches to the reset.
     end
-subjectCondSchedule = visualmemory_condition_order(condIndex,:); %Gives the current condition schedule, indexes to the row we are on, columns 1-4 represent the condition for each run.
+    subjectCondSchedule = visualmemory_condition_order(condIndex,:); %Gives the current condition schedule, indexes to the row we are on, columns 1-4 represent the condition for each run
 end
 
 %Save out Relevant Information, 3 for bl+percep+wm
@@ -69,11 +69,13 @@ subject.avgDiffLoc = nan(nTrials,theData(1).p.numContrasts,3);
         
 % Shortens the condition schedule to only go through trials already ran.
  if nTrials == 1
-     subjectCondSchedule = 1
+     subjectCondSchedule = subjectCondSchedule(1);
+ elseif nTrials < 4
      subjectCondSchedule = subjectCondSchedule(1:nTrials);
  end
  
 %% MAIN FOR LOOP: NUMBER OF TRIALS %%
+
  for nRun = 1:nTrials
      thisRunsCond = subjectCondSchedule(nRun);
     if thisRunsCond == 1
@@ -128,9 +130,10 @@ subject.avgDiffLoc = nan(nTrials,theData(1).p.numContrasts,3);
     baseline.ContDiffMeanVec = ones(1,p.numContrasts);
     baseline.LocDiffMeanVec = ones(1,p.numContrasts);
     for i = 1:p.numContrasts
-        subject.avgEstContrast(nRun,i,1) = mean(baseline.contData(:,4,i));
-        subject.avgDiffContrast(nRun,i,1) = abs(mean(baseline.contData(:,5,i)));
-        subject.avgDiffLoc(nRun,i,1) = mean(baseline.contData(:,2,i));
+        % BASELINE IS PAGE 3
+        subject.avgEstContrast(nRun,i,3) = mean(baseline.contData(:,4,i));
+        subject.avgDiffContrast(nRun,i,3) = abs(mean(baseline.contData(:,5,i)));
+        subject.avgDiffLoc(nRun,i,3) = mean(baseline.contData(:,2,i));
         baseline.EstContMeanVec(i) = mean(baseline.contData(:,4,i));
         baseline.ContDiffMeanVec(i) = abs(mean(baseline.contData(:,5,i)));
         baseline.LocDiffMeanVec(i) = mean(baseline.contData(:,2,i));
@@ -166,9 +169,10 @@ subject.avgDiffLoc = nan(nTrials,theData(1).p.numContrasts,3);
         perception.ContDiffMeanVec = ones(1,p.numContrasts);
         perception.LocDiffMeanVec = ones(1,p.numContrasts);
         for i = 1:p.numContrasts
-            subject.avgEstContrast(nRun,i,2) = mean(perception.contData(:,4,i));
-            subject.avgDiffContrast(nRun,i,2) = abs(mean(perception.contData(:,5,i)));
-            subject.avgDiffLoc(nRun,i,2) = mean(perception.contData(:,2,i));
+            % PERCEPTION IS PAGE 1
+            subject.avgEstContrast(nRun,i,1) = mean(perception.contData(:,4,i));
+            subject.avgDiffContrast(nRun,i,1) = abs(mean(perception.contData(:,5,i)));
+            subject.avgDiffLoc(nRun,i,1) = mean(perception.contData(:,2,i));
             perception.EstContMeanVec(i) = mean(perception.contData(:,4,i));
             perception.ContDiffMeanVec(i) = abs(mean(perception.contData(:,5,i)));
             perception.LocDiffMeanVec(i) = mean(perception.contData(:,2,i));
@@ -203,6 +207,7 @@ subject.avgDiffLoc = nan(nTrials,theData(1).p.numContrasts,3);
         workingmem.ContDiffMeanVec = ones(1,p.numContrasts);
         workingmem.LocDiffMeanVec = ones(1,p.numContrasts);
         for i = 1:p.numContrasts
+            % WORKING MEMORY IS PAGE 2
             subject.avgEstContrast(nRun,i,2) = mean(workingmem.contData(:,4,i));
             subject.avgDiffContrast(nRun,i,2) = abs(mean(workingmem.contData(:,5,i)));
             subject.avgDiffLoc(nRun,i,2) = mean(workingmem.contData(:,2,i));
@@ -225,11 +230,11 @@ subject.avgDiffLoc = nan(nTrials,theData(1).p.numContrasts,3);
         subplot(2,p.numContrasts+1,1)
         plot(baseline.orgData(:,4));
         hold on
-        plot(baseline.orgTE(:,3));
+        plot(baseline.orgTE(:,3),'Linewidth',2);
         ylim([0 1])
         title('BASELINE')
         hold on
-        plot(1:length(baseline.Data),repelem(subject.avgEstContrast(nRun,:,1),20));
+        plot(1:length(baseline.Data),repelem(subject.avgEstContrast(nRun,:,3),20),'Linewidth',2);
         legend('Estimated Contrast','Actual Contrast','Avg. Estimated Contrast');
         hold off
         
@@ -242,7 +247,7 @@ subject.avgDiffLoc = nan(nTrials,theData(1).p.numContrasts,3);
             hold on
             line([baseline.contTE(1,3,i) baseline.contTE(1,3,i)],ylim,'Linewidth',1.75,'Color','r')
             hold on
-            line([subject.avgEstContrast(nRun,i,1) subject.avgEstContrast(nRun,i,1)],ylim,'Linewidth',1.75,'Color','g');
+            line([subject.avgEstContrast(nRun,i,3) subject.avgEstContrast(nRun,i,3)],ylim,'Linewidth',1.75,'Color','g');
             hold off
             title(sprintf('Histogram for %.2f Trials',baseline.contTE(1,3,i)))
             legend('Est. Contrast Bins','Actual Contrast','Avg. Est Contrast')
@@ -255,11 +260,11 @@ subject.avgDiffLoc = nan(nTrials,theData(1).p.numContrasts,3);
             subplot(2,p.numContrasts+1,p.numContrasts+2)
             plot(perception.orgData(:,4));
             hold on
-            plot(perception.orgTE(:,3));
+            plot(perception.orgTE(:,3),'Linewidth',2);
             ylim([0 1])
             title('PERCEPTION')
             hold on
-            plot(1:length(perception.Data),repelem(subject.avgEstContrast(nRun,:,2),20));
+            plot(1:length(perception.Data),repelem(subject.avgEstContrast(nRun,:,1),20),'Linewidth',2);
             legend('Estimated Contrast','Actual Contrast','Avg. Estimated Contrast');
             hold off
             
@@ -272,7 +277,7 @@ subject.avgDiffLoc = nan(nTrials,theData(1).p.numContrasts,3);
                 hold on
                 line([perception.contTE(1,3,i) perception.contTE(1,3,i)],ylim,'Linewidth',1.75,'Color','r')
                 hold on
-                line([subject.avgEstContrast(nRun,i,2) subject.avgEstContrast(nRun,i,2)],ylim,'Linewidth',1.75,'Color','g');
+                line([subject.avgEstContrast(nRun,i,1) subject.avgEstContrast(nRun,i,1)],ylim,'Linewidth',1.75,'Color','g');
                 hold off
                 title(sprintf('Histogram for %.2f Trials',perception.contTE(1,3,i)))
                 legend('Est. Contrast Bins','Actual Contrast','Avg. Est Contrast')
@@ -284,11 +289,11 @@ subject.avgDiffLoc = nan(nTrials,theData(1).p.numContrasts,3);
             subplot(2,p.numContrasts+1,p.numContrasts+2)
             plot(workingmem.orgData(:,4));
             hold on
-            plot(workingmem.orgTE(:,3));
+            plot(workingmem.orgTE(:,3),'Linewidth',2);
             ylim([0 1])
             title('PERCEPTION')
             hold on
-            plot(1:length(workingmem.Data),repelem(subject.avgEstContrast(nRun,:,3),20));
+            plot(1:length(workingmem.Data),repelem(subject.avgEstContrast(nRun,:,2),20),'Linewidth',2);
             legend('Estimated Contrast','Actual Contrast','Avg. Estimated Contrast');
             hold off
             
@@ -318,7 +323,7 @@ subject.avgDiffLoc = nan(nTrials,theData(1).p.numContrasts,3);
         plot(baseline.orgData(:,2));       
         title('BASELINE')
         hold on
-        plot(1:length(baseline.Data),repelem(subject.avgDiffLoc(nRun,:,1),20));
+        plot(1:length(baseline.Data),repelem(subject.avgDiffLoc(nRun,:,3),20),'Linewidth',2);
         legend('Location Difference','Avg. Loc. Diff. per Contrast');
         hold off
         
@@ -327,7 +332,7 @@ subject.avgDiffLoc = nan(nTrials,theData(1).p.numContrasts,3);
             subplot(2,p.numContrasts+1,i+1)
             hist(baseline.contData(:,2,i))
             hold on
-            line([subject.avgDiffLoc(nRun,i,1) subject.avgDiffLoc(nRun,i,1)],ylim,'Linewidth',1.75,'Color','r');
+            line([subject.avgDiffLoc(nRun,i,3) subject.avgDiffLoc(nRun,i,3)],ylim,'Linewidth',1.75,'Color','r');
             hold off
             title(sprintf('Histogram for %.2f Trials',baseline.contTE(1,3,i)))
             legend('Location Difference','Avg. Loc. Diff. Per Contrast')
@@ -341,7 +346,7 @@ subject.avgDiffLoc = nan(nTrials,theData(1).p.numContrasts,3);
             plot(perception.orgData(:,2));
             hold on
             title('PERCEPTION')
-            plot(1:length(perception.Data),repelem(subject.avgDiffLoc(nRun,:,2),20));
+            plot(1:length(perception.Data),repelem(subject.avgDiffLoc(nRun,:,1),20),'Linewidth',2);
             legend('Location Difference','Avg. Location Difference');
             hold off
             
@@ -350,7 +355,7 @@ subject.avgDiffLoc = nan(nTrials,theData(1).p.numContrasts,3);
                 subplot(2,p.numContrasts+1,p.numContrasts+2+i)
                 hist(perception.contData(:,2,i))
                 hold on
-                line([subject.avgDiffLoc(nRun,i,2) subject.avgDiffLoc(nRun,i,2)],ylim,'Linewidth',1.75,'Color','r');
+                line([subject.avgDiffLoc(nRun,i,1) subject.avgDiffLoc(nRun,i,1)],ylim,'Linewidth',1.75,'Color','r');
                 hold off
                 title(sprintf('Histogram for %.2f Trials',perception.contTE(1,3,i)))
                 legend('Location Diff. Bins','Avg. Location Diff.')
@@ -363,7 +368,7 @@ subject.avgDiffLoc = nan(nTrials,theData(1).p.numContrasts,3);
             plot(workingmem.orgData(:,2));
             title('PERCEPTION')
             hold on
-            plot(1:length(workingmem.Data),repelem(subject.avgDiffLoc(nRun,:,3),20));
+            plot(1:length(workingmem.Data),repelem(subject.avgDiffLoc(nRun,:,2),20),'Linewidth',2);
             legend('Estimated Contrast','Actual Contrast','Avg. Estimated Contrast');
             hold off
             
@@ -374,7 +379,7 @@ subject.avgDiffLoc = nan(nTrials,theData(1).p.numContrasts,3);
                 xlim([0 1])
                 ylim([0 8])
                 hold on
-                line([subject.avgDiffLoc(nRun,i,3) subject.avgDiffLoc(nRun,i,3)],ylim,'Linewidth',1.75,'Color','g');
+                line([subject.avgDiffLoc(nRun,i,2) subject.avgDiffLoc(nRun,i,2)],ylim,'Linewidth',1.75,'Color','g');
                 hold off
                 title(sprintf('Histogram for %.2f Trials',workingmem.contTE(1,3,i)))
                 legend('Est. Contrast Bins','Actual Contrast','Avg. Est Contrast')
@@ -386,17 +391,17 @@ subject.avgDiffLoc = nan(nTrials,theData(1).p.numContrasts,3);
     if printVar ~= 0
         fprintf('\n\nTRIAL:%i\n',nRun);
         for i = 1:p.numContrasts
-        fprintf('  BASELINE:The mean contrast estimation was %.4f at the %.3f contrast level. The abs. difference is %.3f',subject.avgEstContrast(nRun,i,1),p.centerContrast(i),abs(subject.avgEstContrast(nRun,i,1)-p.centerContrast(i)));
+        fprintf('  BASELINE:The mean contrast estimation was %.4f at the %.3f contrast level. The abs. difference is %.3f',subject.avgEstContrast(nRun,i,3),p.centerContrast(i),abs(subject.avgEstContrast(nRun,i,3)-p.centerContrast(i)));
             if sum(strcmp(variableCondition,'Perception')) == 1
-                fprintf('\nPERCEPTION:The mean contrast estimation was %.4f at the %.3f contrast level. The abs. difference is %.3f\n\n',subject.avgEstContrast(nRun,i,2),p.centerContrast(i),abs(subject.avgEstContrast(nRun,i,2)-p.centerContrast(i)));
+                fprintf('\nPERCEPTION:The mean contrast estimation was %.4f at the %.3f contrast level. The abs. difference is %.3f\n\n',subject.avgEstContrast(nRun,i,1),p.centerContrast(i),abs(subject.avgEstContrast(nRun,i,1)-p.centerContrast(i)));
             elseif sum(strcmp(variableCondition,'Working Memory')) == 1
-                fprintf('\nPERCEPTION:The mean contrast estimation was %.4f at the %.3f contrast level. The abs. difference is %.3f\n\n',subject.avgEstContrast(nRun,i,3),p.centerContrast(i),abs(subject.avgEstContrast(nRun,i,3)-p.centerContrast(i)));
+                fprintf('\nWORKING MEMORY:The mean contrast estimation was %.4f at the %.3f contrast level. The abs. difference is %.3f\n\n',subject.avgEstContrast(nRun,i,2),p.centerContrast(i),abs(subject.avgEstContrast(nRun,i,2)-p.centerContrast(i)));
             end
-        fprintf('  BASELINE:The average location difference was %0.4f at the %0.3f contrast level.\n',subject.avgDiffLoc(nRun,i,1),p.centerContrast(i))
+        fprintf('  BASELINE:The average location difference was %0.4f at the %0.3f contrast level.\n',subject.avgDiffLoc(nRun,i,3),p.centerContrast(i))
             if sum(strcmp(variableCondition,'Perception')) == 1
-                fprintf('PERCEPTION:The average location difference was %0.4f at the %0.3f contrast level.\n\n',subject.avgDiffLoc(nRun,i,2),p.centerContrast(i))
+                fprintf('PERCEPTION:The average location difference was %0.4f at the %0.3f contrast level.\n\n',subject.avgDiffLoc(nRun,i,1),p.centerContrast(i))
             elseif sum(strcmp(variableCondition,'Working Memory')) == 1
-                fprintf('WORKING MEMORY:The average location difference was %0.4f at the %0.3f contrast level.\n\n',subject.avgDiffLoc(nRun,i,3),p.centerContrast(i))
+                fprintf('WORKING MEMORY:The average location difference was %0.4f at the %0.3f contrast level.\n\n',subject.avgDiffLoc(nRun,i,2),p.centerContrast(i))
             end
         end
     end
@@ -409,32 +414,37 @@ subject.avgDiffLoc = nan(nTrials,theData(1).p.numContrasts,3);
         % avg Estimated Contrast
         figure(nTrials*2 + 1)
         set(gcf, 'Name', sprintf('Perceived Contrast Versus Center Contrast'));
+        loglog(p.centerContrast,mean(subject.avgEstContrast(:,:,3),1),'-o')
         hold on
+        if isnan(mean(subject.avgEstContrast(:,:,1),1)) == 0
         loglog(p.centerContrast,mean(subject.avgEstContrast(:,:,1),1),'-o')
-        loglog([0.1 0.8],[0.1 0.8],'k--')
+        end
+        if isnan(mean(subject.avgEstContrast(:,:,2),1)) == 0
         hold on
         loglog(p.centerContrast,mean(subject.avgEstContrast(:,:,2),1),'-o')
+        end
+        hold on 
         loglog([0.1 0.8],[0.1 0.8],'k--')
-        hold on
-        loglog(p.centerContrast,mean(subject.avgEstContrast(:,:,3),1),'-o')
-        loglog([0.1 0.8],[0.1 0.8],'k--')
-        hold on
         xlabel('Center Contrast')
         ylabel('Perceived Contrast')
         xticks([0.1 0.8]); yticks([0.1 0.8]);
         xticklabels({'10','80'});yticklabels({'10','80'});
-        legend('Baseline','Perception','Working Memory')
+        legend('Baseline','Perception','Working Memory','Log Scale')
         hold off 
         
         % avg Contrast Difference
         figure(nTrials*2 + 2)
         set(gcf, 'Name', ('Contrast Difference versus Center Contrast'))
         hold on
-        loglog(p.centerContrast,mean(subject.avgDiffContrast(:,:,1),1),'-o')
+        loglog(p.centerContrast,mean(subject.avgDiffContrast(:,:,3),1),'-o')
         hold on
+        if isnan(mean(subject.avgDiffContrast(:,:,2),1)) == 0
+        loglog(p.centerContrast,mean(subject.avgDiffContrast(:,:,1),1),'-o') 
+        end
+        hold on
+        if isnan(mean(subject.avgDiffContrast(:,:,2),1)) == 0
         loglog(p.centerContrast,mean(subject.avgDiffContrast(:,:,2),1),'-o') 
-        hold on
-        loglog(p.centerContrast,mean(subject.avgDiffContrast(:,:,3),1),'-o') 
+        end
         xlabel('Center Contrast')
         ylabel('Difference in Contrast')
         legend('Baseline','Perception','Working Memory')
@@ -444,16 +454,37 @@ subject.avgDiffLoc = nan(nTrials,theData(1).p.numContrasts,3);
         figure(nTrials*2 + 3)
         set(gcf, 'Name',('Location Difference versus Center Contrast'));
         hold on
+        loglog(p.centerContrast,mean(subject.avgDiffLoc(:,:,3),1),'-o') 
+        hold on
+        if isnan(mean(subject.avgDiffLoc(:,:,1),1)) == 0
         loglog(p.centerContrast,mean(subject.avgDiffLoc(:,:,1),1),'-o') 
+        end
         hold on
-        loglog(p.centerContrast,mean(subject.avgDiffLoc(:,:,2),1),'-o') 
-        hold on
-        loglog(p.centerContrast,mean(subject.avgDiffLoc(:,:,3),1),'-o')
+        if isnan(mean(subject.avgDiffLoc(:,:,2),1)) == 0
+        loglog(p.centerContrast,mean(subject.avgDiffLoc(:,:,2),1),'-o')
+        end
         hold off
         xlabel('Center Contrast')
         ylabel('Difference in Location')
         legend('Baseline','Perception','Working Memory')
         hold off 
     end
+    
+%% SAVE OUT AVERAGES (AVG OVER TRIALS RAN FOR A SINGLE SUBJECT) %%
+subject.meanEstContPerception = mean(subject.avgEstContrast(:,:,1),1);
+subject.meanEstContWorkingMemory = mean(subject.avgEstContrast(:,:,2),1);
+subject.meanEstContBaseline = mean(subject.avgEstContrast(:,:,3),1);
+
+subject.meanDiffContPerception = mean(subject.avgDiffContrast(:,:,1),1);
+subject.meanDiffContWorkingMemory = mean(subject.avgDiffContrast(:,:,2),1);
+subject.meanDiffContBaseline = mean(subject.avgDiffContrast(:,:,3),1);
+
+subject.meanDiffLocPerception = mean(subject.avgDiffLoc(:,:,1),1);
+subject.meanDiffLocWorkingMemory = mean(subject.avgDiffLoc(:,:,2),1);
+subject.meanDiffLocBaseline = mean(subject.avgDiffLoc(:,:,3),1);
+    
+%% SAVE SUBJECT STRUCTURE %%
+cd(dataDir)
+save(['data_visualmemorymf_' p.experiment '_' p.subject '.mat'], 'subject','theData')
 
       
