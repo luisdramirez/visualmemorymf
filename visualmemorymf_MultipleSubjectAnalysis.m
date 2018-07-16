@@ -10,15 +10,33 @@ clear;
 close all;
 expDir = '/Users/juliaschwartz/Desktop/visualmemorymf';
 dataDir = '/Users/juliaschwartz/Desktop/visualmemorymf/data_master';
-
-cd(dataDir)
-files = dir(dataDir);
+cd(expDir)
 load('visualmemory_condition_order')
 load('visualmemory_subjectsRan')  
-possibleFileNames
+
+cd(dataDir)
+files = struct2cell(dir(dataDir))';
+
+[numFiles, ~] = size(files);
+possibleFileNames = cell(1:length(visualmemory_subjectsRan));
 for i = length(visualmemory_subjectsRan)
-    
-possibleFileNames = 
-for i = 1:length(files)
-    if sum(strcmp(files.name(i) == 'data_visualmemorymf_exp_'
-       load(['data_visualmemorymf_' p.experiment '_' p.subject '.mat']);
+    filename = strcat('data_visualmemorymf_exp_',visualmemory_subjectsRan{i},'.mat');
+    possibleFileNames{i} = filename;
+end
+
+%preallocate a cell that will load theData structures from each participant
+%into one cell
+master_theData = cell(1:length(possibleFileNames));
+
+% if any of files.name = possibleFilesNames then load the file and put
+% into a cell array
+for currfilenum = 1:numFiles
+    for i = length(possibleFileNames)
+        dataFile = files{currfilenum,1};
+        if strcmp(dataFile,possibleFileNames{i,1}) == 1
+            load(dataFile)
+            master_theData{1} = theData;
+        end
+    end
+end
+

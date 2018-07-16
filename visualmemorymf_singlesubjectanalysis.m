@@ -10,7 +10,7 @@ clear;
 close all;
 expDir = '/Users/juliaschwartz/Desktop/visualmemorymf';
 dataDir = 'data_master';
-allP.experiment = 'exp';
+allP.experiment = 'test';
 allP.subject = 'JP';
 cd(dataDir)
 
@@ -41,16 +41,16 @@ for nRun = 1:nTrials
     allT{nRun} = theData(nRun).t;
     allData{nRun} = theData(nRun).data;
 end
-%%%%% HARDCODE FIX BUG LATER
+
 %Finding subject name and indexing to condition order
 if sum(strcmp(allP{1,1}.experiment,{'test','test_HC'})) == 1
     subjectCondSchedule = [1 1 1 1]; % Fixed to perception for test trials.
 else
-condIndex = find(strcmp(visualmemory_subjectsRan,allP{1,1}.subject));
+    condIndex = find(strcmp(visualmemory_subjectsRan,allP{1,1}.subject));
     if condIndex > 24
         condIndex = condIndex - 24; %The condition order resets after 24, this matches to the reset.
     end
-subjectCondSchedule = visualmemory_condition_order(condIndex,:); %Gives the current condition schedule, indexes to the row we are on, columns 1-4 represent the condition for each run.
+    subjectCondSchedule = visualmemory_condition_order(condIndex,:); %Gives the current condition schedule, indexes to the row we are on, columns 1-4 represent the condition for each run
 end
 
 %Save out Relevant Information, 3 for bl+percep+wm
@@ -69,11 +69,13 @@ subject.avgDiffLoc = nan(nTrials,theData(1).p.numContrasts,3);
         
 % Shortens the condition schedule to only go through trials already ran.
  if nTrials == 1
-     subjectCondSchedule = 1
+     subjectCondSchedule = subjectCondSchedule(1);
+ elseif nTrials < 4
      subjectCondSchedule = subjectCondSchedule(1:nTrials);
  end
  
 %% MAIN FOR LOOP: NUMBER OF TRIALS %%
+
  for nRun = 1:nTrials
      thisRunsCond = subjectCondSchedule(nRun);
     if thisRunsCond == 1
@@ -225,11 +227,11 @@ subject.avgDiffLoc = nan(nTrials,theData(1).p.numContrasts,3);
         subplot(2,p.numContrasts+1,1)
         plot(baseline.orgData(:,4));
         hold on
-        plot(baseline.orgTE(:,3));
+        plot(baseline.orgTE(:,3),'Linewidth',2);
         ylim([0 1])
         title('BASELINE')
         hold on
-        plot(1:length(baseline.Data),repelem(subject.avgEstContrast(nRun,:,1),20));
+        plot(1:length(baseline.Data),repelem(subject.avgEstContrast(nRun,:,1),20),'Linewidth',2);
         legend('Estimated Contrast','Actual Contrast','Avg. Estimated Contrast');
         hold off
         
@@ -255,11 +257,11 @@ subject.avgDiffLoc = nan(nTrials,theData(1).p.numContrasts,3);
             subplot(2,p.numContrasts+1,p.numContrasts+2)
             plot(perception.orgData(:,4));
             hold on
-            plot(perception.orgTE(:,3));
+            plot(perception.orgTE(:,3),'Linewidth',2);
             ylim([0 1])
             title('PERCEPTION')
             hold on
-            plot(1:length(perception.Data),repelem(subject.avgEstContrast(nRun,:,2),20));
+            plot(1:length(perception.Data),repelem(subject.avgEstContrast(nRun,:,2),20),'Linewidth',2);
             legend('Estimated Contrast','Actual Contrast','Avg. Estimated Contrast');
             hold off
             
@@ -284,11 +286,11 @@ subject.avgDiffLoc = nan(nTrials,theData(1).p.numContrasts,3);
             subplot(2,p.numContrasts+1,p.numContrasts+2)
             plot(workingmem.orgData(:,4));
             hold on
-            plot(workingmem.orgTE(:,3));
+            plot(workingmem.orgTE(:,3),'Linewidth',2);
             ylim([0 1])
             title('PERCEPTION')
             hold on
-            plot(1:length(workingmem.Data),repelem(subject.avgEstContrast(nRun,:,3),20));
+            plot(1:length(workingmem.Data),repelem(subject.avgEstContrast(nRun,:,3),20),'Linewidth',2);
             legend('Estimated Contrast','Actual Contrast','Avg. Estimated Contrast');
             hold off
             
@@ -318,7 +320,7 @@ subject.avgDiffLoc = nan(nTrials,theData(1).p.numContrasts,3);
         plot(baseline.orgData(:,2));       
         title('BASELINE')
         hold on
-        plot(1:length(baseline.Data),repelem(subject.avgDiffLoc(nRun,:,1),20));
+        plot(1:length(baseline.Data),repelem(subject.avgDiffLoc(nRun,:,1),20),'Linewidth',2);
         legend('Location Difference','Avg. Loc. Diff. per Contrast');
         hold off
         
@@ -341,7 +343,7 @@ subject.avgDiffLoc = nan(nTrials,theData(1).p.numContrasts,3);
             plot(perception.orgData(:,2));
             hold on
             title('PERCEPTION')
-            plot(1:length(perception.Data),repelem(subject.avgDiffLoc(nRun,:,2),20));
+            plot(1:length(perception.Data),repelem(subject.avgDiffLoc(nRun,:,2),20),'Linewidth',2);
             legend('Location Difference','Avg. Location Difference');
             hold off
             
@@ -363,7 +365,7 @@ subject.avgDiffLoc = nan(nTrials,theData(1).p.numContrasts,3);
             plot(workingmem.orgData(:,2));
             title('PERCEPTION')
             hold on
-            plot(1:length(workingmem.Data),repelem(subject.avgDiffLoc(nRun,:,3),20));
+            plot(1:length(workingmem.Data),repelem(subject.avgDiffLoc(nRun,:,3),20),'Linewidth',2);
             legend('Estimated Contrast','Actual Contrast','Avg. Estimated Contrast');
             hold off
             

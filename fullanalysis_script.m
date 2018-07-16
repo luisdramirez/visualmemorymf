@@ -12,7 +12,7 @@ expDir = 'visualmemorymf';
 dataDir = 'data_master';
 p.experiment = 'test';
 p.subject = 'JP';
-cd(dataDir)
+cd(dataDir) 
 
 if exist(['data_visualmemorymf_' p.experiment '_' p.subject '.mat'],'file') ~= 0
     load(['data_visualmemorymf_' p.experiment '_' p.subject '.mat']); %works for HC, test, and regular trials
