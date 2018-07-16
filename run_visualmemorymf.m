@@ -690,5 +690,6 @@ if p.repetitions > 5 && ~test_env
     theData(p.runNumber).p = p;
     theData(p.runNumber).data = data;
     save(['data_visualmemorymf_' p.experiment '_' p.subject '.mat'], 'theData')
+    save('visualmemory_subjectsRan.mat', 'visualmemory_subjectsRan')
     cd(expDir);
 end
