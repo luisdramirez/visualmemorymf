@@ -44,11 +44,11 @@ if exist(['data_visualmemorymf_' p.experiment '_' p.subject '.mat'],'file') ~= 0
 else 
     p.runNumber = 1;
     if sum(strcmp(p.experiment,{'test','test_HC'})) == 0
-        p.orderRow = length(subjectsRan)+1;
+        p.orderRow = length(visualmemory_subjectsRan)+1;
         if p.orderRow > length(visualmemory_condition_order)
             p.orderRow = p.orderRow - length(visualmemory_condition_order); 
         end
-        subjectsRan{end+1} = p.subject;
+        visualmemory_subjectsRan{end+1} = p.subject;
         p.trialSchedule = visualmemory_condition_order(p.orderRow,:);
         % Which Test condition, run these test conditions on different days
         p.testCondition = p.trialSchedule(1);
@@ -62,12 +62,12 @@ cd(expDir);
 
 deviceNumber = 0;
 [keyBoardIndices, ProductNames] = GetKeyboardIndices;
-deviceString = 'Apple Internal Keyboard / Trackpad';
+%deviceString = 'Apple Internal Keyboard / Trackpad';
 %deviceString = 'USB-HID Keyboard';
 %deviceString = 'Wired USB Keyboard';
 %deviceString = 'Apple Keyboard';
 %deviceString = 'USB Keyboard';
-% deviceString = 'Wired Keyboard 400';
+ deviceString = 'Wired Keyboard 400';
 % deviceString = 'Lenovo Traditional USB Keyboard';
 
 for nTrial = 1:length(ProductNames)
