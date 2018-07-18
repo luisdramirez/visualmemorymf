@@ -4,7 +4,7 @@ close all; clear all; clc;
 commandwindow;
 Screen('Preference', 'SkipSyncTests', 1);
 commandwindow;
-test_env = 1;
+test_env = 0;
 
 % visualmemory_condition_order = perms([1 2 1 2]);
 % visualmemory_subjectsRan = {};
@@ -13,8 +13,8 @@ test_env = 1;
 p.repetitions = 20; % set to 20 for ~40min; data will be saved if repetitions > 5
 
 % Experiment & Subject Name
-p.experiment = 'test'; % 'exp=5 contrasts, w/WM; 'test_HC'=1 contrast, no WM; 'test'=5 contrasts, no WM;
-p.subject = 'test';
+p.experiment = 'exp'; % 'exp=5 contrasts, w/WM; 'test_HC'=1 contrast, no WM; 'test'=5 contrasts, no WM;
+p.subject = 'JP';
 
 if sum(strcmp(p.experiment,{'test','test_HC'})) == 0
     load('visualmemory_condition_order.mat')
@@ -64,20 +64,20 @@ if sum(strcmp(p.experiment,{'test','test_HC'})) == 0
     disp(['Loaded session schedule: ' num2str(p.trialSchedule)])
     disp(['Current session condition: ' num2str(p.testCondition)])
 elseif sum(strcmp(p.experiment,{'test','test_HC'})) == 1
-    disp('You are in a test session. This session condition has been fixed to 1.')
+    disp('You are in a test session. The session condition has been fixed to 1.')
 end
 
 %% KEYBOARD
 
 deviceNumber = 0;
 [keyBoardIndices, ProductNames] = GetKeyboardIndices;
-% deviceString = 'Lenovo Traditional USB Keyboard';
-%deviceString = 'Apple Internal Keyboard / Trackpad';
-deviceString = 'USB-HID Keyboard'; %luis' desk keyboard
-%deviceString = 'Wired USB Keyboard';
-%deviceString = 'Apple Keyboard';
-%deviceString = 'USB Keyboard';
-%deviceString = 'Wired Keyboard 400';
+deviceString = 'Lenovo Traditional USB Keyboard'; %rm208 
+% deviceString = 'Apple Internal Keyboard / Trackpad';
+% deviceString = 'USB-HID Keyboard'; %luis' desk keyboard
+% deviceString = 'Wired USB Keyboard';
+% deviceString = 'Apple Keyboard';
+% deviceString = 'USB Keyboard';
+% deviceString = 'Wired Keyboard 400';
 
 for nTrial = 1:length(ProductNames)
     if strcmp(ProductNames{nTrial}, deviceString)
@@ -468,6 +468,24 @@ elseif test_env && sum(strcmp(p.experiment,{'test' 'test_HC'})) == 0
             'Additionally, breaks will be provided throughout the run.' '\n'...
             'Click the mouse to start experiment.'];
     end
+    DrawFormattedText(window, welcomeText, 'center', 'center', 255);
+    Screen('Flip', window);
+    GetClicks;
+    elseif test_env && sum(strcmp(p.experiment,{'test' 'test_HC'})) == 1
+    % Welcome Screen
+    Screen('TextStyle', window, 1);
+    Screen('TextSize', window, 16);
+    welcomeText = ['!!TESTING ENVIRONMENT!!' '\n' ...
+        'Stimulus presentation will pause at each event until the mouse has been clicked!' '\n' ...
+        'In this session you will be asked to complete a run of a visual memory experiment.' '\n'...
+        'On each trial, you will see a center grating presented at a random location in the periphery.' '\n'...
+        'On some trials, this center grating will be accompanied by a surround grating.' '\n'...
+        'At the end of the trial, a probe grating will appear; you will then be asked to manipulate this probe to reconstruct the center target grating you saw.' '\n'...
+        'Rotate the powermate to manipulate the location of the probe, and click the powermate to report your location estimate once you feel it matches the target grating location.' '\n'...
+        'Rotating the powermate again will now manipulate the contrast of the probe. Similarly, click the powermate to report your contrast estimate once you feel it matches the target grating contrast.''\n'...
+        'Remember to keep your eyes at fixation throughout the entirety of the run!' '\n'...
+        'Additionally, breaks will be provided throughout the run.' '\n'...
+        'Click the mouse to start experiment.'];
     DrawFormattedText(window, welcomeText, 'center', 'center', 255);
     Screen('Flip', window);
     GetClicks;
