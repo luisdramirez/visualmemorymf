@@ -4,7 +4,7 @@ close all; clear all; clc;
 commandwindow;
 Screen('Preference', 'SkipSyncTests', 1);
 commandwindow;
-test_env = 0;
+test_env = 1;
 
 % visualmemory_condition_order = perms([1 2 1 2]);
 % visualmemory_subjectsRan = {};
@@ -13,12 +13,12 @@ test_env = 0;
 p.repetitions = 20; % set to 20 for ~40min; data will be saved if repetitions > 5
 
 % Experiment & Subject Name
-p.experiment = 'exp'; % 'exp1=5 contrasts, w/WM; 'test_HC'=1 contrast, no WM; 'test'=5 contrasts, no WM; 
-p.subject = 'JP';
+p.experiment = 'test'; % 'exp=5 contrasts, w/WM; 'test_HC'=1 contrast, no WM; 'test'=5 contrasts, no WM;
+p.subject = 'test';
 
 if sum(strcmp(p.experiment,{'test','test_HC'})) == 0
-load('visualmemory_condition_order.mat')
-load('visualmemory_subjectsRan.mat')    
+    load('visualmemory_condition_order.mat')
+    load('visualmemory_subjectsRan.mat')
 end
 
 % Set directories
@@ -37,33 +37,43 @@ if exist(['data_visualmemorymf_' p.experiment '_' p.subject '.mat'],'file') ~= 0
     p.runNumber = length(theData)+1;
     if sum(strcmp(p.experiment,{'test', 'test_HC'})) == 1
         p.testCondition = 1; % fixed to perception condition for hard coded testing
-    else
+    elseif sum(strcmp(p.experiment,{'test', 'test_HC'})) == 0
         p.testCondition = theData{1}.p.trialSchedule(p.orderRow,p.runNumber);
     end
-else 
+else
     p.runNumber = 1;
     if sum(strcmp(p.experiment,{'test','test_HC'})) == 0
         p.orderRow = length(visualmemory_subjectsRan)+1;
         if p.orderRow > length(visualmemory_condition_order)
-            p.orderRow = p.orderRow - length(visualmemory_condition_order); 
+            p.orderRow = p.orderRow - length(visualmemory_condition_order);
         end
         visualmemory_subjectsRan{end+1} = p.subject;
         p.trialSchedule = visualmemory_condition_order(p.orderRow,:);
         % Which Test condition, run these test conditions on different days
         p.testCondition = p.trialSchedule(1);
-    else
+    elseif sum(strcmp(p.experiment,{'test','test_HC'})) == 1
         p.testCondition = 1; % fixed to perception condition
     end
 end
 cd(expDir);
 
+if test_env
+    disp('Entering test environment!')
+end
+if sum(strcmp(p.experiment,{'test','test_HC'})) == 0
+    disp(['Loaded session schedule: ' num2str(p.trialSchedule)])
+    disp(['Current session condition: ' num2str(p.testCondition)])
+elseif sum(strcmp(p.experiment,{'test','test_HC'})) == 1
+    disp('You are in a test session. This session condition has been fixed to 1.')
+end
+
 %% KEYBOARD
 
 deviceNumber = 0;
 [keyBoardIndices, ProductNames] = GetKeyboardIndices;
-deviceString = 'Lenovo Traditional USB Keyboard';
+% deviceString = 'Lenovo Traditional USB Keyboard';
 %deviceString = 'Apple Internal Keyboard / Trackpad';
-% deviceString = 'USB-HID Keyboard'; %luis' desk keyboard
+deviceString = 'USB-HID Keyboard'; %luis' desk keyboard
 %deviceString = 'Wired USB Keyboard';
 %deviceString = 'Apple Keyboard';
 %deviceString = 'USB Keyboard';
@@ -80,20 +90,23 @@ if deviceNumber == 0
 end
 
 if ~test_env
-%Check which devicenumber the powermate is assigned to
-powermate = PsychPowerMate('Open');
-if isempty(powermate)
-    error('problem with the powermate or test_env has not been set to 0');
-end
-% % Controls the brightness of the powermate color
-PsychPowerMate('SetBrightness', powermate, 20);
-% 
-while 1
-    [pmbutton, ~] = PsychPowerMate('Get', powermate);
-    if pmbutton == 1
-        break;
+    %Check which devicenumber the powermate is assigned to
+    powermate = PsychPowerMate('Open');
+    if isempty(powermate)
+        error('problem with the powermate or test_env has not been set to 0');
     end
-end
+    % % Controls the brightness of the powermate color
+    PsychPowerMate('SetBrightness', powermate, 20);
+    disp('Click powermate to continue.')
+    while 1
+        [pmbutton, ~] = PsychPowerMate('Get', powermate);
+        if pmbutton == 1
+            break;
+        end
+    end
+elseif test_env
+    disp('Click mouse to continue.')
+    GetClicks;
 end
 %% SCREEN PARAMTERS
 screens=Screen('Screens');
@@ -109,7 +122,7 @@ visAngle = (2*atan2(screenWidth/2, viewingDistance))*(180/pi);
 
 p.pixPerDeg = round(p.screenWidthPixels(3)/visAngle);
 p.fixation=round(0.085 * p.pixPerDeg);
-colors.grey = 128; colors.white = 255; colors.green = [0 255 0]; colors.blue = [0 0 255]; colors.black = [0 0 0]; colors.red = [220 20 60]; 
+colors.grey = 128; colors.white = 255; colors.green = [0 255 0]; colors.blue = [0 0 255]; colors.black = [0 0 0]; colors.red = [220 20 60];
 colors.dimgrey = [105 105 105]; colors.yellow = [255 255 0]; colors.magenta = [255 0 255]; colors.cyan = [0 255 255];
 
 %% GRATING PARAMETERS
@@ -127,7 +140,7 @@ p.centerContrast = [10.^linspace(log10(p.minContrast),log10(p.maxContrast),p.num
 
 p.surroundContrast = 1;
 
-% Grating Size 
+% Grating Size
 p.centerSize = round(2*p.pixPerDeg);
 p.centerSizeDeg = p.centerSize/p.pixPerDeg;
 p.centerRadius = round(p.centerSize/2 + p.pixPerDeg/2);
@@ -169,7 +182,7 @@ p.surroundPhase = p.centerPhase;
 % orientation, cue, and which staircase to be fed will be specified here.
 % Each of these are included into the p.trialEvents matrix
 % Two conditions: perception and working memory,
-% Random center grating location per trial, 
+% Random center grating location per trial,
 % One of five possible center grating contrasts per trial,
 % Random probe location and contrast.
 
@@ -188,17 +201,17 @@ if strcmp(p.experiment,{'test_HC'})
     p.numBlocksPerSet = 4;
     p.numTrialsPerSet = p.numTrialsPerBlock*p.numBlocksPerSet;
     p.numBlocksPerSet = p.numTrialsPerSet/p.numTrialsPerBlock;
-
+    
     col1 = [p.testCondition*ones(p.numTrialsPerBlock,1); 3*ones(p.numTrialsPerBlock,1)];
     col1 = repmat(col1,p.repetitions,1);
-
+    
     p.numTrials = length(col1);
     p.numSets = p.numTrials/p.numTrialsPerSet;
-
+    
 else
     p.stimConfigurations = 1:length(p.centerContrast)*length(conds);
     [combs] = BalanceFactors(p.repetitions,0,p.stimConfigurations);
-
+    
     p.numTrialsPerBlock = p.numContrasts;
     p.numBlocksPerSet = 4;
     p.numTrialsPerSet = p.numTrialsPerBlock*p.numBlocksPerSet;
@@ -213,14 +226,14 @@ else
 end
 
 %--------------------%
-%     Location       %
+%               Location            %
 %--------------------%
 %location is random every trial
 col2 = randi(360,length(col1),1); % center grating location
 col4 = randi(360,length(col1),1); % probe grating location
 
 %--------------------%
-%       Contrast     %
+%               Contrast            %
 %--------------------%
 col3 = nan(size(col1));
 col3(1:p.numContrasts) = Shuffle(p.centerContrast');
@@ -246,7 +259,7 @@ col5(col5>p.maxContrast)=p.maxContrast; col5(col5<p.minContrast)=p.minContrast;
 p.trialEvents = [col1 col2 col3 col4 col5]; %[condition targetLocation targetContrast probeLocation probeContrast]
 
 %--------------------%
-%    Check Distr.    %
+%           Check Distr.           %
 %--------------------%
 %Verify #contrasts, #locations, #trials per cond.
 checkContrasts = zeros(length(conds),p.numContrasts);
@@ -270,18 +283,19 @@ p.trialEvents; % [condition targetLocation targetContrast probeLocation probeCon
 shuffled = 0;
 if sum(strcmp(p.experiment,{'test' 'test_HC'})) == 0
     p.trialEvents = Shuffle(p.trialEvents,2);
+    disp('Trials have been shuffled.')
     shuffled = 1;
 end
 
 %% TIMING PARAMETERS
 % timing is in seconds
-t.stimOn1 = 2; % stimulus 1 duration 
+t.stimOn1 = 2; % stimulus 1 duration
 t.retention = 1; % memory retention period
 t.stimOn2 = t.stimOn1; % stimulus 2 duration
 t.iti = 2;
 t.startTime = 2;
 t.responseTime = []; t.responseTime_est = 5;
-t.flickerTime = 0.4; 
+t.flickerTime = 0.4;
 t.flicker = 0.04;
 
 t.trialDur = sum(t.stimOn1 + t.flickerTime + t.stimOn1 + t.flickerTime + t.responseTime_est + t.iti); % (s)
@@ -308,7 +322,7 @@ Annulus(eccen >= p.outerRadius) = 1;
 Annulus = conv2(Annulus, fspecial('gaussian',round(p.centerSize/10),p.centerSize/4),'same');
 
 %%Background
-bgAnnulus = zeros(size(Annulus)); 
+bgAnnulus = zeros(size(Annulus));
 bgAnnulus(eccen <= p.backgroundRadius) = 1;
 bgAnnulus(eccen >= p.backgroundRadius) = 0;
 
@@ -351,7 +365,7 @@ for n = 1:(t.flickerTime/t.flicker)
     tempMask = (noiseMask.*bgAnnulus);
     tempMask(bgAnnulus == 0) = -1; %to make black background make == 0
     maskGrating (n,:,:) = tempMask;
-end 
+end
 
 %% WINDOW SETUP
 
@@ -393,34 +407,70 @@ if ~test_env
     Screen('TextSize', window, 16);
     if p.testCondition == 1 %perception
         welcomeText = ['Hello' '\n' ...
-            'In this session you will be asked to complete a visual memory experiment.' '\n'...
+            'In this session you will be asked to complete a run of a visual memory experiment.' '\n'...
             'On each trial, you will see a center grating presented at a random location in the periphery.' '\n'...
             'On some trials, this center grating will be accompanied by a surround grating.' '\n'...
-            'At the end of the trial, a probe grating will appear in which you will reconstruct the center target grating you saw.' '\n'...
-            'Rotate the powermate to manipulate the location of the probe, and click the powermate to report your answer once you feel it matches the target grating location.' '\n'...
-            'Rotating the powermate again will now manipulate the contrast of the probe. Similarly, click the powermate to report your answer once you feel it matches the target grating contrast.''\n'...
+            'At the end of the trial, a probe grating will appear; you will then be asked to manipulate this probe to reconstruct the center target grating you saw.' '\n'...
+            'Rotate the powermate to manipulate the location of the probe, and click the powermate to report your location estimate once you feel it matches the target grating location.' '\n'...
+            'Rotating the powermate again will now manipulate the contrast of the probe. Similarly, click the powermate to report your contrast estimate once you feel it matches the target grating contrast.''\n'...
+            'Remember to keep your eyes at fixation throughout the entirety of the run!' '\n'...
+            'Additionally, breaks will be provided throughout the run.' '\n'...
             'Click the powermate to start experiment.'];
     elseif p.testCondition == 2 % WM
         welcomeText = ['Hello' '\n' ...
-            'In this session you will be asked to complete a visual memory experiment.' '\n'...
+            'In this session you will be asked to complete a run of a visual memory experiment.' '\n'...
             'On each trial, you will see a center grating presented at a random location in the periphery.' '\n'...
             'On some trials, a surround grating will appear after the target center grating.' '\n'...
-            'At the end of the trial, a probe grating will appear in which you will reconstruct the center grating you saw.' '\n'...
-            'Rotate the powermate to manipulate the location of the probe, and click the powermate to report your answer once you feel it matches the target grating location.' '\n'...
-            'Rotating the powermate again will now manipulate the contrast of the probe. Similarly, click the powermate to report your answer once you feel it matches the target grating contrast.''\n'...
+            'At the end of the trial, a probe grating will appear; you will then be asked to manipulate this probe to reconstruct the center target grating you saw.' '\n'...
+            'Rotate the powermate to manipulate the location of the probe, and click the powermate to report your location estimate once you feel it matches the target grating location.' '\n'...
+            'Rotating the powermate again will now manipulate the contrast of the probe. Similarly, click the powermate to report your contrast estimate once you feel it matches the target grating contrast.''\n'...
+            'Remember to keep your eyes at fixation throughout the entirety of the run!' '\n'...
+            'Additionally, breaks will be provided throughout the run.' '\n'...
             'Click the powermate to start experiment.'];
     end
     DrawFormattedText(window, welcomeText, 'center', 'center', 255);
     Screen('Flip', window);
     % Check powermate works by forcing a click
     while 1
-         [pmbutton, ~] = PsychPowerMate('Get', powermate);
-         if pmbutton == 1
+        [pmbutton, ~] = PsychPowerMate('Get', powermate);
+        if pmbutton == 1
             break;
-         end
+        end
     end
-elseif ~test_env && sum(strcmp(p.experiment,{'test' 'test_HC'})) == 0 && shuffled == 0 
+elseif ~test_env && sum(strcmp(p.experiment,{'test' 'test_HC'})) == 0 && shuffled == 0
     error('You are trying to run the main version of the exp., but the trials are not shuffled.')
+elseif test_env && sum(strcmp(p.experiment,{'test' 'test_HC'})) == 0
+    % Welcome Screen
+    Screen('TextStyle', window, 1);
+    Screen('TextSize', window, 16);
+    if p.testCondition == 1 %perception
+        welcomeText = ['!!TESTING ENVIRONMENT!!' '\n' ...
+            'Stimulus presentation will pause at each event until the mouse has been clicked!' '\n' ...
+            'In this session you will be asked to complete a run of a visual memory experiment.' '\n'...
+            'On each trial, you will see a center grating presented at a random location in the periphery.' '\n'...
+            'On some trials, this center grating will be accompanied by a surround grating.' '\n'...
+            'At the end of the trial, a probe grating will appear; you will then be asked to manipulate this probe to reconstruct the center target grating you saw.' '\n'...
+            'Rotate the powermate to manipulate the location of the probe, and click the powermate to report your location estimate once you feel it matches the target grating location.' '\n'...
+            'Rotating the powermate again will now manipulate the contrast of the probe. Similarly, click the powermate to report your contrast estimate once you feel it matches the target grating contrast.''\n'...
+            'Remember to keep your eyes at fixation throughout the entirety of the run!' '\n'...
+            'Additionally, breaks will be provided throughout the run.' '\n'...
+            'Click the mouse to start experiment.'];
+    elseif p.testCondition == 2 % WM
+        welcomeText = ['!!TESTING ENVIRONMENT!!' '\n' ...
+            'Stimulus presentation will pause at each event until the mouse has been clicked!' '\n' ...
+            'In this session you will be asked to complete a run of a visual memory experiment.' '\n'...
+            'On each trial, you will see a center grating presented at a random location in the periphery.' '\n'...
+            'On some trials, a surround grating will appear after the target center grating.' '\n'...
+            'At the end of the trial, a probe grating will appear; you will then be asked to manipulate this probe to reconstruct the center target grating you saw.' '\n'...
+            'Rotate the powermate to manipulate the location of the probe, and click the powermate to report your location estimate once you feel it matches the target grating location.' '\n'...
+            'Rotating the powermate again will now manipulate the contrast of the probe. Similarly, click the powermate to report your contrast estimate once you feel it matches the target grating contrast.''\n'...
+            'Remember to keep your eyes at fixation throughout the entirety of the run!' '\n'...
+            'Additionally, breaks will be provided throughout the run.' '\n'...
+            'Click the mouse to start experiment.'];
+    end
+    DrawFormattedText(window, welcomeText, 'center', 'center', 255);
+    Screen('Flip', window);
+    GetClicks;
 end
 
 % Starting Screen
@@ -432,31 +482,31 @@ WaitSecs(t.startTime);
 
 nSet = 1; % #sets completed tracker
 for nTrial = 1:size(p.trialEvents,1)
-
+    
     %--------------------%
-    %   Trial Settings   %
-    %--------------------% 
+    %           Trial Settings         %
+    %--------------------%
     p.currentDegreeLocation = round(p.trialEvents(nTrial,2));
     p.centerContrast = p.trialEvents(nTrial,3);
     targetXY = round([CenterX+p.eccentricity*cos(p.currentDegreeLocation*(pi/180))' CenterY-p.eccentricity*sin(p.currentDegreeLocation*(pi/180))']);
-
+    
     %--------------------%
-    %     Stimulus 1     %
+    %           Stimulus 1            %
     %--------------------%
     %If perception condition, draw surround annulus with center grating
-    if p.trialEvents(nTrial,1) == 1 
+    if p.trialEvents(nTrial,1) == 1
         surroundTexture = (surroundGrating*p.surroundContrast)*colors.grey + colors.grey;
         surroundStimulus = Screen('MakeTexture', window, surroundTexture);
         Screen('DrawTexture', window, surroundStimulus, [], CenterRectOnPoint([0 0 size(surroundTexture,1) size(surroundTexture,1)], CenterX, CenterY), p.stimorientation);
     else
         Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
-    end 
+    end
     % Draw center stimulus
     centerTexture = (centerGrating*p.centerContrast)*colors.grey + colors.grey;
     centerTexture(:,:,2) = centerTransparencyMask;
     centerStimulus = Screen('MakeTexture', window, centerTexture);
     Screen('DrawTexture', window, centerStimulus, [], ...
-    CenterRectOnPoint([0 0 size(centerTexture,1) size(centerTexture,1)], targetXY(1), targetXY(2)), p.stimorientation); 
+        CenterRectOnPoint([0 0 size(centerTexture,1) size(centerTexture,1)], targetXY(1), targetXY(2)), p.stimorientation);
     % Draw fixation
     Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation])
     Screen('FillOval', window,colors.green,[CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation]);
@@ -466,25 +516,25 @@ for nTrial = 1:size(p.trialEvents,1)
         GetClicks;
     end
     %--------------------%
-    %       Mask 1       %
-    %--------------------% 
+    %               Mask 1              %
+    %--------------------%
     indx = Shuffle(1:round(t.flickerTime/t.flicker));
     StartMask = GetSecs;
     for a = indx
-     if GetSecs > StartMask + t.flickerTime - t.flicker
-        break
-     end 
-     Screen('DrawTexture', window, Mask(a,:), [],CenterRectOnPoint([0 0 size(surroundGrating,1) size(surroundGrating,1)], CenterX, CenterY));
-     Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation]);
-     Screen('FillOval', window, colors.green, [CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation]);
-     Screen('Flip', window);
-     WaitSecs(t.flicker); 
+        if GetSecs > StartMask + t.flickerTime - t.flicker
+            break
+        end
+        Screen('DrawTexture', window, Mask(a,:), [],CenterRectOnPoint([0 0 size(surroundGrating,1) size(surroundGrating,1)], CenterX, CenterY));
+        Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation]);
+        Screen('FillOval', window, colors.green, [CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation]);
+        Screen('Flip', window);
+        WaitSecs(t.flicker);
     end
-
+    
     %--------------------%
-    %     Stimulus 2     %
+    %           Stimulus 2             %
     %--------------------%
-
+    
     Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
     % If memory condition, display surround stimulus alone
     if p.trialEvents(nTrial,1) == 2
@@ -505,27 +555,27 @@ for nTrial = 1:size(p.trialEvents,1)
         Screen('Flip',window);
         WaitSecs(2*t.retention);
     end
-
+    
     %--------------------%
-    %       Mask 2       %
-    %--------------------% 
+    %               Mask 2              %
+    %--------------------%
     indx = Shuffle(1:round(t.flickerTime/t.flicker));
     StartMask = GetSecs;
     for a = indx
-     if GetSecs > StartMask + t.flickerTime - t.flicker
-        break
-     end 
-     Screen('DrawTexture', window, Mask(a,:), [],CenterRectOnPoint([0 0 size(surroundGrating,1) size(surroundGrating,1)], CenterX, CenterY));
-     Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation]);
-     Screen('FillOval', window, colors.green, [CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation]);
-     Screen('Flip', window);
-     WaitSecs(t.flicker); 
+        if GetSecs > StartMask + t.flickerTime - t.flicker
+            break
+        end
+        Screen('DrawTexture', window, Mask(a,:), [],CenterRectOnPoint([0 0 size(surroundGrating,1) size(surroundGrating,1)], CenterX, CenterY));
+        Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation]);
+        Screen('FillOval', window, colors.green, [CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation]);
+        Screen('Flip', window);
+        WaitSecs(t.flicker);
     end
-
+    
     %--------------------%
-    %       Probe        %
+    %                   Probe             %
     %--------------------%
-
+    
     % Check if ESCAPE has been pressed
     [keyIsDown, keyCode] = PsychHID('KbQueueCheck', deviceNumber); %check response
     key = find(keyCode);
@@ -536,14 +586,14 @@ for nTrial = 1:size(p.trialEvents,1)
         FlushEvents('keyDown', deviceNumber);
         error('User exited program.');
     end
-
+    
     %Show probe at random location with random contrast
     Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
-
+    
     initialAngle = p.trialEvents(nTrial,4);
     ProbeXY = round([CenterX + p.eccentricity*(cos(initialAngle*(pi/180)))' CenterY - p.eccentricity*(sin(initialAngle*(pi/180)))']);
     intial_contrast = p.trialEvents(nTrial,5); % random start contrast on each trial
-
+    
     Probe = Screen('MakeTexture', window, squeeze(centerGrating)* (intial_contrast *colors.grey) + colors.grey);
     Screen('DrawTexture', window, Probe, [], CenterRectOnPoint([0 0 size(centerTexture,1) size(centerTexture,1)], ProbeXY(1), ProbeXY(2)), p.stimorientation);
     Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation]);
@@ -555,123 +605,122 @@ for nTrial = 1:size(p.trialEvents,1)
         GetClicks;
     end
     if ~test_env
-    % Allow for dial rotation for location update
-    [~, startangle] = PsychPowerMate('Get',powermate);
-
-    while 1 %start inf loop
-     % Query PowerMate button state and rotation angle in "clicks"
-     [pmbutton, angle] = PsychPowerMate('Get', powermate);
-     % 1st button is the "or" of the 1st mouse button and the actual PowerMate button
-     if startangle ~= angle
-         % Convert turn of dial first to degrees and then to contrast:
-         Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
-
-         angles = ((startangle-angle)*3.8298);
-         changeposition = (angles/(2*pi));
-         initialAngle = initialAngle + changeposition; % update the location relative to last dial position
-         ProbeXY = round([CenterX + p.eccentricity*(cos(initialAngle*(pi/180)))' CenterY - p.eccentricity*(sin(initialAngle*(pi/180)))']);
-
-         Target = Screen('MakeTexture', window, squeeze(centerGrating)* (intial_contrast*colors.grey) + colors.grey);
-         Screen('DrawTexture', window, Target, [], CenterRectOnPoint([0 0 size(centerTexture,1) size(centerTexture,1)], ProbeXY(1), ProbeXY(2)), p.stimorientation)
-         Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation]);
-         Screen('FillOval', window, colors.green, [CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation])
-         Screen('Flip', window);
-
-         startangle = angle;
-     end
-     if pmbutton == 1;
-         locationTime = GetSecs;
-        % % % make sure angle stays in 0-360 range
-         correctedAngle = mod(initialAngle, 360);
-
-         data.EstimatedLocation(nTrial) = correctedAngle;
-        % 
-        % % %make sure difference is in the 180 range
-         difference = abs(p.trialEvents(nTrial,2) - data.EstimatedLocation(nTrial));
-
-         if difference > 180
-            difference = abs(difference - 360);
-         end
-
-         data.DifferenceLocation(nTrial) = difference;
-
-         data.ResponseTime_location(nTrial) = (locationTime - startResponseTime);
-         pmbutton = 0;
-         break
-     end
-    end
-    % 
-    % % PowerMate is sampled at 10msec intervals, therefore have a short
-    % % break to make sure it doesn't skip the contrast task
-    WaitSecs(1);
-    % 
-    % %Button press for contrast
-    [~, contrastangle] = PsychPowerMate('Get', powermate);
-    while 1 %start inf loop
-    % % Query PowerMate button state and rotation angle in "clicks"
-    [pmbutton_contrast, angle2] = PsychPowerMate('Get', powermate);
-    % % 1st button is the "or" of the 1st mouse button and the actual PowerMate button
-    if contrastangle ~= angle2
-    % 
-    % % Convert turn of dial first to degrees and then to contrast:
-     angles = (angle * 3.8298)/360;
-     angles = ((contrastangle-angle2)*3.8298);
-     changecontrast = angles/360;
-     intial_contrast = intial_contrast - changecontrast; % update the contrast relative to last dial position
-    % % Make sure we stay in range
-    % 
-     if intial_contrast > 1
-         intial_contrast = 1;
-     elseif intial_contrast < 0
-         intial_contrast = 0.001;
-     end
-     Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
-
-     Target = Screen('MakeTexture', window, squeeze(centerGrating)* (intial_contrast*colors.grey) + colors.grey);
-     Screen('DrawTexture', window, Target, [], CenterRectOnPoint([0 0 size(centerTexture,1) size(centerTexture,1)], ProbeXY(1), ProbeXY(2)), p.stimorientation)
-     Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation]);
-     Screen('FillOval', window, colors.green, [CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation])
-     Screen('Flip', window);
-
-     contrastangle = angle2;
-    end
-    if pmbutton_contrast == 1
-        contrastTime = GetSecs;
-        data.EstimatedContrast(nTrial) = intial_contrast;
-        data.DifferenceContrast(nTrial) = p.trialEvents(nTrial,3) - data.EstimatedContrast(nTrial);
-        data.ResponseTime_Contrast(nTrial) = (contrastTime - startResponseTime);
-        pmbutton_contrast = 0;
-        break
-    end 
-    end
-    data.responseTime(nTrial) = (GetSecs-startResponseTime);
-    %--------------------%
-    %       Break        %
-    %--------------------% 
-    if mod(nTrial,p.numTrialsPerSet) == 0 && nTrial == p.numTrialsPerSet*nSet && nSet < p.numSets
-    rest = GetSecs; 
-    Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
-    Screen('TextStyle', window, 1);
-    Screen('TextSize', window, 16);
-    breakText = ['You make take a short break now.\n Or press the powermate to continue.\n'];
-    DrawFormattedText(window, breakText, 'center', 'center', colors.white);
-    Screen('Flip', window);
-    restText = ['You can take a short break now, ' '' '\n' ...
-    'or press the dial to continue' '\n' '\n' ...
-    num2str(nSet) '/' num2str(p.numSets) ' completed.' ];
-    DrawFormattedText(window, restText, 'center', 'center', colors.white);
-    Screen('Flip', window);
-    pmbuttonbreak = 0;
-    WaitSecs(1 );
-    while 1
-    [pmbuttonbreak, a] = PsychPowerMate('Get', powermate);
-     if pmbuttonbreak == 1
-        break;
-     end
-    end
-    t.restTime(nSet) = (GetSecs-rest)/60;
-    nSet = nSet + 1;
-    end
+        % Allow for dial rotation for location update
+        [~, startangle] = PsychPowerMate('Get',powermate);
+        while 1 %start inf loop
+            % Query PowerMate button state and rotation angle in "clicks"
+            [pmbutton, angle] = PsychPowerMate('Get', powermate);
+            % 1st button is the "or" of the 1st mouse button and the actual PowerMate button
+            if startangle ~= angle
+                % Convert turn of dial first to degrees and then to contrast:
+                Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
+                
+                angles = ((startangle-angle)*3.8298);
+                changeposition = (angles/(2*pi));
+                initialAngle = initialAngle + changeposition; % update the location relative to last dial position
+                ProbeXY = round([CenterX + p.eccentricity*(cos(initialAngle*(pi/180)))' CenterY - p.eccentricity*(sin(initialAngle*(pi/180)))']);
+                
+                Target = Screen('MakeTexture', window, squeeze(centerGrating)* (intial_contrast*colors.grey) + colors.grey);
+                Screen('DrawTexture', window, Target, [], CenterRectOnPoint([0 0 size(centerTexture,1) size(centerTexture,1)], ProbeXY(1), ProbeXY(2)), p.stimorientation)
+                Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation]);
+                Screen('FillOval', window, colors.green, [CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation])
+                Screen('Flip', window);
+                
+                startangle = angle;
+            end
+            if pmbutton == 1;
+                locationTime = GetSecs;
+                % % % make sure angle stays in 0-360 range
+                correctedAngle = mod(initialAngle, 360);
+                
+                data.EstimatedLocation(nTrial) = correctedAngle;
+                %
+                % % %make sure difference is in the 180 range
+                difference = abs(p.trialEvents(nTrial,2) - data.EstimatedLocation(nTrial));
+                
+                if difference > 180
+                    difference = abs(difference - 360);
+                end
+                
+                data.DifferenceLocation(nTrial) = difference;
+                
+                data.ResponseTime_location(nTrial) = (locationTime - startResponseTime);
+                pmbutton = 0;
+                break
+            end
+        end
+        
+        % % PowerMate is sampled at 10msec intervals, therefore have a short
+        % % break to make sure it doesn't skip the contrast task
+        WaitSecs(1);
+        
+        % Allow for dial rotation for contrast update
+        [~, contrastangle] = PsychPowerMate('Get', powermate);
+        while 1 %start inf loop
+            % % Query PowerMate button state and rotation angle in "clicks"
+            [pmbutton_contrast, angle2] = PsychPowerMate('Get', powermate);
+            % % 1st button is the "or" of the 1st mouse button and the actual PowerMate button
+            if contrastangle ~= angle2
+                %
+                % % Convert turn of dial first to degrees and then to contrast:
+                angles = (angle * 3.8298)/360;
+                angles = ((contrastangle-angle2)*3.8298);
+                changecontrast = angles/360;
+                intial_contrast = intial_contrast - changecontrast; % update the contrast relative to last dial position
+                % % Make sure we stay in range
+                %
+                if intial_contrast > 1
+                    intial_contrast = 1;
+                elseif intial_contrast < 0
+                    intial_contrast = 0.001;
+                end
+                Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
+                
+                Target = Screen('MakeTexture', window, squeeze(centerGrating)* (intial_contrast*colors.grey) + colors.grey);
+                Screen('DrawTexture', window, Target, [], CenterRectOnPoint([0 0 size(centerTexture,1) size(centerTexture,1)], ProbeXY(1), ProbeXY(2)), p.stimorientation)
+                Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation]);
+                Screen('FillOval', window, colors.green, [CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation])
+                Screen('Flip', window);
+                
+                contrastangle = angle2;
+            end
+            if pmbutton_contrast == 1
+                contrastTime = GetSecs;
+                data.EstimatedContrast(nTrial) = intial_contrast;
+                data.DifferenceContrast(nTrial) = p.trialEvents(nTrial,3) - data.EstimatedContrast(nTrial);
+                data.ResponseTime_Contrast(nTrial) = (contrastTime - startResponseTime);
+                pmbutton_contrast = 0;
+                break
+            end
+        end
+        data.responseTime(nTrial) = (GetSecs-startResponseTime);
+        %--------------------%
+        %               Break                %
+        %--------------------%
+        if mod(nTrial,p.numTrialsPerSet) == 0 && nTrial == p.numTrialsPerSet*nSet && nSet < p.numSets
+            rest = GetSecs;
+            Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
+            Screen('TextStyle', window, 1);
+            Screen('TextSize', window, 16);
+            breakText = ['You make take a short break now.\n Or press the powermate to continue.\n'];
+            DrawFormattedText(window, breakText, 'center', 'center', colors.white);
+            Screen('Flip', window);
+            restText = ['You can take a short break now, ' '' '\n' ...
+                'or press the dial to continue' '\n' '\n' ...
+                num2str(nSet) '/' num2str(p.numSets) ' completed.' ];
+            DrawFormattedText(window, restText, 'center', 'center', colors.white);
+            Screen('Flip', window);
+            pmbuttonbreak = 0;
+            WaitSecs(1 );
+            while 1
+                [pmbuttonbreak, a] = PsychPowerMate('Get', powermate);
+                if pmbuttonbreak == 1
+                    break;
+                end
+            end
+            t.restTime(nSet) = (GetSecs-rest)/60;
+            nSet = nSet + 1;
+        end
     end
     if nSet <= p.numSets
         % ITI
@@ -686,7 +735,7 @@ end
 %Draw some more text to the screen outside of the loop:
 Screen(window,'TextSize',30);
 byeByeText = ['Great work! You have completed this run.' '\n' '\n' ...
- 'Please let the experimenter know you have finished.'];
+    'Please let the experimenter know you have finished.'];
 Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
 DrawFormattedText(window, byeByeText, 'center', 'center', colors.black);
 Screen('Flip', window);
