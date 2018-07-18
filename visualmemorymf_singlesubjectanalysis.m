@@ -10,8 +10,8 @@ clear;
 close all;
 expDir = '/Users/juliaschwartz/Desktop/visualmemorymf';
 dataDir = 'data_master';
-allP.experiment = 'exp';
-allP.subject = 'JP';
+allP.experiment = 'test';
+allP.subject = 'JS';
 cd(dataDir)
 
 %Load run data
@@ -366,20 +366,20 @@ subject.avgDiffLoc = nan(nTrials,theData(1).p.numContrasts,3);
             % Location Difference overview plot %
             subplot(2,p.numContrasts+1,p.numContrasts+2)
             plot(workingmem.orgData(:,2));
-            title('PERCEPTION')
+            title('WORKING MEMORY')
             hold on
             plot(1:length(workingmem.Data),repelem(subject.avgDiffLoc(nRun,:,2),20),'Linewidth',2);
             legend('Estimated Contrast','Actual Contrast','Avg. Estimated Contrast');
             hold off
             
-            % Histogram Plots for each Contrast %
+            % Histogram Plots of Location Difference for each Contrast %
             for i = 1:p.numContrasts
                 subplot(2,p.numContrasts+1,p.numContrasts+2+i)
-                hist(workingmem.contData(:,4,i))
+                hist(workingmem.contData(:,4,i),10)
                 xlim([0 1])
                 ylim([0 8])
                 hold on
-                line([subject.avgDiffLoc(nRun,i,2) subject.avgDiffLoc(nRun,i,2)],ylim,'Linewidth',1.75,'Color','g');
+                line([subject.avgDiffLoc(nRun,i,2) subject.avgDiffLoc(nRun,i,2)],ylim,'Linewidth',1.75,'Color','g')
                 hold off
                 title(sprintf('Histogram for %.2f Trials',workingmem.contTE(1,3,i)))
                 legend('Est. Contrast Bins','Actual Contrast','Avg. Est Contrast')
@@ -429,8 +429,18 @@ subject.avgDiffLoc = nan(nTrials,theData(1).p.numContrasts,3);
         ylabel('Perceived Contrast')
         xticks([0.1 0.8]); yticks([0.1 0.8]);
         xticklabels({'10','80'});yticklabels({'10','80'});
-        legend('Baseline','Perception','Working Memory','Log Scale')
+         % Legend incorporating nans
+        if sum(isnan(mean(subject.avgEstContrast(:,:,1),1))) ~= 0 && sum(isnan(mean(subject.avgEstContrast(:,:,2),1))) ~= 0
+            legend('Baseline','Log Scale')
+        elseif sum(isnan(mean(subject.avgEstContrast(:,:,1),1))) ~= 0 && sum(isnan(mean(subject.avgEstContrast(:,:,2),1))) == 0
+            legend('Baseline','Working Memory','Log Scale')
+        elseif sum(isnan(mean(subject.avgEstContrast(:,:,1),1))) == 0 && sum(isnan(mean(subject.avgEstContrast(:,:,2),1))) ~= 0
+            legend('Baseline','Perception','Log Scale')
+        else
+            legend('Baseline','Perception','Working Memory','Log Scale')
+        end
         hold off 
+        
         
         % avg Contrast Difference
         figure(nTrials*2 + 2)
@@ -447,7 +457,16 @@ subject.avgDiffLoc = nan(nTrials,theData(1).p.numContrasts,3);
         end
         xlabel('Center Contrast')
         ylabel('Difference in Contrast')
-        legend('Baseline','Perception','Working Memory')
+         % Legend incorporating nans
+        if sum(isnan(mean(subject.avgDiffContrast(:,:,1),1))) ~= 0 && sum(isnan(mean(subject.avgDiffContrast(:,:,2),1))) ~= 0
+            legend('Baseline')
+        elseif sum(isnan(mean(subject.avgDiffContrast(:,:,1),1))) ~= 0 && sum(isnan(mean(subject.avgDiffContrast(:,:,2),1))) == 0
+            legend('Baseline','Working Memory')
+        elseif sum(isnan(mean(subject.avgDiffContrast(:,:,1),1))) == 0 && sum(isnan(mean(subject.avgDiffContrast(:,:,2),1))) ~= 0
+            legend('Baseline','Perception')
+        else
+            legend('Baseline','Perception','Working Memory')
+        end
         hold off
 
         % avg Location Difference
@@ -466,7 +485,16 @@ subject.avgDiffLoc = nan(nTrials,theData(1).p.numContrasts,3);
         hold off
         xlabel('Center Contrast')
         ylabel('Difference in Location')
-        legend('Baseline','Perception','Working Memory')
+         % Legend incorporating nans
+        if sum(isnan(mean(subject.avgDiffLoc(:,:,1),1))) ~= 0 && sum(isnan(mean(subject.avgDiffLoc(:,:,2),1))) ~= 0
+            legend('Baseline')
+        elseif sum(isnan(mean(subject.avgDiffLoc(:,:,1),1))) ~= 0 && sum(isnan(mean(subject.avgDiffLoc(:,:,2),1))) == 0
+            legend('Baseline','Working Memory')
+        elseif sum(isnan(mean(subject.avgDiffLoc(:,:,1),1))) == 0 && sum(isnan(mean(subject.avgDiffLoc(:,:,2),1))) ~= 0
+            legend('Baseline','Perception')
+        else
+            legend('Baseline','Perception','Working Memory')
+        end
         hold off 
     end
     

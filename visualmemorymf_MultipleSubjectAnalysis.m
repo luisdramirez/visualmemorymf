@@ -46,6 +46,8 @@ for currfilenum = 1:numFiles
     end
 end
 [subjectsLong,~] = size(master_subjectData);
+p = theData(1).p;
+centerContrast = (10.^linspace(log10(p.minContrast),log10(p.maxContrast),p.numContrasts));
 
 %% ANALYSIS %%
 
@@ -82,28 +84,35 @@ master.avgDiffLocation(subjectsLong+1,:,:) = mean(master.avgDiffLocation,1);
 
 if plotVar ~= 0
     % Total Avg. Estimated Contrast
-    
-    %%%% THIS IS FROM SINGLE SUBJECT CHANGE TO MULT COMPATABILITY %%%%
         figure(1)
-        set(gcf, 'Name', sprintf('Perceived Contrast Versus Center Contrast'));
-        loglog(p.centerContrast,mean(master.avgContEstimation(:,:,3),1),'-o')
+        set(gcf, 'Name', sprintf('Perceived (Estimated) Contrast Versus Center Contrast'));
+        loglog(centerContrast,master.avgContEstimation(subjectsLong+1,:,3),'-o') %Baseline
         hold on
         if isnan(mean(subject.avgEstContrast(:,:,1),1)) == 0
-        loglog(p.centerContrast,mean(subject.avgEstContrast(:,:,1),1),'-o')
+        loglog(centerContrast,master.avgContEstimation(subjectsLong+1,:,1),'-o') %Perception
         end
         if isnan(mean(subject.avgEstContrast(:,:,2),1)) == 0
         hold on
-        loglog(p.centerContrast,mean(subject.avgEstContrast(:,:,2),1),'-o')
+        loglog(centerContrast,master.avgContEstimation(subjectsLong+1,:,2),'-o') %Working Memory
         end
         hold on 
-        loglog([0.1 0.8],[0.1 0.8],'k--')
+        loglog([0.1 0.8],[0.1 0.8],'k--') %log scale line
         xlabel('Center Contrast')
         ylabel('Perceived Contrast')
         xticks([0.1 0.8]); yticks([0.1 0.8]);
         xticklabels({'10','80'});yticklabels({'10','80'});
-        legend('Baseline','Perception','Working Memory','Log Scale')
+        % Legend incorporating nans
+        if sum(isnan(master.avgContEstimation(subjectsLong+1,:,1))) ~= 0 && sum(isnan(master.avgContEstimation(subjectsLong+1,:,2))) ~= 0
+            legend('Baseline','Log Scale') %perception and working memory are nans
+        elseif sum(isnan(master.avgContEstimation(subjectsLong+1,:,1))) ~= 0 && sum(isnan(master.avgContEstimation(subjectsLong+1,:,2))) == 0
+            legend('Baseline','Working Memory','Log Scale') % perception is nan
+        elseif sum(isnan(master.avgContEstimation(subjectsLong+1,:,1))) == 0 && sum(isnan(master.avgContEstimation(subjectsLong+1,:,2))) ~= 0
+            legend('Baseline','Perception','Log Scale') % working memory is nan
+        else
+            legend('Baseline','Perception','Working Memory','Log Scale')
+        end 
         hold off 
-
+end
 
 
 
