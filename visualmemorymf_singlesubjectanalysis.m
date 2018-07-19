@@ -11,7 +11,7 @@ close all;
 expDir = '/Users/juliaschwartz/Desktop/visualmemorymf';
 dataDir = 'data_master';
 allP.experiment = 'exp';
-allP.subject = 'JP';
+allP.subject = 'SL';
 cd(dataDir)
 
 %Load run data
@@ -69,7 +69,7 @@ subject.avgDiffLoc = nan(nTrials,theData(1).p.numContrasts,3);
         
 % Shortens the condition schedule to only go through trials already ran.
  if nTrials == 1
-     subjectCondSchedule = subjectCondSchedule(1);
+     subjectCondSchedule = allP{1,1}.trialSchedule(1); 
  elseif nTrials < 4
      subjectCondSchedule = subjectCondSchedule(1:nTrials);
  end

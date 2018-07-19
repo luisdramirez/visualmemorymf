@@ -63,6 +63,9 @@ master.avgDiffContrast = nan(length(visualmemory_subjectsRan),master_subjectData
 for subj = 1:subjectsLong
     currentSubject = master_subjectData{subj,2};%There shouldnt be any Nans here if all people have been run 4 times total. For testing purposes take out nans
     for contNum = 1:master_subjectData{1,1}.p.numContrasts
+        
+        subject = master_subjectData{subj,2};
+        
         master.avgContEstimation(subj,contNum,1) = subject.meanEstContPerception(contNum);
         master.avgContEstimation(subj,contNum,2) = subject.meanEstContWorkingMemory(contNum);
         master.avgContEstimation(subj,contNum,3) = subject.meanEstContBaseline(contNum);
@@ -76,12 +79,64 @@ for subj = 1:subjectsLong
         master.avgDiffLocation(subj,contNum,3) = subject.meanEstContBaseline(contNum);
     end
 end
+%cant take nans out because then the size of the 3D matrix changes
+    
 
 %Take mean down the column of each page of each field of "master" to find
 %averages over subjects. Then plot these as done in single analysis.
 %Final average over all subjects will be in the last row, subjectsLong+1
+for i = 1:subjectsLong
+    if isnan(master.avgContEstimation(i,:,1)) == 0
+        if exist('notNanPer','var') == 0
+            notNanPer = [i];
+        else
+            notNanPer = horzcat([notNanPer,i]);
+        end
+    end
+    if isnan(master.avgContEstimation(i,:,2)) == 0
+        if exist('notNanWM','var') == 0
+            notNanWM = [i];
+        else
+            notNanWM = horzcat([notNanWM,i]);
+        end
+    end
+    if isnan(master.avgContEstimation(i,:,3)) == 0
+        if exist('notNanBL','var') == 0
+            notNanBL = [i];
+        else
+            notNanBL = horzcat([notNanBL,i]);
+        end
+    end
+ end
+for i = 1:length(notNanPer)
+   if exist('perceptionmat','var') == 0
+        perceptionmat = master.avgContEstimation(notNanPer(i),:,1);
+    else
+    perceptionmat = vertcat(perceptionmat,master.avgContEstimation(notNanPer(i),:,1));
+    end
+end
+    master.avgContEstimation(subjectsLong+1,:,1) = mean(perceptionmat,1);
+for i = 1:length(notNanWM)
+    if exist('workingmemmat','var') == 0
+        workingmemmat = master.avgContEstimation(notNanWM(i),:,2);
+    else
+    workingmemmat = vertcat(workingmemmat,master.avgContEstimation(notNanWM(i),:,2));
+    end
+end
+    master.avgContEstimation(subjectsLong+1,:,2) = mean(workingmemmat,1);
+for i = 1:length(notNanBL)
+   if exist('baselinemat','var') == 0
+        baselinemat = master.avgContEstimation(notNanBL(i),:,3);
+    else
+    baselinemat = vertcat(baselinemat,master.avgContEstimation(notNanBL(i),:,3));
+    end
+end
+    master.avgContEstimation(subjectsLong+1,:,3) = mean(baselinemat,1);
 
-master.avgContEstimation(subjectsLong+1,:,:) = mean(master.avgContEstimation,1);
+
+
+
+
 master.avgDiffContrast(subjectsLong+1,:,:) = mean(master.avgDiffContrast,1);
 master.avgDiffLocation(subjectsLong+1,:,:) = mean(master.avgDiffLocation,1);
 
@@ -91,13 +146,9 @@ if plotVar ~= 0
         set(gcf, 'Name', sprintf('Perceived (Estimated) Contrast Versus Center Contrast'));
         loglog(centerContrast,master.avgContEstimation(subjectsLong+1,:,3),'-o') %Baseline
         hold on
-        if isnan(mean(subject.avgEstContrast(:,:,1),1)) == 0
         loglog(centerContrast,master.avgContEstimation(subjectsLong+1,:,1),'-o') %Perception
-        end
-        if isnan(mean(subject.avgEstContrast(:,:,2),1)) == 0
         hold on
         loglog(centerContrast,master.avgContEstimation(subjectsLong+1,:,2),'-o') %Working Memory
-        end
         hold on 
         loglog([0.1 0.8],[0.1 0.8],'k--') %log scale line
         xlabel('Center Contrast')
@@ -121,13 +172,13 @@ if plotVar ~= 0
         set(gcf,'Name',sprintf('Histograms of Estimated Contrast at Each Contrast/Condition'));
         for i = 1:theData(1).p.numContrasts
             subplot(3,theData(1).p.numContrasts,i)
-            hist(master.avgContEstimation(1:(end-1),i,1)) %perception
+            hist(perceptionmat(:,i)) %perception
             xlim([0 1])
             subplot(3,theData(1).p.numContrasts,i+5)
-            hist(master.avgContEstimation(1:(end-1),i,2)) %Working mem
+            hist(workingmemmat(:,i)) %Working mem
             xlim([0 1 ])
             subplot(3,theData(1).p.numContrasts,i+10)
-            hist(master.avgContEstimation(1:(end-1),i,3)) %baseline
+            hist(baselinemat(:,i)) %baseline
             xlim([0 1])
         end               
 end
