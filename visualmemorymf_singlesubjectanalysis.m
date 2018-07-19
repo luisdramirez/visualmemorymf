@@ -10,8 +10,8 @@ clear;
 close all;
 expDir = '/Users/juliaschwartz/Desktop/visualmemorymf';
 dataDir = 'data_master';
-allP.experiment = 'test';
-allP.subject = 'JS';
+allP.experiment = 'exp';
+allP.subject = 'JP';
 cd(dataDir)
 
 %Load run data
@@ -291,7 +291,7 @@ subject.avgDiffLoc = nan(nTrials,theData(1).p.numContrasts,3);
             hold on
             plot(workingmem.orgTE(:,3),'Linewidth',2);
             ylim([0 1])
-            title('PERCEPTION')
+            title('WORKING MEMORY')
             hold on
             plot(1:length(workingmem.Data),repelem(subject.avgEstContrast(nRun,:,2),20),'Linewidth',2);
             legend('Estimated Contrast','Actual Contrast','Avg. Estimated Contrast');

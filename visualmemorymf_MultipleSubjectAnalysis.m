@@ -18,10 +18,10 @@ cd(dataDir)
 files = struct2cell(dir(dataDir))';
 
 [numFiles, ~] = size(files);
-possibleFileNames = cell(1:length(visualmemory_subjectsRan));
-for i = length(visualmemory_subjectsRan)
+possibleFileNames = cell(length(visualmemory_subjectsRan),1);
+for i = 1:length(visualmemory_subjectsRan)
     filename = strcat('data_visualmemorymf_exp_',visualmemory_subjectsRan{i},'.mat');
-    possibleFileNames{i} = filename;
+    possibleFileNames{i,1} = filename;
 end
 
 plotVar = 1; %if equal to 0, doesnt plot
@@ -29,19 +29,22 @@ printVar = 1; %if equal to 0, doesnt print
 
 %preallocate a cell that will load theData structures from each participant
 %into one cell
-master_subjectData = cell(1:length(possibleFileNames),2); %files by 2 columns
+master_subjectData = cell(length(possibleFileNames),2); %files by 2 columns
 
 % if any of files.name = possibleFilesNames then load the file and put
 % into a cell array
 for currfilenum = 1:numFiles
-    for i = length(possibleFileNames)
-        dataFile = files{currfilenum,1};
+    dataFile = files{currfilenum,1};
+    for i = 1:length(possibleFileNames)
         if strcmp(dataFile,possibleFileNames{i,1}) == 1
             load(dataFile)
             %index into the subjectsRan and compare to p.subject to find
             %out who is who if needed
             master_subjectData{i,1} = theData;
             master_subjectData{i,2} = subject;
+            fprintf('\n%s and %s are compatible. Loading',dataFile, possibleFileNames{i,1})
+        else
+            fprintf('\n%s and %s not compatible',dataFile, possibleFileNames{i,1})
         end
     end
 end
@@ -112,10 +115,20 @@ if plotVar ~= 0
             legend('Baseline','Perception','Working Memory','Log Scale')
         end 
         hold off 
+        
+    % Histogram Plotting
+        figure(2)
+        set(gcf,'Name',sprintf('Histograms of Estimated Contrast at Each Contrast/Condition'));
+        for i = 1:theData(1).p.numContrasts
+            subplot(3,theData(1).p.numContrasts,i)
+            hist(master.avgContEstimation(1:(end-1),i,1)) %perception
+            xlim([0 1])
+            subplot(3,theData(1).p.numContrasts,i+5)
+            hist(master.avgContEstimation(1:(end-1),i,2)) %Working mem
+            xlim([0 1 ])
+            subplot(3,theData(1).p.numContrasts,i+10)
+            hist(master.avgContEstimation(1:(end-1),i,3)) %baseline
+            xlim([0 1])
+        end               
 end
-
-
-
-   
-    
-
+ 
