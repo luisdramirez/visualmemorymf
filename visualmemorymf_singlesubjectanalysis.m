@@ -8,23 +8,23 @@
 % Preliminary data loading and setup %
 clear;
 close all;
-expDir = '/Users/juliaschwartz/Desktop/visualmemorymf';
+expDir = pwd;
 dataDir = 'data_master';
 allP.experiment = 'exp';
-allP.subject = 'SL';
+allP.subject = 'JS';
 cd(dataDir)
 
 %Load run data
 if exist(['data_visualmemorymf_' allP.experiment '_' allP.subject '.mat'],'file') ~= 0
     load(['data_visualmemorymf_' allP.experiment '_' allP.subject '.mat']); % Loads HC, test, and Regular trials
-    cd(expDir)
     load('visualmemory_subjectsRan'); load('visualmemory_condition_order');
+    visualmemory_condition_order = visualmemory_condition_order_real;
     runNumbers = 1:length(theData);
     [fields, nTrials] = size(theData);
 else
     error('data file does not exist')
 end
-
+cd(expDir)
 %Plotting and Printing Settings
 plotVar = 1; %Set equal to 1 to display plots, equal to 0 to not display plots.
 printVar = 1; %Set equal to 0 to not print information, equal to 1 to print information.

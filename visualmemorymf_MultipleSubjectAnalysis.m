@@ -10,7 +10,7 @@ clear;
 close all;
 expDir = '/Users/juliaschwartz/Desktop/visualmemorymf';
 dataDir = '/Users/juliaschwartz/Desktop/visualmemorymf/data_master';
-cd(expDir)
+cd(dataDir)
 load('visualmemory_condition_order')
 load('visualmemory_subjectsRan')  
 
@@ -55,14 +55,14 @@ centerContrast = (10.^linspace(log10(p.minContrast),log10(p.maxContrast),p.numCo
 %% ANALYSIS %%
 
 % Preallocate matrices for subject data %
-master.avgContEstimation = nan(length(visualmemory_subjectsRan),master_subjectData{1,1}.p.numContrasts,3);
-master.avgDiffLocation = nan(length(visualmemory_subjectsRan),master_subjectData{1,1}.p.numContrasts,3);
-master.avgDiffContrast = nan(length(visualmemory_subjectsRan),master_subjectData{1,1}.p.numContrasts,3);
+master.avgContEstimation = nan(length(visualmemory_subjectsRan),master_subjectData{1,1}(1).p.numContrasts,3);
+master.avgDiffLocation = nan(length(visualmemory_subjectsRan),master_subjectData{1,1}(1).p.numContrasts,3);
+master.avgDiffContrast = nan(length(visualmemory_subjectsRan),master_subjectData{1,1}(1).p.numContrasts,3);
 
 % Loop through the subject data and add to matrices
 for subj = 1:subjectsLong
     currentSubject = master_subjectData{subj,2};%There shouldnt be any Nans here if all people have been run 4 times total. For testing purposes take out nans
-    for contNum = 1:master_subjectData{1,1}.p.numContrasts
+    for contNum = 1:master_subjectData{1,1}(1).p.numContrasts
         
         subject = master_subjectData{subj,2};
         
@@ -88,21 +88,21 @@ end
 for i = 1:subjectsLong
     if isnan(master.avgContEstimation(i,:,1)) == 0
         if exist('notNanPer','var') == 0
-            notNanPer = [i];
+            notNanPer = (i);
         else
             notNanPer = horzcat([notNanPer,i]);
         end
     end
     if isnan(master.avgContEstimation(i,:,2)) == 0
         if exist('notNanWM','var') == 0
-            notNanWM = [i];
+            notNanWM = (i);
         else
             notNanWM = horzcat([notNanWM,i]);
         end
     end
     if isnan(master.avgContEstimation(i,:,3)) == 0
         if exist('notNanBL','var') == 0
-            notNanBL = [i];
+            notNanBL = (i);
         else
             notNanBL = horzcat([notNanBL,i]);
         end
@@ -166,20 +166,42 @@ if plotVar ~= 0
             legend('Baseline','Perception','Working Memory','Log Scale')
         end 
         hold off 
-        
+        [howmanypercep,~] = size(perceptionmat);
+        [howmanywm,~] = size(workingmemmat);
+        [howmanybl,~] = size(baselinemat);
     % Histogram Plotting
         figure(2)
         set(gcf,'Name',sprintf('Histograms of Estimated Contrast at Each Contrast/Condition'));
         for i = 1:theData(1).p.numContrasts
             subplot(3,theData(1).p.numContrasts,i)
-            hist(perceptionmat(:,i)) %perception
+            hist(perceptionmat(:,i),howmanypercep) %perception
+            hold on
+            line([master.avgContEstimation(subjectsLong+1,i,1) master.avgContEstimation(subjectsLong+1,i,1)],ylim,'Linewidth',1.75,'Color','g');
+            ylabel('PERCEPTION')
+            xlabel('Contrast Level')
             xlim([0 1])
+            hold off
             subplot(3,theData(1).p.numContrasts,i+5)
-            hist(workingmemmat(:,i)) %Working mem
+            hist(workingmemmat(:,i),howmanywm) %Working mem
+            hold on
+            line([master.avgContEstimation(subjectsLong+1,i,2) master.avgContEstimation(subjectsLong+1,i,2)],ylim,'Linewidth',1.75,'Color','g');
+            hold off
+            ylabel('WORKING MEMORY')
+            xlabel('Contrast Level')
             xlim([0 1 ])
             subplot(3,theData(1).p.numContrasts,i+10)
-            hist(baselinemat(:,i)) %baseline
+            hist(baselinemat(:,i),howmanybl) %baseline
+            hold on
+            line([master.avgContEstimation(subjectsLong+1,i,3) master.avgContEstimation(subjectsLong+1,i,3)],ylim,'Linewidth',1.75,'Color','g');
+            hold off
+            ylabel('BASELINE')
+            xlabel('Contrast Level')
             xlim([0 1])
         end               
 end
+
+% T test between the different contrast levels between perception, working
+% memory, and baseline average responses.
+
+% error bars in the contrast graph
  
