@@ -7,14 +7,14 @@ commandwindow;
 test_env = 0;
 
 % visualmemory_condition_order = perms([1 2 1 2]);
-% visualmemory_subjectsRan = {};
+% visualmemory_subjectsRan =  {};
 
 %% PREPARE
 p.repetitions = 20; % set to 20 for ~40min; data will be saved if repetitions > 5
 
 % Experiment & Subject Name
 p.experiment = 'exp'; % 'exp=5 contrasts, w/WM; 'test_HC'=1 contrast, no WM; 'test'=5 contrasts, no WM;
-p.subject = 'JP';
+p.subject = 'SL';
 
 if sum(strcmp(p.experiment,{'test','test_HC'})) == 0
     load('visualmemory_condition_order.mat')
@@ -34,11 +34,12 @@ p.numConditions = 2;
 cd(dataDir);
 if exist(['data_visualmemorymf_' p.experiment '_' p.subject '.mat'],'file') ~= 0
     load(['data_visualmemorymf_' p.experiment '_' p.subject '.mat']);
+    p = theData(1).p;
     p.runNumber = length(theData)+1;
     if sum(strcmp(p.experiment,{'test', 'test_HC'})) == 1
         p.testCondition = 1; % fixed to perception condition for hard coded testing
     elseif sum(strcmp(p.experiment,{'test', 'test_HC'})) == 0
-        p.testCondition = theData{1}.p.trialSchedule(p.orderRow,p.runNumber);
+        p.testCondition = p.trialSchedule(p.runNumber);
     end
 else
     p.runNumber = 1;
@@ -90,7 +91,7 @@ if deviceNumber == 0
 end
 
 if ~test_env
-    %Check which devicenumber the powermate is assigned to
+    %Check which device number the powermate is assigned to
     powermate = PsychPowerMate('Open');
     if isempty(powermate)
         error('problem with the powermate or test_env has not been set to 0');
