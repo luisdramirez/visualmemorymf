@@ -203,5 +203,24 @@ end
 % T test between the different contrast levels between perception, working
 % memory, and baseline average responses.
 
-% error bars in the contrast graph
+% PERCEPTION & WORKING MEMORY STATISTICAL SIGNIFICANCE:
+% Will only run if the same number of working memory and perception trials
+% have been ran. (same size arrays necessary)
+if sum(howmanypercep == howmanywm) == 1
+    % Preallocate arrays to contain ttest information
+    h_P_WM = NaN(1,theData(1).p.numContrasts);
+    p_P_WM = NaN(1,theData(1).p.numContrasts);
+    % Loops through number of contrasts - P & WM
+    for i = 1:theData(1).p.numContrasts
+    [h_P_WM(i),p_P_WM(i)] = ttest(perceptionmat(1:howmanypercep,i),workingmemmat(1:howmanywm,i));
+    end
+end
+    %Loops through number of contrasts - BL & P
+        %%% ARRAYS MUST BE SAME SIZE FOR T TEST, BUT BASELINE WILL HAVE
+        %%% TWICE AS MANY AS THE OTHER CONDITIONS
+    %Loops through number of contrasts - BL & WM
+    
+    
+ 
+% error bars in the contrast graph (?)
  
