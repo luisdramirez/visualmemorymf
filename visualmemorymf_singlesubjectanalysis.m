@@ -406,6 +406,62 @@ subject.avgDiffLoc = nan(nTrials,theData(1).p.numContrasts,3);
         end
     end
  end
+%% Perception mat and Working Memory mat %% 
+ %Making perception and working memory matrices (to correctly graph
+ %information exlcuding the NaNs).
+ [trialsRan,contrasts] = size(subject.avgEstContrast(:,:,1));
+ for i = 1:trialsRan
+    if isnan(subject.avgEstContrast(i,:,1)) == 0
+        if exist('notNanPer','var') == 0
+            notNanPer = (i);
+        else
+            notNanPer = horzcat([notNanPer,i]);
+        end
+    end
+    if isnan(subject.avgEstContrast(i,:,2)) == 0
+        if exist('notNanWM','var') == 0
+            notNanWM = (i);
+        else
+            notNanWM = horzcat([notNanWM,i]);
+        end
+    end
+    if isnan(subject.avgEstContrast(i,:,3)) == 0
+        if exist('notNanBL','var') == 0
+            notNanBL = (i);
+        else
+            notNanBL = horzcat([notNanBL,i]);
+        end
+    end
+ end
+if exist('notNanPer','var') == 1
+    for i = 1:length(notNanPer)
+        if exist('perceptionmat','var') == 0
+            perceptionmat = subject.avgEstContrast(notNanPer(i),:,1);
+        else
+        perceptionmat = vertcat(perceptionmat,subject.avgEstContrast(notNanPer(i),:,1));
+        end
+    end
+end
+if exist('notNanWM','var') == 1
+    for i = 1:length(notNanWM)
+        if exist('workingmemmat','var') == 0
+            workingmemmat = subject.avgEstContrast(notNanWM(i),:,2);
+        else
+        workingmemmat = vertcat(workingmemmat,subject.avgEstContrast(notNanWM(i),:,2));
+        end
+    end
+end
+if exist('notNanBL','var') == 1
+    for i = 1:length(notNanBL)
+       if exist('baselinemat','var') == 0
+            baselinemat = subject.avgEstContrast(notNanBL(i),:,3);
+        else
+        baselinemat = vertcat(baselinemat,subject.avgEstContrast(notNanBL(i),:,3));
+        end
+    end
+end
+
+
   %% Plotting (conditional plot variable must not equal 0 to display) %%
     % The plots outside of the main for loop display visuals that compare
     % average information from each run.
@@ -414,14 +470,14 @@ subject.avgDiffLoc = nan(nTrials,theData(1).p.numContrasts,3);
         % avg Estimated Contrast
         figure(nTrials*2 + 1)
         set(gcf, 'Name', sprintf('Perceived Contrast Versus Center Contrast'));
-        loglog(p.centerContrast,mean(subject.avgEstContrast(:,:,3),1),'-o')
+        loglog(p.centerContrast,mean(baselinemat,1),'-o') %Baseline
         hold on
-        if isnan(mean(subject.avgEstContrast(:,:,1),1)) == 0
-        loglog(p.centerContrast,mean(subject.avgEstContrast(:,:,1),1),'-o')
+        if exist('notNanPer','var') == 1
+            loglog(p.centerContrast,mean(perceptionmat,1),'-o') %Perception
         end
-        if isnan(mean(subject.avgEstContrast(:,:,2),1)) == 0
         hold on
-        loglog(p.centerContrast,mean(subject.avgEstContrast(:,:,2),1),'-o')
+        if exist('notNanWM','var') == 1
+            loglog(p.centerContrast,mean(workingmemmat,1),'-o') %Working Memory
         end
         hold on 
         loglog([0.1 0.8],[0.1 0.8],'k--')
@@ -430,11 +486,11 @@ subject.avgDiffLoc = nan(nTrials,theData(1).p.numContrasts,3);
         xticks([0.1 0.8]); yticks([0.1 0.8]);
         xticklabels({'10','80'});yticklabels({'10','80'});
          % Legend incorporating nans
-        if sum(isnan(mean(subject.avgEstContrast(:,:,1),1))) ~= 0 && sum(isnan(mean(subject.avgEstContrast(:,:,2),1))) ~= 0
+        if exist('notNanPer','var') == 0 && exist('notNanWM','var') == 0
             legend('Baseline','Log Scale')
-        elseif sum(isnan(mean(subject.avgEstContrast(:,:,1),1))) ~= 0 && sum(isnan(mean(subject.avgEstContrast(:,:,2),1))) == 0
+        elseif exist('notNanPer','var') == 1 && exist('notNanWM','var') == 0
             legend('Baseline','Working Memory','Log Scale')
-        elseif sum(isnan(mean(subject.avgEstContrast(:,:,1),1))) == 0 && sum(isnan(mean(subject.avgEstContrast(:,:,2),1))) ~= 0
+        elseif exist('notNanPer','var') == 1 &&  exist('notNanWM','var') == 0
             legend('Baseline','Perception','Log Scale')
         else
             legend('Baseline','Perception','Working Memory','Log Scale')
@@ -499,9 +555,9 @@ subject.avgDiffLoc = nan(nTrials,theData(1).p.numContrasts,3);
     end
     
 %% SAVE OUT AVERAGES (AVG OVER TRIALS RAN FOR A SINGLE SUBJECT) %%
-subject.meanEstContPerception = mean(subject.avgEstContrast(:,:,1),1);
-subject.meanEstContWorkingMemory = mean(subject.avgEstContrast(:,:,2),1);
-subject.meanEstContBaseline = mean(subject.avgEstContrast(:,:,3),1);
+subject.meanEstContPerception = mean(perceptionmat,1);
+subject.meanEstContWorkingMemory = mean(workingmemmat,1);
+subject.meanEstContBaseline = mean(baselinemat,1);
 
 subject.meanDiffContPerception = mean(subject.avgDiffContrast(:,:,1),1);
 subject.meanDiffContWorkingMemory = mean(subject.avgDiffContrast(:,:,2),1);

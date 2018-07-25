@@ -65,7 +65,7 @@ for subj = 1:subjectsLong
     for contNum = 1:master_subjectData{1,1}(1).p.numContrasts
         
         subject = master_subjectData{subj,2};
-        
+         
         master.avgContEstimation(subj,contNum,1) = subject.meanEstContPerception(contNum);
         master.avgContEstimation(subj,contNum,2) = subject.meanEstContWorkingMemory(contNum);
         master.avgContEstimation(subj,contNum,3) = subject.meanEstContBaseline(contNum);
@@ -132,23 +132,18 @@ for i = 1:length(notNanBL)
     end
 end
     master.avgContEstimation(subjectsLong+1,:,3) = mean(baselinemat,1);
-
-
-
-
-
-master.avgDiffContrast(subjectsLong+1,:,:) = mean(master.avgDiffContrast,1);
-master.avgDiffLocation(subjectsLong+1,:,:) = mean(master.avgDiffLocation,1);
+    master.avgDiffContrast(subjectsLong+1,:,:) = mean(master.avgDiffContrast,1);
+    master.avgDiffLocation(subjectsLong+1,:,:) = mean(master.avgDiffLocation,1);
 
 if plotVar ~= 0
     % Total Avg. Estimated Contrast
         figure(1)
-        set(gcf, 'Name', sprintf('Perceived (Estimated) Contrast Versus Center Contrast'));
-        loglog(centerContrast,master.avgContEstimation(subjectsLong+1,:,3),'-o') %Baseline
+        set(gcf, 'Name', sprintf('Collective Perceived (Estimated) Contrast Versus Center Contrast'));
+        loglog(centerContrast,mean(baselinemat,1),'-o') %Baseline
         hold on
-        loglog(centerContrast,master.avgContEstimation(subjectsLong+1,:,1),'-o') %Perception
+        loglog(centerContrast,mean(perceptionmat,1),'-o') %Perception
         hold on
-        loglog(centerContrast,master.avgContEstimation(subjectsLong+1,:,2),'-o') %Working Memory
+        loglog(centerContrast,mean(workingmemmat,1),'-o') %Working Memory
         hold on 
         loglog([0.1 0.8],[0.1 0.8],'k--') %log scale line
         xlabel('Center Contrast')
@@ -197,11 +192,36 @@ if plotVar ~= 0
             ylabel('BASELINE')
             xlabel('Contrast Level')
             xlim([0 1])
-        end               
+        end   
+        
+        for i = 1:subjectsLong
+            figure(3)
+            set(gcf, 'Name', sprintf('Perception: Estimated versus Center Contrast'));
+            subplot(2,subjectsLong/2,i)
+            loglog(centerContrast,master.avgContEstimation(i,:,1),'-o') % Perception
+            hold on
+            loglog([0.1 0.8],[0.1 0.8],'k--') %log scale line
+            xlabel('Center Contrast')
+            ylabel('Estimated Contrast')
+            hold off
+            figure(4)
+            set(gcf, 'Name', sprintf('Working Memory: Estimated versus Center Contrast'));
+            subplot(2,subjectsLong/2,i)
+            loglog(centerContrast,master.avgContEstimation(i,:,2),'-o') % Working Memory
+            hold on
+            loglog([0.1 0.8],[0.1 0.8],'k--') %log scale line
+            xlabel('Center Contrast')
+            ylabel('Estimated Contrast')
+            hold off
+        end
 end
+ 
+
 
 % T test between the different contrast levels between perception, working
 % memory, and baseline average responses.
+% JUST DO A T TEST THAT CORRESPONS WITH THE CONDITION IT WAS ON  (THE
+% COMPARABLE VALUES FROM EACH PERSON)
 
 % PERCEPTION & WORKING MEMORY STATISTICAL SIGNIFICANCE:
 % Will only run if the same number of working memory and perception trials
