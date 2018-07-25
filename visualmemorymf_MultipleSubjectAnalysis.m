@@ -42,9 +42,7 @@ for currfilenum = 1:numFiles
             %out who is who if needed
             master_subjectData{i,1} = theData;
             master_subjectData{i,2} = subject;
-            fprintf('\n%s and %s are compatible. Loading',dataFile, possibleFileNames{i,1})
-        else
-            fprintf('\n%s and %s not compatible',dataFile, possibleFileNames{i,1})
+            fprintf('\nLoading %s',dataFile)
         end
     end
 end
@@ -139,13 +137,29 @@ if plotVar ~= 0
     % Total Avg. Estimated Contrast
         figure(1)
         set(gcf, 'Name', sprintf('Collective Perceived (Estimated) Contrast Versus Center Contrast'));
-        loglog(centerContrast,mean(baselinemat,1),'-o') %Baseline
+        % Baseline
+        berror = std(master.avgContEstimation(1:subjectsLong-1,:,3),'omitnan');
+        bly = mean(baselinemat,1);
+        errorbar(centerContrast,bly,berror);   
         hold on
-        loglog(centerContrast,mean(perceptionmat,1),'-o') %Perception
+        
+        % Perception
         hold on
-        loglog(centerContrast,mean(workingmemmat,1),'-o') %Working Memory
+        perror = std(master.avgContEstimation(1:subjectsLong-1,:,1),'omitnan');
+        py = mean(perceptionmat,1);
+        errorbar(centerContrast,py,perror);   
+        hold on
+        
+        % Working Memory
+        wmerror = std(master.avgContEstimation(1:subjectsLong-1,:,2),'omitnan');
+        wmy = mean(workingmemmat,1);
+        errorbar(centerContrast,wmy,wmerror);   
+        hold on
+        set(gca,'YScale','log','XScale','log');
+        
+        %log scale line
         hold on 
-        loglog([0.1 0.8],[0.1 0.8],'k--') %log scale line
+        loglog([0.1 0.8],[0.1 0.8],'k--') 
         xlabel('Center Contrast')
         ylabel('Perceived Contrast')
         xticks([0.1 0.8]); yticks([0.1 0.8]);
@@ -168,30 +182,33 @@ if plotVar ~= 0
         figure(2)
         set(gcf,'Name',sprintf('Histograms of Estimated Contrast at Each Contrast/Condition'));
         for i = 1:theData(1).p.numContrasts
+            xmax = max([max(workingmemmat(:,i)) max(perceptionmat(:,i)) max(baselinemat(:,i))]);
+            xmin = min([min(workingmemmat(:,i)) min(perceptionmat(:,i)) min(baselinemat(:,i))]);
             subplot(3,theData(1).p.numContrasts,i)
             hist(perceptionmat(:,i),howmanypercep) %perception
+            xlim([xmin xmax])
             hold on
             line([master.avgContEstimation(subjectsLong+1,i,1) master.avgContEstimation(subjectsLong+1,i,1)],ylim,'Linewidth',1.75,'Color','g');
             ylabel('PERCEPTION')
             xlabel('Contrast Level')
-            xlim([0 1])
             hold off
             subplot(3,theData(1).p.numContrasts,i+5)
             hist(workingmemmat(:,i),howmanywm) %Working mem
+            xlim([xmin xmax])
             hold on
             line([master.avgContEstimation(subjectsLong+1,i,2) master.avgContEstimation(subjectsLong+1,i,2)],ylim,'Linewidth',1.75,'Color','g');
             hold off
             ylabel('WORKING MEMORY')
             xlabel('Contrast Level')
-            xlim([0 1 ])
             subplot(3,theData(1).p.numContrasts,i+10)
+            xlim([xmin xmax])
             hist(baselinemat(:,i),howmanybl) %baseline
             hold on
             line([master.avgContEstimation(subjectsLong+1,i,3) master.avgContEstimation(subjectsLong+1,i,3)],ylim,'Linewidth',1.75,'Color','g');
             hold off
             ylabel('BASELINE')
             xlabel('Contrast Level')
-            xlim([0 1])
+            xlim([xmin xmax])
         end   
         
         for i = 1:subjectsLong
@@ -239,8 +256,3 @@ end
         %%% ARRAYS MUST BE SAME SIZE FOR T TEST, BUT BASELINE WILL HAVE
         %%% TWICE AS MANY AS THE OTHER CONDITIONS
     %Loops through number of contrasts - BL & WM
-    
-    
- 
-% error bars in the contrast graph (?)
- 

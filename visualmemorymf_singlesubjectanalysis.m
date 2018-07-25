@@ -11,7 +11,7 @@ close all;
 expDir = pwd;
 dataDir = 'data_master';
 allP.experiment = 'exp';
-allP.subject = 'JS';
+allP.subject = 'JP';
 cd(dataDir)
 
 %Load run data
@@ -470,14 +470,39 @@ end
         % avg Estimated Contrast
         figure(nTrials*2 + 1)
         set(gcf, 'Name', sprintf('Perceived Contrast Versus Center Contrast'));
-        loglog(p.centerContrast,mean(baselinemat,1),'-o') %Baseline
+        % Baseline
+        blerror = std(baselinemat,'omitnan');
+        bly = mean(baselinemat,1);
+        errorbar(p.centerContrast,bly,blerror);   
+            hold on
+        set(gca,'YScale','log','XScale','log');
         hold on
         if exist('notNanPer','var') == 1
-            loglog(p.centerContrast,mean(perceptionmat,1),'-o') %Perception
+            [howmanyp,~] = size(perceptionmat);
+            if howmanyp == 1
+                loglog(p.centerContrast,perceptionmat,'-o')
+                hold on
+            else
+            perror = std(perceptionmat,'omitnan');
+            py = mean(perceptionmat,1);
+            errorbar(p.centerContrast,py,perror);   
+            hold on
+            set(gca,'YScale','log','XScale','log');
+            end
         end
         hold on
         if exist('notNanWM','var') == 1
-            loglog(p.centerContrast,mean(workingmemmat,1),'-o') %Working Memory
+            [howmanywm, ~] = size(workingmemmat);
+            if howmanywm == 1
+                loglog(p.centerContrast,workingmemmat,'-o')
+                hold on
+            else
+                wmerror = std(workingmemmat,'omitnan');
+                wmy = mean(workingmemmat,1);
+                errorbar(p.centerContrast,wmy,wmerror);   
+                hold on
+                set(gca,'YScale','log','XScale','log');
+            end
         end
         hold on 
         loglog([0.1 0.8],[0.1 0.8],'k--')
@@ -485,6 +510,71 @@ end
         ylabel('Perceived Contrast')
         xticks([0.1 0.8]); yticks([0.1 0.8]);
         xticklabels({'10','80'});yticklabels({'10','80'});
+        if exist('notNanPer','var') == 0 && exist('notNanWM','var') == 0
+            legend({'Baseline','Log Scale'},'Location','northwest')
+        elseif exist('notNanPer','var') == 1 && exist('notNanWM','var') == 0
+            legend({'Baseline','Working Memory','Log Scale'},'Location','northwest')
+        elseif exist('notNanPer','var') == 1 &&  exist('notNanWM','var') == 0
+            legend({'Baseline','Perception','Log Scale'},'Location','northwest')
+        else
+            legend({'Baseline','Perception','Working Memory','Log Scale'},'Location','northwest')
+        end
+        hold off 
+        
+        [numwm,~] = size(workingmemmat);
+        if exist('perceptionmat','var') == 1
+            [numpercep,~] = size(perceptionmat);
+            if numpercep == 1
+                figure(nTrials*2 + 4)
+                set(gcf, 'Name', sprintf('Perception: Estimated versus Center Contrast'));
+                subplot(1,2,1)
+                loglog(p.centerContrast,perceptionmat(:),'-o') % Perception
+                hold on
+                loglog([0.1 0.8],[0.1 0.8],'k--') %log scale line
+                xlabel('Center Contrast')
+                ylabel('Estimated Contrast')
+                hold off
+            else
+                for i = 1:numpercep
+                figure(nTrials*2 + 4)
+                set(gcf, 'Name', sprintf('Perception: Estimated versus Center Contrast'));
+                subplot(1,2,i)
+                loglog(p.centerContrast,perceptionmat(i,:),'-o') % Perception
+                hold on
+                loglog([0.1 0.8],[0.1 0.8],'k--') %log scale line
+                xlabel('Center Contrast')
+                ylabel('Estimated Contrast')
+                hold off
+                end
+            end
+        end
+        if exist('workingmemmat','var') == 1
+            [numwm,~] = size(workingmemmat);
+            if numwm == 1
+                figure(nTrials*2 + 5)
+                set(gcf, 'Name', sprintf('Working Memory: Estimated versus Center Contrast'));
+                subplot(1,2,1)
+                loglog(p.centerContrast,workingmemmat(:),'-o') % Perception
+                hold on
+                loglog([0.1 0.8],[0.1 0.8],'k--') %log scale line
+                xlabel('Center Contrast')
+                ylabel('Estimated Contrast')
+                hold off
+            else
+                for i = 1:numwm
+                figure(nTrials*2 + 5)
+                set(gcf, 'Name', sprintf('Working Memory: Estimated versus Center Contrast'));
+                subplot(1,2,i)
+                loglog(p.centerContrast,workingmemmat(i,:),'-o') % Perception
+                hold on
+                loglog([0.1 0.8],[0.1 0.8],'k--') %log scale line
+                xlabel('Center Contrast')
+                ylabel('Estimated Contrast')
+                hold off
+                end
+            end
+        end
+  
          % Legend incorporating nans
         if exist('notNanPer','var') == 0 && exist('notNanWM','var') == 0
             legend('Baseline','Log Scale')
@@ -554,6 +644,19 @@ end
         hold off 
     end
     
+%% TTest and Statistical Significance %%
+
+% Paired Sample T Test for difference between baseline and perception.
+[h_BLP,p_BLP,ci_BLP,stats_BLP] = ttest(perceptionmat,baselinemat(find(subjectCondSchedule==1),:));
+% Paired Sameple T Test for difference between baseline and working memory.
+[h_BLWM,p_BLWM,ci_BLWM,stats_BLWM] = ttest(workingmemmat,baselinemat(find(subjectCondSchedule==2),:));
+% Paired Sample T Test for significance between working memory and perception.
+[h_PWM,p_PWM,ci_PWM,stats_PWM] = ttest(workingmemmat,perceptionmat);
+% Paired Sample T test between the two different baselines (diff conds)
+[h_BLBL,p_BLBL,ci_BLBL,stats_BLBL] = ttest(baselinemat(find(subjectCondSchedule==1),:),baselinemat(find(subjectCondSchedule==2),:));
+
+% if h = 0 then ttest cannot reject the null hypothesis 
+
 %% SAVE OUT AVERAGES (AVG OVER TRIALS RAN FOR A SINGLE SUBJECT) %%
 subject.meanEstContPerception = mean(perceptionmat,1);
 subject.meanEstContWorkingMemory = mean(workingmemmat,1);
