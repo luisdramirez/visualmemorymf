@@ -10,15 +10,15 @@ clear;
 close all;
 expDir = '/Users/juliaschwartz/Desktop/visualmemorymf';
 dataDir = 'data_master';
-allP.experiment = 'test';
+allP.experiment = 'exp';
 allP.subject = 'JS';
 cd(dataDir)
 
 %Load run data
 if exist(['data_visualmemorymf_' allP.experiment '_' allP.subject '.mat'],'file') ~= 0
     load(['data_visualmemorymf_' allP.experiment '_' allP.subject '.mat']); % Loads HC, test, and Regular trials
-    cd(expDir)
     load('visualmemory_subjectsRan'); load('visualmemory_condition_order');
+    cd(expDir)
     runNumbers = 1:length(theData);
     [fields, nTrials] = size(theData);
 else
