@@ -11,7 +11,7 @@ close all;
 expDir = pwd;
 dataDir = 'data_master';
 allP.experiment = 'exp';
-allP.subject = 'JP';
+allP.subject = 'SL';
 cd(dataDir)
 
 %Load run data
@@ -471,7 +471,8 @@ end
         figure(nTrials*2 + 1)
         set(gcf, 'Name', sprintf('Perceived Contrast Versus Center Contrast'));
         % Baseline
-        blerror = std(baselinemat,'omitnan');
+        [howmanybl,~] = size(baselinemat);
+        blerror = (std(baselinemat,'omitnan')/sqrt(howmanybl));
         bly = mean(baselinemat,1);
         errorbar(p.centerContrast,bly,blerror);   
             hold on
@@ -483,7 +484,7 @@ end
                 loglog(p.centerContrast,perceptionmat,'-o')
                 hold on
             else
-            perror = std(perceptionmat,'omitnan');
+            perror = (std(perceptionmat,'omitnan')/sqrt(howmanyp));
             py = mean(perceptionmat,1);
             errorbar(p.centerContrast,py,perror);   
             hold on
@@ -497,7 +498,7 @@ end
                 loglog(p.centerContrast,workingmemmat,'-o')
                 hold on
             else
-                wmerror = std(workingmemmat,'omitnan');
+                wmerror = (std(workingmemmat,'omitnan')/sqrt(howmanywm));
                 wmy = mean(workingmemmat,1);
                 errorbar(p.centerContrast,wmy,wmerror);   
                 hold on
@@ -646,21 +647,25 @@ end
     
 %% TTest and Statistical Significance %%
 
-% Paired Sample T Test for difference between baseline and perception.
-[h_BLP,p_BLP,ci_BLP,stats_BLP] = ttest(perceptionmat,baselinemat(find(subjectCondSchedule==1),:));
-% Paired Sameple T Test for difference between baseline and working memory.
-[h_BLWM,p_BLWM,ci_BLWM,stats_BLWM] = ttest(workingmemmat,baselinemat(find(subjectCondSchedule==2),:));
-% Paired Sample T Test for significance between working memory and perception.
-[h_PWM,p_PWM,ci_PWM,stats_PWM] = ttest(workingmemmat,perceptionmat);
-% Paired Sample T test between the two different baselines (diff conds)
-[h_BLBL,p_BLBL,ci_BLBL,stats_BLBL] = ttest(baselinemat(find(subjectCondSchedule==1),:),baselinemat(find(subjectCondSchedule==2),:));
-
-% if h = 0 then ttest cannot reject the null hypothesis 
+if nTrials == 4
+    % Paired Sample T Test for difference between baseline and perception.
+    [h_BLP,p_BLP,ci_BLP,stats_BLP] = ttest(perceptionmat,baselinemat(find(subjectCondSchedule==1),:));
+    % Paired Sameple T Test for difference between baseline and working memory.
+    [h_BLWM,p_BLWM,ci_BLWM,stats_BLWM] = ttest(workingmemmat,baselinemat(find(subjectCondSchedule==2),:));
+    % Paired Sample T Test for significance between working memory and perception.
+    [h_PWM,p_PWM,ci_PWM,stats_PWM] = ttest(workingmemmat,perceptionmat);
+    % Paired Sample T test between the two different baselines (diff conds)
+    [h_BLBL,p_BLBL,ci_BLBL,stats_BLBL] = ttest(baselinemat(find(subjectCondSchedule==1),:),baselinemat(find(subjectCondSchedule==2),:));
+    % if h = 0 then ttest cannot reject the null hypothesis 
+end
 
 %% SAVE OUT AVERAGES (AVG OVER TRIALS RAN FOR A SINGLE SUBJECT) %%
 subject.meanEstContPerception = mean(perceptionmat,1);
+subject.perceptionmat = perceptionmat;
 subject.meanEstContWorkingMemory = mean(workingmemmat,1);
+subject.workingmemmat = workingmemmat;
 subject.meanEstContBaseline = mean(baselinemat,1);
+subject.baselinemat = baselinemat;
 
 subject.meanDiffContPerception = mean(subject.avgDiffContrast(:,:,1),1);
 subject.meanDiffContWorkingMemory = mean(subject.avgDiffContrast(:,:,2),1);
@@ -669,6 +674,8 @@ subject.meanDiffContBaseline = mean(subject.avgDiffContrast(:,:,3),1);
 subject.meanDiffLocPerception = mean(subject.avgDiffLoc(:,:,1),1);
 subject.meanDiffLocWorkingMemory = mean(subject.avgDiffLoc(:,:,2),1);
 subject.meanDiffLocBaseline = mean(subject.avgDiffLoc(:,:,3),1);
+
+subject.nTrials = nTrials;
     
 %% SAVE SUBJECT STRUCTURE %%
 cd(dataDir)

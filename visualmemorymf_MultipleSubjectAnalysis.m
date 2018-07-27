@@ -138,20 +138,23 @@ if plotVar ~= 0
         figure(1)
         set(gcf, 'Name', sprintf('Collective Perceived (Estimated) Contrast Versus Center Contrast'));
         % Baseline
-        berror = std(master.avgContEstimation(1:subjectsLong-1,:,3),'omitnan');
+        howmanybl = length(notNanBL);
+        berror = (std(master.avgContEstimation(1:subjectsLong-1,:,3),'omitnan')/sqrt(howmanybl));
         bly = mean(baselinemat,1);
         errorbar(centerContrast,bly,berror);   
         hold on
         
         % Perception
         hold on
-        perror = std(master.avgContEstimation(1:subjectsLong-1,:,1),'omitnan');
+        howmanyp = length(notNanPer);
+        perror = (std(master.avgContEstimation(1:subjectsLong-1,:,1),'omitnan')/sqrt(howmanyp));
         py = mean(perceptionmat,1);
         errorbar(centerContrast,py,perror);   
         hold on
         
         % Working Memory
-        wmerror = std(master.avgContEstimation(1:subjectsLong-1,:,2),'omitnan');
+        howmanywm = length(notNanWM);
+        wmerror = (std(master.avgContEstimation(1:subjectsLong-1,:,2),'omitnan')/sqrt(howmanywm));
         wmy = mean(workingmemmat,1);
         errorbar(centerContrast,wmy,wmerror);   
         hold on
@@ -166,11 +169,11 @@ if plotVar ~= 0
         xticklabels({'10','80'});yticklabels({'10','80'});
         % Legend incorporating nans
         if sum(isnan(master.avgContEstimation(subjectsLong+1,:,1))) ~= 0 && sum(isnan(master.avgContEstimation(subjectsLong+1,:,2))) ~= 0
-            legend('Baseline','Log Scale') %perception and working memory are nans
+            legend({'Baseline','Log Scale'},'Location','northwest') %perception and working memory are nans
         elseif sum(isnan(master.avgContEstimation(subjectsLong+1,:,1))) ~= 0 && sum(isnan(master.avgContEstimation(subjectsLong+1,:,2))) == 0
-            legend('Baseline','Working Memory','Log Scale') % perception is nan
+            legend({'Baseline','Working Memory','Log Scale'},'Location','northwest') % perception is nan
         elseif sum(isnan(master.avgContEstimation(subjectsLong+1,:,1))) == 0 && sum(isnan(master.avgContEstimation(subjectsLong+1,:,2))) ~= 0
-            legend('Baseline','Perception','Log Scale') % working memory is nan
+            legend({'Baseline','Perception','Log Scale'},'Location','northwest') % working memory is nan
         else
             legend('Baseline','Perception','Working Memory','Log Scale')
         end 
@@ -215,16 +218,33 @@ if plotVar ~= 0
             figure(3)
             set(gcf, 'Name', sprintf('Perception: Estimated versus Center Contrast'));
             subplot(2,subjectsLong/2,i)
-            loglog(centerContrast,master.avgContEstimation(i,:,1),'-o') % Perception
+            [howmanypercep,~] = size(master_subjectData{i,2}.perceptionmat);
+            if howmanypercep == 1
+                loglog(centerContrast,master_subjectData{i,2}.perceptionmat,'-o')
+                hold on
+            else
+                perror = (std(master_subjectData{i,2}.perceptionmat)/sqrt(howmanypercep));
+                py = mean(master_subjectData{i,2}.perceptionmat,1);
+                errorbar(centerContrast,py,perror)
+            end
             hold on
             loglog([0.1 0.8],[0.1 0.8],'k--') %log scale line
             xlabel('Center Contrast')
             ylabel('Estimated Contrast')
+            set(gca,'YScale','log','XScale','log')
             hold off
             figure(4)
             set(gcf, 'Name', sprintf('Working Memory: Estimated versus Center Contrast'));
             subplot(2,subjectsLong/2,i)
-            loglog(centerContrast,master.avgContEstimation(i,:,2),'-o') % Working Memory
+            [howmanywm,~] = size(master_subjectData{i,2}.workingmemmat);
+            if howmanywm == 1
+                loglog(centerContrast,master_subjectData{i,2}.workingmemmat,'-o')
+                hold on
+            else
+                wmerror = (std(master_subjectData{i,2}.workingmemmat)/sqrt(howmanywm));
+                wmy = mean(master_subjectData{i,2}.workingmemmat,1);
+                errorbar(centerContrast,wmy,wmerror)
+            end
             hold on
             loglog([0.1 0.8],[0.1 0.8],'k--') %log scale line
             xlabel('Center Contrast')
@@ -232,13 +252,10 @@ if plotVar ~= 0
             hold off
         end
 end
- 
-
+  
 
 % T test between the different contrast levels between perception, working
 % memory, and baseline average responses.
-% JUST DO A T TEST THAT CORRESPONS WITH THE CONDITION IT WAS ON  (THE
-% COMPARABLE VALUES FROM EACH PERSON)
 
 % PERCEPTION & WORKING MEMORY STATISTICAL SIGNIFICANCE:
 % Will only run if the same number of working memory and perception trials
@@ -252,7 +269,32 @@ if sum(howmanypercep == howmanywm) == 1
     [h_P_WM(i),p_P_WM(i)] = ttest(perceptionmat(1:howmanypercep,i),workingmemmat(1:howmanywm,i));
     end
 end
-    %Loops through number of contrasts - BL & P
-        %%% ARRAYS MUST BE SAME SIZE FOR T TEST, BUT BASELINE WILL HAVE
-        %%% TWICE AS MANY AS THE OTHER CONDITIONS
-    %Loops through number of contrasts - BL & WM
+  
+%Loops through number of contrasts - BL & WM
+h_BL_WM = zeros(1,theData(1).p.numContrasts);
+p_BL_WM = zeros(1,theData(1).p.numContrasts);
+avgdBL_WM = zeros(subjectsLong,theData(1).p.numContrasts);
+fourArray = zeros(1,subjectsLong);
+for i = 1:subjectsLong
+    if master_subjectData{i,2}.nTrials == 4
+        fourArray(i) = 1;
+    end
+    if sum(any(fourArray == 1)) == 4
+        avgdBL_WM(i,:) = mean(master_subjectData{i,2}.baselinemat(master_subjectData{i,1}(1).p.trialSchedule  == 2,:));
+    end
+end
+for i = 1:theData(1).p.numContrasts
+    [h_BL_WM(i),p_BL_WM(i)] = ttest(avgdBL_WM(:,i),workingmemmat(1:howmanywm,i));
+end
+
+%Loops through number of contrasts - BL & P
+h_BL_P = zeros(1,theData(1).p.numContrasts);
+p_BL_P = zeros(1,theData(1).p.numContrasts);
+avgdBL_P = zeros(subjectsLong,theData(1).p.numContrasts);
+for i = 1:subjectsLong
+    avgdBL_P(i,:) = mean(master_subjectData{i,2}.baselinemat(master_subjectData{i,1}(1).p.trialSchedule  == 1,:));
+end
+for i = 1:theData(1).p.numContrasts
+    [h_BL_P(i),p_BL_P(i)] = ttest(avgdBL_P(:,i),workingmemmat(1:howmanywm,i));
+end
+    
