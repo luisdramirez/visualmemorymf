@@ -142,7 +142,7 @@ if plotVar ~= 0
         howmanybl = length(notNanBL);
         berror = (std(master.avgContEstimation(1:subjectsLong-1,:,3),'omitnan')/sqrt(howmanybl));
         bly = mean(baselinemat,1);
-        errorbar(centerContrast,bly,berror);   
+        errorbar(centerContrast,bly,berror,'LineWidth',1.25);   
         hold on
         
         % Perception
@@ -150,14 +150,14 @@ if plotVar ~= 0
         howmanyp = length(notNanPer);
         perror = (std(master.avgContEstimation(1:subjectsLong-1,:,1),'omitnan')/sqrt(howmanyp));
         py = mean(perceptionmat,1);
-        errorbar(centerContrast,py,perror);   
+        errorbar(centerContrast,py,perror,'LineWidth',1.25);   
         hold on
         
         % Working Memory
         howmanywm = length(notNanWM);
         wmerror = (std(master.avgContEstimation(1:subjectsLong-1,:,2),'omitnan')/sqrt(howmanywm));
         wmy = mean(workingmemmat,1);
-        errorbar(centerContrast,wmy,wmerror);   
+        errorbar(centerContrast,wmy,wmerror,'LineWidth',1.25);   
         hold on
         set(gca,'YScale','log','XScale','log');
         
@@ -182,38 +182,45 @@ if plotVar ~= 0
         [howmanypercep,~] = size(perceptionmat);
         [howmanywm,~] = size(workingmemmat);
         [howmanybl,~] = size(baselinemat);
-    % Histogram Plotting
+        
+    %Bar graph plot (replace hist)    
         figure(2)
-        set(gcf,'Name',sprintf('Histograms of Estimated Contrast at Each Contrast/Condition'));
         for i = 1:theData(1).p.numContrasts
-            xmax = max([max(workingmemmat(:,i)) max(perceptionmat(:,i)) max(baselinemat(:,i))]);
-            xmin = min([min(workingmemmat(:,i)) min(perceptionmat(:,i)) min(baselinemat(:,i))]);
-            subplot(3,theData(1).p.numContrasts,i)
-            hist(perceptionmat(:,i),howmanypercep) %perception
-            xlim([xmin xmax])
+            subplot(2,3,i)
+            bar(3,mean(baselinemat(:,i)))
             hold on
-            line([master.avgContEstimation(subjectsLong+1,i,1) master.avgContEstimation(subjectsLong+1,i,1)],ylim,'Linewidth',1.75,'Color','g');
-            ylabel('PERCEPTION')
-            xlabel('Contrast Level')
-            hold off
-            subplot(3,theData(1).p.numContrasts,i+5)
-            hist(workingmemmat(:,i),howmanywm) %Working mem
-            xlim([xmin xmax])
+            bar(1,mean(perceptionmat(:,i)))
             hold on
-            line([master.avgContEstimation(subjectsLong+1,i,2) master.avgContEstimation(subjectsLong+1,i,2)],ylim,'Linewidth',1.75,'Color','g');
-            hold off
-            ylabel('WORKING MEMORY')
-            xlabel('Contrast Level')
-            subplot(3,theData(1).p.numContrasts,i+10)
-            xlim([xmin xmax])
-            hist(baselinemat(:,i),howmanybl) %baseline
+            bar(2,mean(workingmemmat(:,i)))
+            xticks([1 2 3])
+            xticklabels({'Perception','Working Memory','Baseline'})
+            title(sprintf('Contrast of %.3f',centerContrast(i)))
+            xlabel('Condition')
+            ylabel('Contrast')
             hold on
-            line([master.avgContEstimation(subjectsLong+1,i,3) master.avgContEstimation(subjectsLong+1,i,3)],ylim,'Linewidth',1.75,'Color','g');
-            hold off
-            ylabel('BASELINE')
-            xlabel('Contrast Level')
-            xlim([xmin xmax])
-        end   
+            line([0 4],[centerContrast(i) centerContrast(i)],'Color','black','LineStyle','--')
+            ylim([0 1])
+            xlim([0.5 3.5])
+            hold on
+            for j = 1:howmanypercep
+                plot(1,perceptionmat(j,i),'ko')
+            end
+            hold on
+            for j = 1:howmanywm
+                plot(2,workingmemmat(j,i),'ko')
+            end
+            hold on
+            for j = 1:howmanybl
+                plot(3,baselinemat(j,i),'ko')
+            end
+            hold on
+            %Standard Error Bars
+            line([3.05 3.05],[mean(baselinemat(:,i))-berror(i) mean(baselinemat(:,i))+berror(i)],'LineWidth',2,'Color','black')
+            line([1.05 1.05],[mean(perceptionmat(:,i))-perror(i) mean(perceptionmat(:,i))+perror(i)],'LineWidth',2,'Color','black')
+            line([2.05 2.05],[mean(workingmemmat(:,i))-wmerror(i) mean(workingmemmat(:,i))+wmerror(i)],'LineWidth',2,'Color','black')
+            %ylim
+            ylim([0 (max([max(perceptionmat(:,i)) max(baselinemat(:,i)) max(workingmemmat(:,i))]))+0.05])
+        end
         
         for i = 1:subjectsLong
             figure(3)
@@ -221,38 +228,50 @@ if plotVar ~= 0
             subplot(2,subjectsLong/2,i)
             [howmanypercep,~] = size(master_subjectData{i,2}.perceptionmat);
             if howmanypercep == 1
-                loglog(centerContrast,master_subjectData{i,2}.perceptionmat,'-o')
+                loglog(centerContrast,master_subjectData{i,2}.perceptionmat,'-o','LineWidth',1.25)
                 hold on
             else
                 perror = (std(master_subjectData{i,2}.perceptionmat)/sqrt(howmanypercep));
                 py = mean(master_subjectData{i,2}.perceptionmat,1);
-                errorbar(centerContrast,py,perror)
+                errorbar(centerContrast,py,perror,'LineWidth',1.25,'Color','red')
             end
             hold on
             loglog([0.1 0.8],[0.1 0.8],'k--') %log scale line
-            xlabel('Center Contrast')
+            set(gca,'YScale','log','XScale','log')
+            xlim([0.1 0.8])
+            ylim([0.1 0.8])
             ylabel('Estimated Contrast')
             set(gca,'YScale','log','XScale','log')
+            title(sprintf('Subject %i',i))
             hold off
+        end
+        
+        for i = 1:subjectsLong
             figure(4)
             set(gcf, 'Name', sprintf('Working Memory: Estimated versus Center Contrast'));
             subplot(2,subjectsLong/2,i)
+           
             [howmanywm,~] = size(master_subjectData{i,2}.workingmemmat);
             if howmanywm == 1
-                loglog(centerContrast,master_subjectData{i,2}.workingmemmat,'-o')
+                loglog(centerContrast,master_subjectData{i,2}.workingmemmat,'-o','LineWidth',1.25,'Color','red')
                 hold on
             else
                 wmerror = (std(master_subjectData{i,2}.workingmemmat)/sqrt(howmanywm));
                 wmy = mean(master_subjectData{i,2}.workingmemmat,1);
-                errorbar(centerContrast,wmy,wmerror)
+                errorbar(centerContrast,wmy,wmerror,'LineWidth',1.25,'Color','red')
             end
             hold on
             loglog([0.1 0.8],[0.1 0.8],'k--') %log scale line
+            set(gca,'YScale','log','XScale','log')
+            xlim([0 0.8])
+            ylim([0 0.8])
             xlabel('Center Contrast')
             ylabel('Estimated Contrast')
+            title(sprintf('Subject %i',i))
             hold off
         end
 end
+
   
 %% Statitsical Significance %%
 % T test between the different contrast levels between perception, working
@@ -304,8 +323,8 @@ end
 %% PRINTING %%
 if printVar ~= 0
     for i = 1:theData(1).p.numContrasts
-    fprintf('\n   BASELINE: At contrast %.3f, Estimated Contrast was %.4f',centerContrast(i),mean(baselinemat(i)))
-    fprintf('\nWORKING MEM: At contrast %.3f, Estimated Contrast was %.4f',centerContrast(i),mean(workingmemmat(i)))
-    fprintf('\n PERCEPTION: At contrast %.3f, Estimated Contrast was %.4f\n',centerContrast(i),mean(perceptionmat(i)))
+    fprintf('\n   BASELINE: At contrast %.3f, Estimated Contrast was %.4f',centerContrast(i),mean(baselinemat(:,i)))
+    fprintf('\nWORKING MEM: At contrast %.3f, Estimated Contrast was %.4f',centerContrast(i),mean(workingmemmat(:,i)))
+    fprintf('\n PERCEPTION: At contrast %.3f, Estimated Contrast was %.4f\n',centerContrast(i),mean(perceptionmat(:,i)))
     end
 end
