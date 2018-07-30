@@ -46,6 +46,7 @@ for currfilenum = 1:numFiles
         end
     end
 end
+fprintf('\n\n')
 [subjectsLong,~] = size(master_subjectData);
 p = theData(1).p;
 centerContrast = (10.^linspace(log10(p.minContrast),log10(p.maxContrast),p.numContrasts));
@@ -253,13 +254,11 @@ if plotVar ~= 0
         end
 end
   
-
+%% Statitsical Significance %%
 % T test between the different contrast levels between perception, working
 % memory, and baseline average responses.
 
-% PERCEPTION & WORKING MEMORY STATISTICAL SIGNIFICANCE:
-% Will only run if the same number of working memory and perception trials
-% have been ran. (same size arrays necessary)
+% P & WM - ttest
 if sum(howmanypercep == howmanywm) == 1
     % Preallocate arrays to contain ttest information
     h_P_WM = NaN(1,theData(1).p.numContrasts);
@@ -270,24 +269,27 @@ if sum(howmanypercep == howmanywm) == 1
     end
 end
   
-%Loops through number of contrasts - BL & WM
-h_BL_WM = zeros(1,theData(1).p.numContrasts);
-p_BL_WM = zeros(1,theData(1).p.numContrasts);
-avgdBL_WM = zeros(subjectsLong,theData(1).p.numContrasts);
-fourArray = zeros(1,subjectsLong);
+% BL & WM - ttest
+% Preallocate arrays to contain ttest information
+    h_BL_WM = zeros(1,theData(1).p.numContrasts);
+    p_BL_WM = zeros(1,theData(1).p.numContrasts);
+    avgdBL_WM = zeros(subjectsLong,theData(1).p.numContrasts);
+    fourArray = zeros(1,subjectsLong);
 for i = 1:subjectsLong
     if master_subjectData{i,2}.nTrials == 4
         fourArray(i) = 1;
     end
-    if sum(any(fourArray == 1)) == 4
+end
+for i = 1:subjectsLong
+    if sum(fourArray == 1) == 4
         avgdBL_WM(i,:) = mean(master_subjectData{i,2}.baselinemat(master_subjectData{i,1}(1).p.trialSchedule  == 2,:));
     end
 end
 for i = 1:theData(1).p.numContrasts
-    [h_BL_WM(i),p_BL_WM(i)] = ttest(avgdBL_WM(:,i),workingmemmat(1:howmanywm,i));
+    [h_BL_WM(i),p_BL_WM(i)] = ttest(avgdBL_WM(:,i)',workingmemmat(:,i)');
 end
 
-%Loops through number of contrasts - BL & P
+% BL & P - ttest
 h_BL_P = zeros(1,theData(1).p.numContrasts);
 p_BL_P = zeros(1,theData(1).p.numContrasts);
 avgdBL_P = zeros(subjectsLong,theData(1).p.numContrasts);
@@ -295,6 +297,15 @@ for i = 1:subjectsLong
     avgdBL_P(i,:) = mean(master_subjectData{i,2}.baselinemat(master_subjectData{i,1}(1).p.trialSchedule  == 1,:));
 end
 for i = 1:theData(1).p.numContrasts
-    [h_BL_P(i),p_BL_P(i)] = ttest(avgdBL_P(:,i),workingmemmat(1:howmanywm,i));
+    [h_BL_P(i),p_BL_P(i)] = ttest(avgdBL_P(:,i),perceptionmat(:,i));
 end
     
+
+%% PRINTING %%
+if printVar ~= 0
+    for i = 1:theData(1).p.numContrasts
+    fprintf('\n   BASELINE: At contrast %.3f, Estimated Contrast was %.4f',centerContrast(i),mean(baselinemat(i)))
+    fprintf('\nWORKING MEM: At contrast %.3f, Estimated Contrast was %.4f',centerContrast(i),mean(workingmemmat(i)))
+    fprintf('\n PERCEPTION: At contrast %.3f, Estimated Contrast was %.4f\n',centerContrast(i),mean(perceptionmat(i)))
+    end
+end
