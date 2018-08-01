@@ -176,7 +176,8 @@ indvR2(e,subjCount,:) = [r2_m r2_c];
 %             plot(C_fit, Y_orth, 'b')
 %             plot(C_fit, Y_base, 'k')
             % display data with errorbars
-            errorbar(C_Test, runscollmean(subjCount,:), std(meancoll), 'or');
+%             errorbar(C_Test, runscollmean(subjCount,:), std(meancoll),
+%             'or'); %%% ADD MEANCOLL BACK IN
 %             errorbar(theData(runs).p.testContrasts, runsorthmean(subjCount,:), std(meanorth) , 'ob');            
 %             errorbar(TheData(runs).p.testContrasts, runsbasemean(subjCount,:), std(meanbase), '.k');
             ylim([0.05 0.8]); xlim([0.09 0.8]); box off
@@ -199,11 +200,11 @@ end
     %data pooled over subjects
     subjectsbasemean{e} = (runsbasemean);
     subjectscollmean{e} = (runscollmean);
-    subjectsorthmean{e} = (runsorthmean);    
+%     subjectsorthmean{e} = (runsorthmean);    
     
     %Suppression Index over subjects    
-    TotalSuppressionIndexColinear(e,1:numel(list),:) = ((runscollmean) - (runsbasemean))./((runscollmean) + (runsbasemean));
-    TotalSuppressionIndexOrthogonal(e,1:numel(list),:) = ((runsorthmean) - (runsbasemean))./((runsorthmean) + (runsbasemean));
+    TotalSuppressionIndexColinear(e,1:numel(visualmemory_subjectsRan),:) = ((runscollmean) - (runsbasemean))./((runscollmean) + (runsbasemean));
+%     TotalSuppressionIndexOrthogonal(e,1:numel(visualmemory_subjectsRan),:) = ((runsorthmean) - (runsbasemean))./((runsorthmean) + (runsbasemean));
     
     clear runsbasemean runscollmean runsorthmean
 
@@ -215,14 +216,14 @@ figure('Color', [1 1 1]);
 % subplot(2,2,1)
 hold all;
 
-errorbar(TheData(runs).p.testContrasts, nanmean(squeeze(TotalSuppressionIndexColinear(1,:,:))), ...
-    nanstd(squeeze(TotalSuppressionIndexColinear(1,:,:)))/sqrt(numel(list)), 'ro-');
-errorbar(TheData(runs).p.testContrasts, nanmean(squeeze(TotalSuppressionIndexColinear(2,:,:))), ...
-    nanstd(squeeze(TotalSuppressionIndexColinear(2,:,:)))/sqrt(numel(list)), 'r:^');
-errorbar(TheData(runs).p.testContrasts, nanmean(squeeze(TotalSuppressionIndexOrthogonal(1,:,:))), ...
-    nanstd(squeeze(TotalSuppressionIndexOrthogonal(1,:,:)))/sqrt(numel(list)), 'bo-');
-errorbar(TheData(runs).p.testContrasts, nanmean(squeeze(TotalSuppressionIndexOrthogonal(2,:,:))), ...
-    nanstd(squeeze(TotalSuppressionIndexOrthogonal(2,:,:)))/sqrt(numel(list)), 'b:^');
+errorbar(C_Test, nanmean(squeeze(TotalSuppressionIndexColinear(1,:,:))), ...
+    nanstd(squeeze(TotalSuppressionIndexColinear(1,:,:)))/sqrt(numel(visualmemory_subjectsRan)), 'ro-');
+errorbar(C_Test, nanmean(squeeze(TotalSuppressionIndexColinear(2,:,:))), ...
+    nanstd(squeeze(TotalSuppressionIndexColinear(2,:,:)))/sqrt(numel(visualmemory_subjectsRan)), 'r:^');
+errorbar(C_Test, nanmean(squeeze(TotalSuppressionIndexOrthogonal(1,:,:))), ...
+    nanstd(squeeze(TotalSuppressionIndexOrthogonal(1,:,:)))/sqrt(numel(visualmemory_subjectsRan)), 'bo-');
+errorbar(C_Test, nanmean(squeeze(TotalSuppressionIndexOrthogonal(2,:,:))), ...
+    nanstd(squeeze(TotalSuppressionIndexOrthogonal(2,:,:)))/sqrt(numel(visualmemory_subjectsRan)), 'b:^');
 % plot(repmat(TheData(runs).p.testContrasts, [12 1]), (squeeze(TotalSuppressionIndexColinear(1,:,:))), 'ro');
 % plot(repmat(TheData(runs).p.testContrasts, [12 1]), (squeeze(TotalSuppressionIndexColinear(2,:,:))), 'ro');
 % plot(repmat(TheData(runs).p.testContrasts, [12 1]), (squeeze(TotalSuppressionIndexOrthogonal(1,:,:))), 'bo');
@@ -232,13 +233,13 @@ legend({'Coll Surround Suppression' 'Coll vWM Suppression' ...
     'Orth Surround Suppression' 'Orth vWM Suppression'})
 ylabel('Suppression Index ( (surround-nosurround)/(surround+nosurround) )')
 xlabel('Contrast (%)')
-set(gca, 'XTick', TheData(runs).p.testContrasts, 'XTickLabel', round(TheData(runs).p.testContrasts*100), 'XScale', 'log')
+set(gca, 'XTick', C_Test, 'XTickLabel', round(C_Test*100), 'XScale', 'log')
 xlim([0.09 0.8]); ylim([-0.15 0.15]); axis square
 
 SubjectDifferenceCollinear = squeeze(TotalSuppressionIndexColinear(1,:,:))- ...
     squeeze(TotalSuppressionIndexColinear(2,:,:));
-SubjectDifferenceOrthogonal = squeeze(TotalSuppressionIndexOrthogonal(1,:,:)) - ...
-    squeeze(TotalSuppressionIndexOrthogonal(2,:,:));
+% SubjectDifferenceOrthogonal = squeeze(TotalSuppressionIndexOrthogonal(1,:,:)) - ...
+%     squeeze(TotalSuppressionIndexOrthogonal(2,:,:));
 
 
 
@@ -246,11 +247,11 @@ SubjectDifferenceOrthogonal = squeeze(TotalSuppressionIndexOrthogonal(1,:,:)) - 
 % model fits
 figure('Color', [1 1 1])
 subplot(1,2,1)
-bar([indvR2(1,:,1)' indvR2(1,:,2)' indvR2(1,:,3)']')
+bar([indvR2(1,:,1)' indvR2(1,:,2)']')
 set(gca, 'xtickLabel', {'Baseline' 'Collinear' 'Orthogonal'})
 ylabel('R2'), box off; title('Perception');
 subplot(1,2,2)
-bar([indvR2(2,:,1)' indvR2(2,:,2)' indvR2(2,:,3)']')
+bar([indvR2(2,:,1)' indvR2(2,:,2)' ]')
 set(gca, 'xtickLabel', {'Baseline' 'Collinear' 'Orthogonal'})
 ylabel('R2'), legend(num2str([1:12]')); box off; title('Visual working memory');
 
@@ -397,33 +398,5 @@ noPerm_cohens_d = st_ttest.tstat./sqrt(12)
 
 % save out baseline data in order to compare to Exp 2
 save BaselineModelParameters_Exp1.mat est_params
-
-
-
-%     list = dir(pwd);
-%     subjects = [1:4];
-%     subjCount = 0;
-%     
-%     %subject loop
-%     if indvFiguresOn
-%         figure(e), if e  == 1, set(gcf, 'Name', 'Perception', 'Color', [1 1 1]), else set(gcf, 'Name', 'Visual working memory', 'Color', [1 1 1]), end
-%     end
-%     for subject = subjects
-%         subjCount = subjCount + 1;
-%         if str2num(list(subjCount).name(end-4)) == subject;
-%             load(list(subjCount).name);
-%         else
-%             for subj = 1:numel(list);
-%                 if subject < 10
-%                     if str2num(list(subj).name(end-4)) == subject;
-%                         load(list(subj).name);
-%                     end
-%                 else
-%                     if str2num(list(subj).name(end-5:end-4)) == subject;
-%                         load(list(subj).name);
-%                     end
-%                 end
-%             end
-%         end
 
 
