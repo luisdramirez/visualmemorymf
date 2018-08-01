@@ -328,3 +328,14 @@ if printVar ~= 0
     fprintf('\n PERCEPTION: At contrast %.3f, Estimated Contrast was %.4f\n',centerContrast(i),mean(perceptionmat(:,i)))
     end
 end
+
+%% Saving variables %%
+overallData.baselineForWM = avgdBL_WM;
+overallData.baselineForP = avgdBL_P;
+overallData.perceptionmat = perceptionmat;
+overallData.workingmemmat = workingmemmat;
+overallData.baselineForWMMean = mean(avgdBL_WM);
+overallData.baselineForPMean = mean(avgdBL_P);
+overallData.perceptionmean = mean(perceptionmat);
+overallData.workingmemmat = mean(workingmemmat);
+save(['data_visualmemorymf_overallData.mat'], 'overallData')
