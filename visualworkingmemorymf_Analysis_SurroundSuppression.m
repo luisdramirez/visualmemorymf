@@ -6,139 +6,125 @@ close all
 clear all
 
 % expDir = '/Users/ywatanabe/Dropbox/NormalizationVisualMemory/Experiment1';
-expDir = '~/Dropbox/NormalizationVisualMemory/Experiment1';
+expDir = '/Users/juliaschwartz/Desktop/visualmemorymf';
 p = genpath(expDir);
 addpath(p);
-cd([expDir '/Data'])
-
+dataDir = '/Users/juliaschwartz/Desktop/visualmemorymf/data_master';
+cd(dataDir)
 indvFiguresOn = 1;
 
-experiments = {'surrSuppression_2000_Delay*' 'vWM_surrSuppression_2000_Delay*'};
+experiment = 'Exp 1';
+load('visualmemory_subjectsRan.mat')
+load('data_visualmemorymf_overallData.mat')
 
-numSubjects = round(length(dir('*.mat'))/2);
+numSubjects = length(visualmemory_subjectsRan);
 numContrast = 5;
-numExperiments = numel(experiments);
+numExperiments = numel(experiment);
 TotalSuppressionIndexColinear = NaN(numExperiments,numSubjects, numContrast);
-TotalSuppressionIndexOrthogonal = NaN(numExperiments,numSubjects, numContrast);
-subjAge = [20,27,31,29,21,21,22,21,25,29,22,21];
+TotalSuppressionIndexOrthogonal = NaN(numExperiments,numSubjects, numContrast); % Not used here %
+subjAge = [19,19,24,24]; % Figure out and correct order %
 
 
 % Model fit setup
-C_Test = 10.^(linspace(log10(0.1),log10(0.75), 5));
-C_Surround = 1;
-C50 = .6;
-Wi = 0;
-Wi_coll = 0;
-Wi_orth = 0;
+C_Test = 10.^(linspace(log10(0.1),log10(0.75), 5)); %center contrast
+C_Surround = 1; %surround contrast
+C50 = .6; 
+Wi = 0; 
+Wi_coll = 0; % Collinear orientation %
+Wi_orth = 0; % ignore, we didnt do orthoganal orientation %
 b = 0;
-n = 2;
+n = 2; %nonlinear transducer (steepness of the function)
 
-for e = 1:numel(experiments);
+for e = 1:numel(experiment)
     
-    
-    list = dir(experiments{e});
-    subjects = [1:8 10:13];
-    subjCount = 0;
-    
-    %subject loop
+    % Subject Loop %
     if indvFiguresOn
         figure(e), if e  == 1, set(gcf, 'Name', 'Perception', 'Color', [1 1 1]), else set(gcf, 'Name', 'Visual working memory', 'Color', [1 1 1]), end
     end
-    for subject = subjects
-        
-        subjCount = subjCount + 1;
-        if str2num(list(subjCount).name(end-4)) == subject;
-            
-            load(list(subjCount).name);
-            
-        else
-            for subj = 1:numel(list);
-                
-                if subject < 10
-                    if str2num(list(subj).name(end-4)) == subject;
-                        
-                        load(list(subj).name);
-                    end
-                else
-                    if str2num(list(subj).name(end-5:end-4)) == subject;
-                        
-                        load(list(subj).name);
-                    end
-                end
-                
-            end
-            
+    subjects = (1:4);
+    % Load subject Data %
+    files = struct2cell(dir(dataDir))';
+    [numFiles, ~] = size(files);
+    possibleFileNames = cell(length(visualmemory_subjectsRan),1);
+    for i = 1:length(visualmemory_subjectsRan)
+        filename = strcat('data_visualmemorymf_exp_',visualmemory_subjectsRan{i},'.mat');
+        possibleFileNames{i,1} = filename;
+    end
+    for i = 1:numel(possibleFileNames)
+        if exist(possibleFileNames{i,1},'file') == 1 ||exist(possibleFileNames{i,1},'file') == 2
+            load(possibleFileNames{i,1})
+            totalData{i} = theData;
+            fprintf('\nLoading %s',possibleFileNames{i,1})
         end
+    end
+
+    meancoll = []; % Mean Collinear %
+    meanorth = []; % Mean Orthoganal %
+    meanbase = []; % Mean Baseline %
+    trialDurations = [];
+    runDurations = [];
         
-        
-        % to set meancoll to blank first so that variable contains something
-        meancoll = [];
-        meanorth = [];
-        meanbase = [];
-        trialDurations = [];
-        runDurations = [];
-        
-        for runs = 1:length(TheData);
-            
-            %    accuracies = TheData(runs).data.DifferenceContrast;
-            accuracies = TheData(runs).data.EstimatedContrast;
-            
-            
-            contrast = TheData(runs).p.TrialEvents(:,2);
-            orientation = TheData(runs).p.TrialEvents(:,1);
-            
-            
-            trialDurations = [trialDurations; TheData(runs).data.ResponseTime];
-            runDurations = [runDurations; TheData(runs).t.EndTime];
-            
-            collinear = orientation == 1;
-            orthogonal = orientation == 2;
-            base = orientation == 3;
+        for runs = 1:length(theData)
+            %accuracies = TheData(runs).data.DifferenceContrast;
+            accuracies = theData(runs).data.EstimatedContrast;
+            contrast = theData(runs).p.trialEvents(:,3); %Actual contrast
+            %orientation = theData(runs).p.TrialEvents(:,1); -- We dont
+            %have orientation
+            trialDurations = [trialDurations; theData(runs).data.ResponseTime_Contrast]; %Either response time contrast or response time location, both??
+            %runDurations = [runDurations; theData(runs).t.EndTime];
+%             collinear = orientation == 1;
+%             orthogonal = orientation == 2;
+%             base = orientation == 3;
             
             %number of elements in this array
-            numContrasts = numel(TheData(runs).p.testContrasts);
+            numContrasts = numel(theData(runs).p.numContrasts);
             
-            for c = 1:numContrasts
-                % index of which trials have a specific contrast in them
-                %         contrastindex(:,c) = contrast == TheData(runs).p.testContrasts(c);
-                
-                %finding accuracies with collinear orientations and 5 different
-                % contrasts
-                collcontrasts(:,c) = (orientation == 1) & (contrast == TheData(runs).p.testContrasts(c));
-                collaccuracies(:,c) = (accuracies(collcontrasts(:,c)));
-                
-                %finding accuracies with orthogonal orientation and 5 different
-                %contrasts
-                orthcontrasts(:,c) = (orientation == 2) & (contrast == TheData(runs).p.testContrasts(c));
-                orthaccuracies(:,c) = (accuracies(orthcontrasts(:,c)));
-                
-                %finding accuracies with no surround and 5 different contrasts
-                basecontrasts(:,c) = (orientation == 3) & (contrast == TheData(runs).p.testContrasts(c));
-                baseaccuracies(:,c) = (accuracies(basecontrasts(:,c)));
-                
-                
-            end
-            
+%             for c = 1:numContrasts
+%                 %index of which trials have a specific contrast in them
+%                 %finding accuracies with collinear orientations and 5 different
+%                 %contrasts
+%                 collcontrasts(:,c) = (orientation == 1) & (contrast == TheData(runs).p.testContrasts(c));
+%                 collaccuracies(:,c) = (accuracies(collcontrasts(:,c)));
+%                 
+%                 %finding accuracies with orthogonal orientation and 5 different
+%                 %contrasts
+%                 orthcontrasts(:,c) = (orientation == 2) & (contrast == TheData(runs).p.testContrasts(c));
+%                 orthaccuracies(:,c) = (accuracies(orthcontrasts(:,c)));
+%                 
+%                 %finding accuracies with no surround and 5 different contrasts
+%                 basecontrasts(:,c) = (orientation == 3) & (contrast == TheData(runs).p.testContrasts(c));
+%                 baseaccuracies(:,c) = (accuracies(basecontrasts(:,c)));
+%                 
+%                 
+%             end
+%             
             % collect all the responses over multiple runs
-            meancoll = [meancoll; collaccuracies];
-            meanorth = [meanorth; orthaccuracies];
-            meanbase = [meanbase; baseaccuracies];
-            
-            clear collaccuracies orthaccuracies baseaccuracies collcontrasts orthcontrasts basecontrasts
-            
+%             meancoll = [meancoll; collaccuracies];
+%             %meanorth = [meanorth; orthaccuracies];
+%             meanbase = [meanbase; baseaccuracies];
+%             
+%             clear collaccuracies orthaccuracies baseaccuracies collcontrasts orthcontrasts basecontrasts
+%             
         end
         
         
-        responseDurations(e,subjCount) = mean(trialDurations);
+        %responseDurations(e,subjCount) = mean(trialDurations);
         
-        %mean over runs for baseline
-        runsbasemean(subjCount,:) = mean(meanbase);
-        %mean over runs for collinear
-        runscollmean(subjCount,:) = mean(meancoll);
-        %mean over runs for orthogonal
-        runsorthmean(subjCount,:) = mean(meanorth);
+%         %mean over runs for baseline
+%         runsbasemean(subjCount,:) = mean(meanbase); %Here do we want 5 values?
+%         %mean over runs for collinear
+%         runscollmean(subjCount,:) = mean(meancoll);
+%         %mean over runs for orthogonal
+%         runsorthmean(subjCount,:) = mean(meanorth);
         
-          
+%         runsbasemean = overallData.baselineForP;%Make sure its only the corresponding baseline data to the condition: wm/p
+%         runscollmean = overallData.perceptionmean; %change with workingmemmean
+
+%           runsbasemean = overallData.baselineforP;
+          runsbasemean = overallData.baselineForWM;
+          runscollmean = overallData.workingmemmat;
+          runscollmean = overallData.perceptionmat;
+       for subjCount = 1:numel(visualmemory_subjectsRan) 
         % fit individual data with Normalization model
         options = optimset('MaxFunEvals', 10000, 'MaxIter', 10000);
         
@@ -148,8 +134,9 @@ for e = 1:numel(experiments);
         startValues = [C50 n Wi_coll Wi_orth];
         
         % Fit Collinear and Orthogonal surround conditions together
-        Data = {C_Test, runsbasemean(subjCount,:), runscollmean(subjCount,:), runsorthmean(subjCount,:), C_Surround};
-        [est_params(e,subjCount,:), r2(e,subjCount)] = fminsearch('fitNormalizationModel_contrastMatchAll', startValues, options, Data);
+        
+        Data = {C_Test, runsbasemean(subjCount,:), runscollmean(subjCount,:), C_Surround};
+        [est_params(e,subjCount,:), r2(e,subjCount)] = fminsearch('fitNormalizationModel_contrastMatch', startValues, options, Data);
 
         Y_base = (C_Test.^est_params(e,subjCount,2)) ./ ... 
             ((est_params(e,subjCount,1).^est_params(e,subjCount,2)) + (C_Test.^est_params(e,subjCount,2)));
@@ -162,9 +149,10 @@ for e = 1:numel(experiments);
       
         r2_m = 1 - (sum((runsbasemean(subjCount,:) - Y_base).^2) / sum((runsbasemean(subjCount,:) - mean(runsbasemean(subjCount,:))).^2));
         r2_c = 1 - (sum((runscollmean(subjCount,:) - Y_coll).^2) / sum((runscollmean(subjCount,:) - mean(runscollmean(subjCount,:))).^2));
-        r2_o = 1 - (sum((runsorthmean(subjCount,:) - Y_orth).^2) / sum((runsorthmean(subjCount,:) - mean(runsorthmean(subjCount,:))).^2));
+%         r2_o = 1 - (sum((runsorthmean(subjCount,:) - Y_orth).^2) / sum((runsorthmean(subjCount,:) - mean(runsorthmean(subjCount,:))).^2));
         
-        indvR2(e,subjCount,:) = [r2_m r2_c r2_o];
+%         indvR2(e,subjCount,:) = [r2_m r2_c r2_o]; no othoganal
+indvR2(e,subjCount,:) = [r2_m r2_c];
 
         
         % plots
@@ -180,16 +168,17 @@ for e = 1:numel(experiments);
             ((est_params(e,subjCount,1).^est_params(e,subjCount,2)) + (C_fit.^est_params(e,subjCount,2)) + (est_params(e,subjCount,4)*(C_Surround.^est_params(e,subjCount,2))));
         
                       
-            subplot(2,round(numel(list)/2), subjCount)
+            subplot(2,round(numel(visualmemory_subjectsRan)/2), subjCount)
             
             % display fits
             loglog(C_fit, Y_coll, 'r') 
             hold all;
-            plot(C_fit, Y_orth, 'b')
+%             plot(C_fit, Y_orth, 'b')
 %             plot(C_fit, Y_base, 'k')
             % display data with errorbars
-            errorbar(TheData(runs).p.testContrasts, runscollmean(subjCount,:), std(meancoll), 'or');
-            errorbar(TheData(runs).p.testContrasts, runsorthmean(subjCount,:), std(meanorth) , 'ob');            
+%             errorbar(C_Test, runscollmean(subjCount,:), std(meancoll),
+%             'or'); %%% ADD MEANCOLL BACK IN
+%             errorbar(theData(runs).p.testContrasts, runsorthmean(subjCount,:), std(meanorth) , 'ob');            
 %             errorbar(TheData(runs).p.testContrasts, runsbasemean(subjCount,:), std(meanbase), '.k');
             ylim([0.05 0.8]); xlim([0.09 0.8]); box off
             % ylabel('Difference in perceived contrast')
@@ -198,7 +187,7 @@ for e = 1:numel(experiments);
             title(['Subject ' num2str(subjCount)]);
             axis square;
             if subjCount == numel(subjects)
-                legend({'collinear' 'orthogonal'})
+                legend('Collinear')
             end
                             
         end
@@ -207,18 +196,18 @@ for e = 1:numel(experiments);
         
         
     end
-    
+end
     %data pooled over subjects
     subjectsbasemean{e} = (runsbasemean);
     subjectscollmean{e} = (runscollmean);
-    subjectsorthmean{e} = (runsorthmean);    
+%     subjectsorthmean{e} = (runsorthmean);    
     
     %Suppression Index over subjects    
-    TotalSuppressionIndexColinear(e,1:numel(list),:) = ((runscollmean) - (runsbasemean))./((runscollmean) + (runsbasemean));
-    TotalSuppressionIndexOrthogonal(e,1:numel(list),:) = ((runsorthmean) - (runsbasemean))./((runsorthmean) + (runsbasemean));
+    TotalSuppressionIndexColinear(e,1:numel(visualmemory_subjectsRan),:) = ((runscollmean) - (runsbasemean))./((runscollmean) + (runsbasemean));
+%     TotalSuppressionIndexOrthogonal(e,1:numel(visualmemory_subjectsRan),:) = ((runsorthmean) - (runsbasemean))./((runsorthmean) + (runsbasemean));
     
     clear runsbasemean runscollmean runsorthmean
-end
+
 
 cd ..
 
@@ -227,14 +216,14 @@ figure('Color', [1 1 1]);
 % subplot(2,2,1)
 hold all;
 
-errorbar(TheData(runs).p.testContrasts, nanmean(squeeze(TotalSuppressionIndexColinear(1,:,:))), ...
-    nanstd(squeeze(TotalSuppressionIndexColinear(1,:,:)))/sqrt(numel(list)), 'ro-');
-errorbar(TheData(runs).p.testContrasts, nanmean(squeeze(TotalSuppressionIndexColinear(2,:,:))), ...
-    nanstd(squeeze(TotalSuppressionIndexColinear(2,:,:)))/sqrt(numel(list)), 'r:^');
-errorbar(TheData(runs).p.testContrasts, nanmean(squeeze(TotalSuppressionIndexOrthogonal(1,:,:))), ...
-    nanstd(squeeze(TotalSuppressionIndexOrthogonal(1,:,:)))/sqrt(numel(list)), 'bo-');
-errorbar(TheData(runs).p.testContrasts, nanmean(squeeze(TotalSuppressionIndexOrthogonal(2,:,:))), ...
-    nanstd(squeeze(TotalSuppressionIndexOrthogonal(2,:,:)))/sqrt(numel(list)), 'b:^');
+errorbar(C_Test, nanmean(squeeze(TotalSuppressionIndexColinear(1,:,:))), ...
+    nanstd(squeeze(TotalSuppressionIndexColinear(1,:,:)))/sqrt(numel(visualmemory_subjectsRan)), 'ro-');
+errorbar(C_Test, nanmean(squeeze(TotalSuppressionIndexColinear(2,:,:))), ...
+    nanstd(squeeze(TotalSuppressionIndexColinear(2,:,:)))/sqrt(numel(visualmemory_subjectsRan)), 'r:^');
+errorbar(C_Test, nanmean(squeeze(TotalSuppressionIndexOrthogonal(1,:,:))), ...
+    nanstd(squeeze(TotalSuppressionIndexOrthogonal(1,:,:)))/sqrt(numel(visualmemory_subjectsRan)), 'bo-');
+errorbar(C_Test, nanmean(squeeze(TotalSuppressionIndexOrthogonal(2,:,:))), ...
+    nanstd(squeeze(TotalSuppressionIndexOrthogonal(2,:,:)))/sqrt(numel(visualmemory_subjectsRan)), 'b:^');
 % plot(repmat(TheData(runs).p.testContrasts, [12 1]), (squeeze(TotalSuppressionIndexColinear(1,:,:))), 'ro');
 % plot(repmat(TheData(runs).p.testContrasts, [12 1]), (squeeze(TotalSuppressionIndexColinear(2,:,:))), 'ro');
 % plot(repmat(TheData(runs).p.testContrasts, [12 1]), (squeeze(TotalSuppressionIndexOrthogonal(1,:,:))), 'bo');
@@ -244,13 +233,13 @@ legend({'Coll Surround Suppression' 'Coll vWM Suppression' ...
     'Orth Surround Suppression' 'Orth vWM Suppression'})
 ylabel('Suppression Index ( (surround-nosurround)/(surround+nosurround) )')
 xlabel('Contrast (%)')
-set(gca, 'XTick', TheData(runs).p.testContrasts, 'XTickLabel', round(TheData(runs).p.testContrasts*100), 'XScale', 'log')
+set(gca, 'XTick', C_Test, 'XTickLabel', round(C_Test*100), 'XScale', 'log')
 xlim([0.09 0.8]); ylim([-0.15 0.15]); axis square
 
 SubjectDifferenceCollinear = squeeze(TotalSuppressionIndexColinear(1,:,:))- ...
     squeeze(TotalSuppressionIndexColinear(2,:,:));
-SubjectDifferenceOrthogonal = squeeze(TotalSuppressionIndexOrthogonal(1,:,:)) - ...
-    squeeze(TotalSuppressionIndexOrthogonal(2,:,:));
+% SubjectDifferenceOrthogonal = squeeze(TotalSuppressionIndexOrthogonal(1,:,:)) - ...
+%     squeeze(TotalSuppressionIndexOrthogonal(2,:,:));
 
 
 
@@ -258,11 +247,11 @@ SubjectDifferenceOrthogonal = squeeze(TotalSuppressionIndexOrthogonal(1,:,:)) - 
 % model fits
 figure('Color', [1 1 1])
 subplot(1,2,1)
-bar([indvR2(1,:,1)' indvR2(1,:,2)' indvR2(1,:,3)']')
+bar([indvR2(1,:,1)' indvR2(1,:,2)']')
 set(gca, 'xtickLabel', {'Baseline' 'Collinear' 'Orthogonal'})
 ylabel('R2'), box off; title('Perception');
 subplot(1,2,2)
-bar([indvR2(2,:,1)' indvR2(2,:,2)' indvR2(2,:,3)']')
+bar([indvR2(2,:,1)' indvR2(2,:,2)' ]')
 set(gca, 'xtickLabel', {'Baseline' 'Collinear' 'Orthogonal'})
 ylabel('R2'), legend(num2str([1:12]')); box off; title('Visual working memory');
 
