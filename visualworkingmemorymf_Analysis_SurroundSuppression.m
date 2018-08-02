@@ -22,7 +22,7 @@ numContrast = 5;
 numExperiments = numel(experiment);
 TotalSuppressionIndexColinear = NaN(numExperiments,numSubjects, numContrast);
 TotalSuppressionIndexOrthogonal = NaN(numExperiments,numSubjects, numContrast); % Not used here %
-subjAge = [19,19,24,24]; % Figure out and correct order %
+subjAge = [19,19,26,26]; % Figure out and correct order %
 
 
 % Model fit setup

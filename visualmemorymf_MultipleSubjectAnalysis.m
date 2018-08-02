@@ -337,5 +337,5 @@ overallData.workingmemmat = workingmemmat;
 overallData.baselineForWMMean = mean(avgdBL_WM);
 overallData.baselineForPMean = mean(avgdBL_P);
 overallData.perceptionmean = mean(perceptionmat);
-overallData.workingmemmat = mean(workingmemmat);
+overallData.workingmemmean = mean(workingmemmat);
 save(['data_visualmemorymf_overallData.mat'], 'overallData')
