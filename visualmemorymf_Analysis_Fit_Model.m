@@ -13,96 +13,71 @@ cd(dataDir)
 indvFiguresOn = 1;
 load('visualmemory_subjectsRan.mat')
 load('data_visualmemorymf_overallData.mat')
-experiments = {'visualmemorymf'};
+experiments = {'Perception Condition','Visual Working Memory'};
+% Load Relevant Subject files
+totalData = cell(1:numel(visualmemory_subjectsRan));
+files = struct2cell(dir(dataDir))';
+[numFiles, ~] = size(files);
+possibleFileNames = cell(length(visualmemory_subjectsRan),1);
+for i = 1:length(visualmemory_subjectsRan)
+      filename = strcat('data_visualmemorymf_exp_',visualmemory_subjectsRan{i},'.mat');
+      possibleFileNames{i,1} = filename;
+end
+for i = 1:numel(possibleFileNames)
+    if exist(possibleFileNames{i,1},'file') == 1 ||exist(possibleFileNames{i,1},'file') == 2
+       load(possibleFileNames{i,1})
+       totalData{i} = theData;
+       fprintf('\nLoading %s',possibleFileNames{i,1})
+    end
+end
 
-numContrast = 5;
-numExperiments = numel(experiments);
-numSubjects = round(numel(visualmemory_subjectsRan)); % Other code divided by 2... is that relevant?
-TotalSuppressionIndexColinear = NaN(numExperiments,numSubjects, numContrast);
-% TotalSuppressionIndexOrthogonal = NaN(numExperiments,numSubjects,
-% numContrast); - ORTHOGONAL
+numContrasts = 5;
+numExperiments = numel(experiments); % 2 experiments now, perception is 1 and working memory is 2...
+numSubjects = round(numel(visualmemory_subjectsRan)); % 4 subjects
+TotalSuppressionIndexVariable = NaN(numExperiments,numSubjects, numContrasts);
 subjAge = [19,19,26,26];
-
 
 % Model fit setup
 C_Test = 10.^(linspace(log10(0.1),log10(0.75), 5)); %Equivalent to center contrast variable.
 C_Surround = 1;
 C50 = .6;
 Wi = 0;
-Wi_coll = 0;
-Wi_orth = 0;
+Wi_var = 0;
 b = 0;
 n = 2;
 
+%% EXPERIMENT LOOP %%
 for e = 1:numel(experiments)
-    
-    % This whole section may not be necessary for us.
-    list = dir(experiments{e});
-    subjects = (1:4);
+    subjects = (1:4); %number of subjects
     subjCount = 0;
     
+    %Figure Title
     if indvFiguresOn
-        figure(e), if e  == 1, set(gcf, 'Name', 'Perception', 'Color', [1 1 1]), else set(gcf, 'Name', 'Visual working memory', 'Color', [1 1 1]), end
+        figure(e)
+        if e  == 1
+            set(gcf, 'Name', 'Perception', 'Color', [1 1 1])
+        elseif e == 2
+            set(gcf, 'Name', 'Visual working memory', 'Color', [1 1 1])
+        end
     end
     
-    %Subject loop
-    
+    %% SUBJECT LOOP %%
     for subject = subjects
-        subjCount = subjCount + 1;
-        
-        % Load Relevant Subject files
-        
-        totalData = cell(1:numel(visualmemory_subjectsRan));
-        files = struct2cell(dir(dataDir))';
-        [numFiles, ~] = size(files);
-        possibleFileNames = cell(length(visualmemory_subjectsRan),1);
-        for i = 1:length(visualmemory_subjectsRan)
-            filename = strcat('data_visualmemorymf_exp_',visualmemory_subjectsRan{i},'.mat');
-            possibleFileNames{i,1} = filename;
-        end
-        for i = 1:numel(possibleFileNames)
-            if exist(possibleFileNames{i,1},'file') == 1 ||exist(possibleFileNames{i,1},'file') == 2
-                load(possibleFileNames{i,1})
-                totalData{i} = theData;
-                fprintf('\nLoading %s',possibleFileNames{i,1})
-            end
-        end
-       
-        % Preallocate matrices
-        meancoll = []; % Re-name?
-        meanbase = [];
-        trialDurations = [];
-        runDurations = [];
-        
-        for runs = 1:length(theData) % 4 runs per person.
-%             
-%             trialDurations = [trialDurations; theData(runs).t.trialDur]; % estimated 11.8 seconds
-%             runDurations = [runDurations; theData(runs).t.runDur]; %estimated  2440 seconds
-        end
+        subjCount = subjCount + 1; % Subject Counter
 
-
-
-        % Calculating  mean accuracies (Estimated Contrast for perception
-        % and working memory, and then its corresponding baseline values.
-        % (one 5 value array per person), just call the perceptionmat,
-        % working memory mat, and corresponding baseline value mat.
-        
         %%%% our trial duration is an estimate (?) -- need to calculate the
         %%%% actual trial dur
-        %responseDurations(e,subjCount) = mean(trialDurations);
+        %    responseDurations(e,subjCount) = mean(trialDurations);
         
-        
-        % MEANS - estimated contrast for baseline and variable condition
-        % (coll)
-       
-        % Mean Est Contrast over runs for baseline
-        runsbasemean(subjCount,:) = overallData.baselineForP(subjCount,:); 
-        % runsbasemean(subjCount,:) = overallData.baselineforWM(subjCount,:); 
-        
-        % Mean Est Contrast over runs for variable
-        runscollmean(subjCount,:) = overallData.perceptionmat(subjCount,:);
-        %runscollmean(subjCount,:) = overallData.workingmemmat(subjCount,:);
-        
+        if e == 1
+            % Perception Experiment
+            baselineMat(subjCount,:) = overallData.baselineForP(subjCount,:);
+            variableMat(subjCount,:) = overallData.perceptionmat(subjCount,:);
+        elseif e == 2
+            % Working Memory Experiment
+            baselineMat(subjCount,:) = overallData.baselineForWM(subjCount,:);
+            variableMat(subjCount,:) = overallData.workingmemmat(subjCount,:);
+        end
           
         % fit individual data with Normalization model
         options = optimset('MaxFunEvals', 10000, 'MaxIter', 10000);
@@ -110,8 +85,8 @@ for e = 1:numel(experiments)
         % Use formula from Xing&Heeger 2001 to use baseline data to constrain alpha and n, and look for the inhibitory weight 
         % to explain the suppressive influence of the surround 
         indv_r2_coll = zeros(2,numel(subjects),2);
-        startValues = [C50 n Wi_coll Wi_orth];
-        
+        startValues = [C50 n Wi_var Wi_orth];
+        %% START HERE, wi_orth?
         % Fit Collinear and Orthogonal surround conditions together
         Data = {C_Test, runsbasemean(subjCount,:), runscollmean(subjCount,:), C_Surround};
         [est_params(e,subjCount,:), r2(e,subjCount)] = fminsearch('fitNormalizationModel_contrastMatch', startValues, options, Data);
