@@ -11,7 +11,7 @@ close all;
 expDir = pwd;
 dataDir = 'data_master';
 allP.experiment = 'exp';
-allP.subject = 'SL';
+allP.subject = 'JP';
 cd(dataDir)
 
 %Load run data
@@ -26,7 +26,7 @@ else
 end
 cd(expDir)
 %Plotting and Printing Settings
-plotVar = 1; %Set equal to 1 to display plots, equal to 0 to not display plots.
+plotVar = 0; %Set equal to 1 to display plots, equal to 0 to not display plots.
 printVar = 1; %Set equal to 0 to not print information, equal to 1 to print information.
 
 % Pre-allocate Data cells.
@@ -50,7 +50,8 @@ else
     if condIndex > 24
         condIndex = condIndex - 24; %The condition order resets after 24, this matches to the reset.
     end
-    subjectCondSchedule = visualmemory_condition_order(condIndex,:); %Gives the current condition schedule, indexes to the row we are on, columns 1-4 represent the condition for each run
+    subjectCondSchedule = theData(1).p.trialSchedule;
+    %subjectCondSchedule = visualmemory_condition_order(condIndex,:); %Gives the current condition schedule, indexes to the row we are on, columns 1-4 represent the condition for each run
 end
 
 %Save out Relevant Information, 3 for bl+percep+wm
@@ -369,7 +370,7 @@ subject.avgDiffLoc = nan(nTrials,theData(1).p.numContrasts,3);
             title('WORKING MEMORY')
             hold on
             plot(1:length(workingmem.Data),repelem(subject.avgDiffLoc(nRun,:,2),20),'Linewidth',2);
-            legend('Estimated Contrast','Actual Contrast','Avg. Estimated Contrast');
+%            legend('Estimated Contrast','Actual Contrast','Avg. Estimated Contrast');
             hold off
             
             % Histogram Plots of Location Difference for each Contrast %
@@ -382,7 +383,7 @@ subject.avgDiffLoc = nan(nTrials,theData(1).p.numContrasts,3);
                 line([subject.avgDiffLoc(nRun,i,2) subject.avgDiffLoc(nRun,i,2)],ylim,'Linewidth',1.75,'Color','g')
                 hold off
                 title(sprintf('Histogram for %.2f Trials',workingmem.contTE(1,3,i)))
-                legend('Est. Contrast Bins','Actual Contrast','Avg. Est Contrast')
+%                legend('Est. Contrast Bins','Actual Contrast','Avg. Est Contrast')
             end
         end
     end    
@@ -584,7 +585,7 @@ end
         elseif exist('notNanPer','var') == 1 &&  exist('notNanWM','var') == 0
             legend('Baseline','Perception','Log Scale')
         else
-            legend('Baseline','Perception','Working Memory','Log Scale')
+%            legend('Baseline','Perception','Working Memory','Log Scale')
         end
         hold off 
         

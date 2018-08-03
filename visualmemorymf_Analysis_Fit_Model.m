@@ -1,20 +1,21 @@
-
-% trialEvents = TheData(runs).p.TrialEvents;
-% differenceContrast = TheData(1).data.DifferenceContrast;
-
 close all
 clear all
+
 %% SETUP %%
-expDir = '/Users/juliaschwartz/Desktop/visualmemorymf';
+
+%expDir = '/Users/juliaschwartz/Desktop/visualmemorymf'; %Lab computer
+expDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf'; %Laptop
 p = genpath(expDir);
 addpath(p);
-dataDir = '/Users/juliaschwartz/Desktop/visualmemorymf/data_master';
+%dataDir = '/Users/juliaschwartz/Desktop/visualmemorymf/data_master'; %Lab computer
+dataDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf/data_master'; %Laptop
 cd(dataDir)
-indvFiguresOn = 1;
+indvFiguresOn = 1; %Display plots
 load('visualmemory_subjectsRan.mat')
 load('data_visualmemorymf_overallData.mat')
 experiments = {'Perception Condition','Visual Working Memory'};
-% Load Relevant Subject files
+
+% Load Subject files
 totalData = cell(1:numel(visualmemory_subjectsRan));
 files = struct2cell(dir(dataDir))';
 [numFiles, ~] = size(files);
@@ -48,7 +49,7 @@ n = 2;
 
 %% EXPERIMENT LOOP %%
 for e = 1:numel(experiments)
-    subjects = (1:4); %number of subjects
+    subjects = (1:numel(visualmemory_subjectsRan)); %number of subjects
     subjCount = 0;
     
     %Figure Title
@@ -57,7 +58,7 @@ for e = 1:numel(experiments)
         if e  == 1
             set(gcf, 'Name', 'Perception', 'Color', [1 1 1])
         elseif e == 2
-            set(gcf, 'Name', 'Visual working memory', 'Color', [1 1 1])
+            set(gcf, 'Name', 'Visual Working Memory', 'Color', [1 1 1])
         end
     end
     
@@ -65,10 +66,12 @@ for e = 1:numel(experiments)
     for subject = subjects
         subjCount = subjCount + 1; % Subject Counter
 
-        %%%% our trial duration is an estimate (?) -- need to calculate the
-        %%%% actual trial dur
-        %    responseDurations(e,subjCount) = mean(trialDurations);
+        % our trial duration is an estimate, calculations for actual trial
+        % duration.
+        % responseDurations(e,subjCount) = mean(trialDurations);
         
+        % Perception or vWM matrices for average baseline/variable
+        % responses per subject.
         if e == 1
             % Perception Experiment
             baselineMat(subjCount,:) = overallData.baselineForP(subjCount,:);
@@ -84,77 +87,77 @@ for e = 1:numel(experiments)
         
         % Use formula from Xing&Heeger 2001 to use baseline data to constrain alpha and n, and look for the inhibitory weight 
         % to explain the suppressive influence of the surround 
+        % Wi: suppression weight
+        % C50: inflection point
+        % n: nonlinear transducer, determining steepness
+        
         indv_r2_coll = zeros(2,numel(subjects),2);
-        startValues = [C50 n Wi_var Wi_orth];
-        %% START HERE, wi_orth?
-        % Fit Collinear and Orthogonal surround conditions together
-        Data = {C_Test, runsbasemean(subjCount,:), runscollmean(subjCount,:), C_Surround};
+        startValues = [C50 n Wi_var];
+       
+        %% FIT: Variable and Baseline Conditions per experiment %%
+        Data = {C_Test, baselineMat(subjCount,:), variableMat(subjCount,:), C_Surround};
         [est_params(e,subjCount,:), r2(e,subjCount)] = fminsearch('fitNormalizationModel_contrastMatch', startValues, options, Data);
-
+        % Estimated parameters:
+        % rows(experiment),col(subject),page(contrast?)
+        
+        % Fit Y data based off of estimated parameters
         Y_base = (C_Test.^est_params(e,subjCount,2)) ./ ... 
             ((est_params(e,subjCount,1).^est_params(e,subjCount,2)) + (C_Test.^est_params(e,subjCount,2)));
         
-        Y_coll = (C_Test.^est_params(e,subjCount,2)) ./ ... 
+        Y_var = (C_Test.^est_params(e,subjCount,2)) ./ ... 
             ((est_params(e,subjCount,1).^est_params(e,subjCount,2)) + (C_Test.^est_params(e,subjCount,2)) + (est_params(e,subjCount,3))*(C_Surround.^est_params(e,subjCount,2)));
-      
-%         Y_orth = (C_Test.^est_params(e,subjCount,2)) ./ ... 
-%             ((est_params(e,subjCount,1).^est_params(e,subjCount,2)) + (C_Test.^est_params(e,subjCount,2)) + (est_params(e,subjCount,4))*(C_Surround.^est_params(e,subjCount,2)));
-      
-        r2_m = 1 - (sum((runsbasemean(subjCount,:) - Y_base).^2) / sum((runsbasemean(subjCount,:) - mean(runsbasemean(subjCount,:))).^2));
-        r2_c = 1 - (sum((runscollmean(subjCount,:) - Y_coll).^2) / sum((runscollmean(subjCount,:) - mean(runscollmean(subjCount,:))).^2));
-%         r2_o = 1 - (sum((runsorthmean(subjCount,:) - Y_orth).^2) / sum((runsorthmean(subjCount,:) - mean(runsorthmean(subjCount,:))).^2));
         
-        indvR2(e,subjCount,:) = [r2_m r2_c];
+        % R^2 values for baseline and variable condition
+        r2_BL = 1 - (sum((baselineMat(subjCount,:) - Y_base).^2) / sum((baselineMat(subjCount,:) - mean(baselineMat(subjCount,:))).^2));
+        r2_V = 1 - (sum((variableMat(subjCount,:) - Y_var).^2) / sum((variableMat(subjCount,:) - mean(variableMat(subjCount,:))).^2));
 
-        %% plots %%
-        %Difference in perceived contrast compared to test contrast
+        indvR2(e,subjCount,:) = [r2_BL r2_V];
+
+        %% PLOTTING %%
+        
+        %Difference in perceived contrast compared to center contrast
         if indvFiguresOn
-            
             C_fit = 0.1:0.01:0.8;
-            
-            Y_coll = (C_fit.^est_params(e,subjCount,2)) ./ ... 
+            Y_var = (C_fit.^est_params(e,subjCount,2)) ./ ... 
             ((est_params(e,subjCount,1).^est_params(e,subjCount,2)) + (C_fit.^est_params(e,subjCount,2)) + (est_params(e,subjCount,3)*(C_Surround.^est_params(e,subjCount,2)))); 
-                      
+            %Dispaly Fits 
             subplot(2,round(numel(visualmemory_subjectsRan)/2), subjCount)
-            
-            % display fits
-            loglog(C_fit, Y_coll, 'r') 
+            loglog(C_fit, Y_var, 'r') 
             hold all;
-%             plot(C_fit, Y_orth, 'b')
-%             plot(C_fit, Y_base, 'k')
-            % display data with errorbars
+            %plot(C_fit, Y_base, 'k')
+            
+            plot(C_Test,variableMat(subjCount,:))
+            % DISPLAY DATA WITH ERROR BARS, COME BACK AND EXPORT FULL DATA
             % dont have meancoll - need to go back into data and analysis
             % and export !!!!!
-            plot(C_Test,runscollmean(subjCount,:))
-%            errorbar(C_Test, runscollmean(subjCount,:), std(meancoll), 'or');
-%             errorbar(TheData(runs).p.testContrasts, runsorthmean(subjCount,:), std(meanorth) , 'ob');            
-%             errorbar(TheData(runs).p.testContrasts, runsbasemean(subjCount,:), std(meanbase), '.k');
+            % errorbar(C_Test, runscollmean(subjCount,:), std(meancoll), 'or');
+            % errorbar(TheData(runs).p.testContrasts, runsorthmean(subjCount,:), std(meanorth) , 'ob');            
+            % errorbar(TheData(runs).p.testContrasts, runsbasemean(subjCount,:), std(meanbase), '.k');
             hold on
             ylim([0.05 0.8]); xlim([0.09 0.8]); box off
-            % ylabel('Difference in perceived contrast')
-%             ylabel('Perceived contrast'); xlabel('Contrast');
+            ylabel('Perceived Contrast')
+            xlabel('Center Contrast');
             plot([0.09 0.8], [0.09, 0.8], 'k-');
             title(['Subject ' num2str(subjCount)]);
             axis square;
-            if subjCount == numel(subjects)
-                legend('Variable Condition')
-            end               
+            legend('Variable Condition') 
         end
-        %runTime(e,subjCount) = mean(runDurations); %% NEED TO CALCULATE
-        %RUN TIME
-    end
-    %% End of subject loop %%
+    end % END OF SUBJECT LOOP %
     
-    %data pooled over subjects
-    subjectsbasemean{e} = (runsbasemean);
-    subjectscollmean{e} = (runscollmean);    
+    % Avg. Data pooled over subjects %
+    if e == 1
+        subjectsbasemean{e} = (overallData.baselineForPMean);
+        subjectsvarmean{e} = (overallData.perceptionmean);    
+    elseif e == 2
+        subjectsbasemean{e} = (overallData.baselineForWMMean);
+        subjectsvarmean{e} = (overallData.workingmemmean); 
+    end
     
     %Suppression Index over subjects    
-    TotalSuppressionIndexColinear(e,1:numel(visualmemory_subjectsRan),:) = ((runscollmean) - (runsbasemean))./((runscollmean) + (runsbasemean)); 
-    clear runsbasemean runscollmean runsorthmean
+    TotalSuppressionIndexColinear(e,1:numel(visualmemory_subjectsRan),:) = ((variableMat) - (baselineMat))./((variableMat) + (baselineMat)); 
+  clear baselineMat variableMat
 end
-%% 
-cd ..
+%% END OF EXPERIMENT LOOP %%
 
 
 figure('Color', [1 1 1]);
@@ -262,10 +265,10 @@ figure('Color', [1 1 1], 'Name', 'Perceived Contrast')
 for n = 1 % perception / vwm
     subplot(1,3,n)
     
-    Y_coll(n,:) = (C_fit.^mean(est_params(n,:,2))) ./ ...
+    Y_var(n,:) = (C_fit.^mean(est_params(n,:,2))) ./ ...
         ((mean(est_params(n,:,1)).^mean(est_params(n,:,2))) + (C_fit.^mean(est_params(n,:,2))) + (mean(est_params(n,:,3))*(C_Surround.^mean(est_params(n,:,2)))));
     
-    y_data_coll = mean(subjectscollmean{n});
+    y_data_coll = mean(subjectsvarmean{n});
     
     ((mean(est_params(n,:,1)).^mean(est_params(n,:,2))) + (C_fit.^mean(est_params(n,:,2))) + (mean(est_params(n,:,4))*(C_Surround.^mean(est_params(n,:,2)))));
 
@@ -276,7 +279,7 @@ for n = 1 % perception / vwm
     hold all 
     loglog(C_Test, Y_data_base, '.k')
 
-    errorbar(C_Test, mean(subjectscollmean{n}), 1*(std(subjectscollmean{n})/sqrt(4)), '-or')
+    errorbar(C_Test, mean(subjectsvarmean{n}), 1*(std(subjectsvarmean{n})/sqrt(4)), '-or')
     errorbar(C_Test, mean(subjectsbasemean{n}), 1*(std(subjectsbasemean{n})/sqrt(4)), '-ok')
     
     plot([0.1 0.8], [0.1 0.8], ':k')
