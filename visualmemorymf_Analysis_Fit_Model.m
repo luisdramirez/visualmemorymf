@@ -120,6 +120,7 @@ for e = 1:numel(experiments)
             C_fit = 0.1:0.01:0.8;
             Y_var = (C_fit.^est_params(e,subjCount,2)) ./ ... 
             ((est_params(e,subjCount,1).^est_params(e,subjCount,2)) + (C_fit.^est_params(e,subjCount,2)) + (est_params(e,subjCount,3)*(C_Surround.^est_params(e,subjCount,2)))); 
+            
             %Dispaly Fits 
             subplot(2,round(numel(visualmemory_subjectsRan)/2), subjCount)
             loglog(C_fit, Y_var, 'r') 
@@ -154,41 +155,28 @@ for e = 1:numel(experiments)
     end
     
     %Suppression Index over subjects    
-    TotalSuppressionIndexColinear(e,1:numel(visualmemory_subjectsRan),:) = ((variableMat) - (baselineMat))./((variableMat) + (baselineMat)); 
+    TotalSuppressionIndexVariable(e,1:numel(visualmemory_subjectsRan),:) = ((variableMat) - (baselineMat))./((variableMat) + (baselineMat)); 
   clear baselineMat variableMat
 end
 %% END OF EXPERIMENT LOOP %%
 
-
+%Plot contrast
 figure('Color', [1 1 1]);
-% subplot(2,2,1)
 hold all;
-
-errorbar(C_Test, nanmean(squeeze(TotalSuppressionIndexColinear(1,:,:))), ...
-    nanstd(squeeze(TotalSuppressionIndexColinear(1,:,:)))/sqrt(numel(visualmemory_subjectsRan)), 'ro-');
-% errorbar(C_Test, nanmean(squeeze(TotalSuppressionIndexColinear(2,:,:))), ...
-%     nanstd(squeeze(TotalSuppressionIndexColinear(2,:,:)))/sqrt(numel(visualmemory_subjectsRan)),
-%     'r:^'); % % the second row represents second experiment we dont have
-%     this
-% errorbar(TheData(runs).p.testContrasts, nanmean(squeeze(TotalSuppressionIndexOrthogonal(1,:,:))), ...
-%     nanstd(squeeze(TotalSuppressionIndexOrthogonal(1,:,:)))/sqrt(numel(list)), 'bo-');
-% errorbar(TheData(runs).p.testContrasts, nanmean(squeeze(TotalSuppressionIndexOrthogonal(2,:,:))), ...
-%     nanstd(squeeze(TotalSuppressionIndexOrthogonal(2,:,:)))/sqrt(numel(list)), 'b:^');
-% plot(repmat(TheData(runs).p.testContrasts, [12 1]), (squeeze(TotalSuppressionIndexColinear(1,:,:))), 'ro');
-% plot(repmat(TheData(runs).p.testContrasts, [12 1]), (squeeze(TotalSuppressionIndexColinear(2,:,:))), 'ro');
-% plot(repmat(TheData(runs).p.testContrasts, [12 1]), (squeeze(TotalSuppressionIndexOrthogonal(1,:,:))), 'bo');
-% plot(repmat(TheData(runs).p.testContrasts, [12 1]), (squeeze(TotalSuppressionIndexOrthogonal(2,:,:))), 'bo');
-
-legend({'Coll Surround Suppression' 'Coll vWM Suppression'})
-ylabel('Suppression Index ( (surround-nosurround)/(surround+nosurround) )')
-xlabel('Contrast (%)')
-set(gca, 'XTick', C_Test, 'XTickLabel', round(C_Test*100), 'XScale', 'log')
-xlim([0.09 0.8]); ylim([-0.15 0.15]); axis square
-
-% SubjectDifferenceCollinear = squeeze(TotalSuppressionIndexColinear(1,:,:))- ...
-%     squeeze(TotalSuppressionIndexColinear(2,:,:));
-% SubjectDifferenceOrthogonal = squeeze(TotalSuppressionIndexOrthogonal(1,:,:)) - ...
-%     squeeze(TotalSuppressionIndexOrthogonal(2,:,:));
+for e = 1:numel(experiments)
+    errorbar(C_Test, nanmean(squeeze(TotalSuppressionIndexVariable(e,:,:))), ...
+        nanstd(squeeze(TotalSuppressionIndexVariable(e,:,:)))/sqrt(numel(visualmemory_subjectsRan)), 'ko-');
+    plot(repmat(C_Test, [4 1]), (squeeze(TotalSuppressionIndexVariable(e,:,:))), 'ro');
+    if e == 1
+        legend('Perception Surround Suppression')
+    elseif e == 2
+        legend('vWM Surround Suppression')
+    end
+    ylabel('Suppression Index ( (surround-nosurround)/(surround+nosurround) )')
+    xlabel('Contrast (%)')
+    set(gca, 'XTick', C_Test, 'XTickLabel', round(C_Test*100), 'XScale', 'log')
+    xlim([0.09 0.8]); ylim([-0.15 0.15]); axis square
+end
 
 
 
