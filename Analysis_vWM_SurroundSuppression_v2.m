@@ -269,7 +269,7 @@ ylabel('R2'), legend(num2str([1:12]')); box off; title('Visual working memory');
 
 figure('Color', [1 1 1])
 subplot(1,4,1)
-% c50 -
+% c50 - Perception
 bar(1:2, mean(squeeze(est_params(:,:,1)),2))
 hold all
 handles = get(gca, 'Children');
@@ -282,7 +282,7 @@ set(gca, 'Xtick', [1 2], 'XtickLabel', {'Perc' 'vWM'})
 title('C50 - no surround condition')
 
 subplot(1,4,2)
-% c50 -
+% c50 - VWM
 bar(1:2, mean(squeeze(est_params(:,:,2)),2))
 hold all
 handles = get(gca, 'Children');
@@ -294,17 +294,18 @@ plot(repmat([1 2], [12 1]), (squeeze(est_params(:,:,2)))', 'ok')
 set(gca, 'Xtick', [1 2], 'XtickLabel', {'Perc' 'vWM'})
 title('n - no surround condition')
 
-subplot(1,4,3)
-bar([0 1.3], mean(est_params(:,:,3),2), 0.3);
-hold all
-bar([0.5 1.8], mean(est_params(:,:,4),2), 0.3)
-handles = get(gca, 'Children');
-set(handles(1), 'FaceColor', [0 0 1], 'EdgeColor', 'none'); set(handles(2), 'FaceColor', [1 0 0], 'EdgeColor', 'none')
-errorbar([0 1.3 0.5 1.8], [mean(est_params(:,:,3),2)' mean(est_params(:,:,4),2)'], ...
-    [std(est_params(:,:,3),[], 2)'/sqrt(subjCount) std(est_params(:,:,4),[],2)'/sqrt(subjCount)], 'k.')
-plot(repmat([0 1.3 0.5 1.8], [12 1]), [est_params(:,:,3)' est_params(:,:,4)'], 'ok');
-box off; xlim([-0.5 2.5]); set(gca, 'Xtick', [0.25 1.55], 'XtickLabel', {'Perc' 'vWM'})
-title('Parameter surround conditions')
+% subplot(1,4,3)
+% %c50 orthogonal take out
+% bar([0 1.3], mean(est_params(:,:,3),2), 0.3);
+% hold all
+% bar([0.5 1.8], mean(est_params(:,:,4),2), 0.3)
+% handles = get(gca, 'Children');
+% set(handles(1), 'FaceColor', [0 0 1], 'EdgeColor', 'none'); set(handles(2), 'FaceColor', [1 0 0], 'EdgeColor', 'none')
+% errorbar([0 1.3 0.5 1.8], [mean(est_params(:,:,3),2)' mean(est_params(:,:,4),2)'], ...
+%     [std(est_params(:,:,3),[], 2)'/sqrt(subjCount) std(est_params(:,:,4),[],2)'/sqrt(subjCount)], 'k.')
+% plot(repmat([0 1.3 0.5 1.8], [12 1]), [est_params(:,:,3)' est_params(:,:,4)'], 'ok');
+% box off; xlim([-0.5 2.5]); set(gca, 'Xtick', [0.25 1.55], 'XtickLabel', {'Perc' 'vWM'})
+% title('Parameter surround conditions')
 
 subplot(1,4,4)
 h1 = scatter(est_params(1,:,3), est_params(2,:,3));

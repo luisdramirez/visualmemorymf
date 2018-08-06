@@ -8,10 +8,10 @@
 %% SETUP %%
 clear;
 close all;
-%expDir = '/Users/juliaschwartz/Desktop/visualmemorymf'; %Lab computer
-expDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf'; %Laptop
-%dataDir = '/Users/juliaschwartz/Desktop/visualmemorymf/data_master'; %Lab computer
-dataDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf/data_master'; %Laptop
+expDir = '/Users/juliaschwartz/Desktop/visualmemorymf'; %Lab computer
+%expDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf'; %Laptop
+dataDir = '/Users/juliaschwartz/Desktop/visualmemorymf/data_master'; %Lab computer
+%dataDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf/data_master'; %Laptop
 cd(dataDir)
 load('visualmemory_condition_order')
 load('visualmemory_subjectsRan')  
@@ -237,6 +237,7 @@ if plotVar ~= 0
                 py = mean(master_subjectData{i,2}.perceptionmat,1);
                 errorbar(centerContrast,py,perror,'LineWidth',1.25,'Color','red')
             end
+            overallData.perror(i,:) = perror;
             hold on
             loglog([0.1 0.8],[0.1 0.8],'k--') %log scale line
             set(gca,'YScale','log','XScale','log')
@@ -262,6 +263,7 @@ if plotVar ~= 0
                 wmy = mean(master_subjectData{i,2}.workingmemmat,1);
                 errorbar(centerContrast,wmy,wmerror,'LineWidth',1.25,'Color','red')
             end
+            overallData.wmerror(i,:) = wmerror;
             hold on
             loglog([0.1 0.8],[0.1 0.8],'k--') %log scale line
             set(gca,'YScale','log','XScale','log')
