@@ -123,23 +123,16 @@ for e = 1:numel(experiments)
 
             %Display Fits 
             subplot(2,round(numel(visualmemory_subjectsRan)/2), subjCount)
-             
+            loglog(C_fit, Y_var, 'r')
+            hold all
+            loglog(C_Test,Y_base,'b')
+            legend({'Variable Fit','Baseline Fit'})
+            hold all;
             if e == 1
-                errorbar(C_Test,Y_var1,overallData.perror(subjCount,:),'ob');
+                errorbar(C_Test,Y_var1,overallData.perror(subjCount,:),'or');
             elseif e == 2
                 errorbar(C_Test,Y_var1,overallData.wmerror(subjCount,:),'or');
             end
-            hold all;
-            loglog(C_fit, Y_var, 'r')
-            %plot(C_fit, Y_base, 'k')
-            
-            %plot(C_Test,variableMat(subjCount,:))
-            % DISPLAY DATA WITH ERROR BARS, COME BACK AND EXPORT FULL DATA
-            % dont have meancoll - need to go back into data and analysis
-            % and export !!!!!
-            % errorbar(C_Test, runscollmean(subjCount,:), std(meancoll), 'or');
-            % errorbar(TheData(runs).p.testContrasts, runsorthmean(subjCount,:), std(meanorth) , 'ob');            
-            % errorbar(TheData(runs).p.testContrasts, runsbasemean(subjCount,:), std(meanbase), '.k');
             hold on
             ylim([0.05 0.8]); xlim([0.09 0.8]); box off
             ylabel('Perceived Contrast')
@@ -148,6 +141,7 @@ for e = 1:numel(experiments)
             title(['Subject ' num2str(subjCount)]);
             axis square;
             legend('Variable Condition','Baseline Condition') 
+            set(gca,'YScale','log','XScale','log')
         end
     end % END OF SUBJECT LOOP %
     
@@ -168,27 +162,30 @@ for e = 1:numel(experiments)
 end
 %% END OF EXPERIMENT LOOP %%
 
-%Plot contrast
+% Suppression Index %
+hold off
 figure('Color', [1 1 1]);
+set(gcf, 'Name', sprintf('Suppression Index: Perception vs. Working Memory'));
 hold all;
-for e = 1:numel(experiments)
-    if e == 1, color = 'or'; else , color = ' ob'; end %red is perception, blue is wm
-    plot(repmat(C_Test, [4 1]), (squeeze(TotalSuppressionIndexVariable(e,:,:))),color);
-    ylabel('Suppression Index ( (surround-nosurround)/(surround+nosurround) )')
-    xlabel('Contrast (%)')
-    set(gca, 'XTick', C_Test, 'XTickLabel', round(C_Test*100), 'XScale', 'log')
-    xlim([0.09 0.8]); ylim([-0.3 0.3]); axis square
-    plot([0.09 0.8], [0 0], ':k')
-end
+errorbar(C_Test, nanmean(squeeze(TotalSuppressionIndexVariable(1,:,:))), ...
+        nanstd(squeeze(TotalSuppressionIndexVariable(1,:,:)))/sqrt(numel(visualmemory_subjectsRan)), 'ko-'); 
+errorbar(C_Test, nanmean(squeeze(TotalSuppressionIndexVariable(2,:,:))), ...
+        nanstd(squeeze(TotalSuppressionIndexVariable(2,:,:)))/sqrt(numel(visualmemory_subjectsRan)), 'ro-');  
+plot(repmat(C_Test, [4 1]), (squeeze(TotalSuppressionIndexVariable(1,:,:))),'ko');
+plot(repmat(C_Test, [4 1]), (squeeze(TotalSuppressionIndexVariable(2,:,:))),'ro');
+hold on
+plot([0.09 0.8],[0 0],':k')
+ylabel('Suppression Index (surround-nosurround)/(surround+nosurround)'); 
+xlabel('Contrast (%)');
+xlim([0.09 0.8]);
+ylim([-0.3 0.3]);
+axis square;
+legend({'Perception Condition','Working Memory Condition'})
 
-for e = 1:numel(experiments),errorbar(C_Test, nanmean(squeeze(TotalSuppressionIndexVariable(e,:,:))), ...
-        nanstd(squeeze(TotalSuppressionIndexVariable(e,:,:)))/sqrt(numel(visualmemory_subjectsRan)), 'ko-'); end
-legend({'Perception Error','WM Error','Perception','WM'})
-
-%%% Plot model Parameters
-% R^2
+% R^2 %
 figure('Color', [1 1 1])
-title('R^2 Value Per subject Condition')
+set(gcf, 'Name', sprintf('R Squared Value'));
+title('R^2 Value Per Subject Condition')
 subplot(1,2,1)
 bar([indvR2(1,:,1)' indvR2(1,:,2)']') %first page is baseline, first row is perception condition
 set(gca, 'xtickLabel', {'Baseline' 'Perception'})
@@ -196,10 +193,11 @@ ylabel('R2'), box off; title('Perception');
 subplot(1,2,2)
 bar([indvR2(2,:,1)' indvR2(2,:,2)']')
 set(gca, 'xtickLabel', {'Baseline' 'Working Memory'})
-ylabel('R2'), legend(num2str((1:4)')); box off; title('Visual working memory');
+ylabel('R2'), legend(strcat('Subject ',num2str((1:4)'))); box off; title('Visual working memory');
 
 % c50 - both perception and working memory conditions
 figure('Color', [1 1 1])
+set(gcf, 'Name', sprintf('C50, N, Gamma vs. Surround, & Gamma Estimate '));
 subplot(1,4,1)
 bar(1:2, mean(squeeze(est_params(:,:,1)),2)') %page 1 is c50
 hold all
@@ -223,24 +221,20 @@ errorbar([1 2], [mean(squeeze(est_params(1,:,2))) mean(squeeze(est_params(2,:,2)
     [std(squeeze(est_params(1,:,2)))/sqrt(subjCount) std(squeeze(est_params(2,:,2)))/sqrt(subjCount)], 'k.')
 plot(repmat([1 2], [4 1]), (squeeze(est_params(:,:,2)))', 'ok')
 set(gca, 'Xtick', [1 2], 'XtickLabel', {'Perc' 'vWM'})
-title('n')
+title('N')
 
 subplot(1,4,3)
 % Wi est - both perception and working memory conditions
-bar([0 1.3], mean(est_params(:,:,3),2), 0.3);
+bar([0 1.0], mean(est_params(:,:,3),2), 0.3);
 hold all
 handles = get(gca, 'Children');
 set(handles(1), 'FaceColor', [0 0 1], 'EdgeColor', 'none'); 
-errorbar([0 1.3], [mean(est_params(:,:,3),2)'], ...
-    [std(est_params(:,:,3),[], 2)'/sqrt(subjCount)], 'k.')
-plot(repmat([0 1.3 ], [4 1]), [est_params(:,:,3)'], 'ok');
-box off; xlim([-0.5 1.5]); set(gca, 'Xtick', [0.25 1.55], 'XtickLabel', {'Perc' 'vWM'})
-title('Parameter surround conditions')
-%the third and fourth page were collinear (our variable) and orthogonal,
-%fourth deleted
+errorbar([0 1], mean(est_params(:,:,3),2)',std(est_params(:,:,3),[], 2)'/sqrt(subjCount), 'k.')
+plot(repmat([0 1.0], [4 1]), est_params(:,:,3)', 'ok');
+box off; xlim([-0.5 1.5]); set(gca, 'Xtick', [0 1], 'XtickLabel', {'Perc' 'vWM'})
+title('Surround Induced Normalization')
 
-
-% h1, h2
+% Gamma Estimate
 subplot(1,4,4)
 h1 = scatter(est_params(1,:,3), est_params(2,:,3));
 hold all
@@ -252,27 +246,30 @@ plot([0 0], [-0.4 0.4], ':k', [-0.4 0.4], [0 0 ], ':k')
 ylabel('Visual working memory'), xlabel('Perception'); title('Gamma estimate')
 legend('Variable')
 
+%% Plot perceived contrast over observers, with estimated fit %%
 
-
-%% Final figure paper: plot perceived contrast over observers, with estimated fit
 figure('Color', [1 1 1], 'Name', 'Perceived Contrast')
-for  n = 1:2 % EITHER perception / vwm
+for  n = 1:2 
     subplot(1,2,n)
     Y_var(n,:) = (C_fit.^mean(est_params(n,:,2))) ./ ...
         ((mean(est_params(n,:,1)).^mean(est_params(n,:,2))) + (C_fit.^mean(est_params(n,:,2))) + (mean(est_params(n,:,3))*(C_Surround.^mean(est_params(n,:,2)))));
-    y_data_var = mean(subjectsvarmean{n});
-    y_data_base = mean(subjectsbasemean{n}); 
-    % plot
+    y_data_var = subjectsvarmean{n};
+    y_data_base = subjectsbasemean{n}; 
+    errorbar(C_Test, subjectsvarmean{n}, 1*(std(totalvarMat(:,:,n))/sqrt(numSubjects)), '-or')
+    hold all
+    errorbar(C_Test, subjectsbasemean{n}, 1*(std(totalbaselineMat(:,:,n))/sqrt(numSubjects)), '-ok')
     loglog(C_Test, y_data_var, '.r')
     hold all 
     loglog(C_Test, y_data_base, '.k')
-    errorbar(C_Test, subjectsvarmean{n}, 1*(std(totalvarMat(:,:,n))/sqrt(numSubjects)), '-or')
-    errorbar(C_Test, subjectsbasemean{n}, 1*(std(totalbaselineMat(:,:,n))/sqrt(numSubjects)), '-ok')
     plot([0.1 0.8], [0.1 0.8], ':k')
     xlim([0.1 0.8]), ylim([0.1 0.8])
-    if  n ==1, title('Perception'), legend({'Collinear', 'No surround'})
-    else ,title('Visual working memory'), end
+    if  n == 1
+        title('Perception'), legend({'Perception Condition', 'Baseline Condition'},'Location','northwest')
+    elseif n == 2 
+        title('Visual working memory'), legend({'Working Memory Condition', 'Baseline Condition'},'Location','northwest')
+    end
     ylabel('Perceived contrast'); xlabel('Center Contrast'); axis square; box off
+    set(gca,'YScale','log','XScale','log')
 end
 
 %% STATISTICS %%
