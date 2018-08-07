@@ -8,10 +8,10 @@
 %% SETUP %%
 clear;
 close all;
-expDir = '/Users/juliaschwartz/Desktop/visualmemorymf'; %Lab computer
-%expDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf'; %Laptop
-dataDir = '/Users/juliaschwartz/Desktop/visualmemorymf/data_master'; %Lab computer
-%dataDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf/data_master'; %Laptop
+%expDir = '/Users/juliaschwartz/Desktop/visualmemorymf'; %Lab computer
+expDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf'; %Laptop
+%dataDir = '/Users/juliaschwartz/Desktop/visualmemorymf/data_master'; %Lab computer
+dataDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf/data_master'; %Laptop
 cd(dataDir)
 load('visualmemory_condition_order')
 load('visualmemory_subjectsRan')  
@@ -187,6 +187,7 @@ if plotVar ~= 0
         
     %Bar graph plot (replace hist)    
         figure(2)
+        set(gcf, 'Name', sprintf('Avg. Estimation per Contrast & Standard Error'));
         for i = 1:theData(1).p.numContrasts
             subplot(2,3,i)
             bar(3,mean(baselinemat(:,i)))
@@ -195,7 +196,7 @@ if plotVar ~= 0
             hold on
             bar(2,mean(workingmemmat(:,i)))
             xticks([1 2 3])
-            xticklabels({'Perception','Working Memory','Baseline'})
+            xticklabels({'Perc','vWM','BL'})
             title(sprintf('Contrast of %.3f',centerContrast(i)))
             xlabel('Condition')
             ylabel('Contrast')
