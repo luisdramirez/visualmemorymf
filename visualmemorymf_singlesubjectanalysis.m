@@ -8,10 +8,12 @@
 % Preliminary data loading and setup %
 clear;
 close all;
-expDir = pwd;
-dataDir = 'data_master';
+expDir = '/Users/juliaschwartz/Desktop/visualmemorymf'; %Lab computer
+%expDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf'; %Laptop
+dataDir = '/Users/juliaschwartz/Desktop/visualmemorymf/data_master'; %Lab computer
+%dataDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf/data_master'; %Laptop
 allP.experiment = 'exp';
-allP.subject = 'JP';
+allP.subject = 'MK';
 cd(dataDir)
 
 %Load run data
@@ -27,7 +29,7 @@ end
 cd(expDir)
 %Plotting and Printing Settings
 plotVar = 0; %Set equal to 1 to display plots, equal to 0 to not display plots.
-printVar = 1; %Set equal to 0 to not print information, equal to 1 to print information.
+printVar = 0; %Set equal to 0 to not print information, equal to 1 to print information.
 
 % Pre-allocate Data cells.
 allP = cell(1,length(runNumbers)); % Parameters
@@ -385,8 +387,46 @@ subject.avgDiffLoc = nan(nTrials,theData(1).p.numContrasts,3);
                 title(sprintf('Histogram for %.2f Trials',workingmem.contTE(1,3,i)))
 %                legend('Est. Contrast Bins','Actual Contrast','Avg. Est Contrast')
             end
+        end      
+    end 
+    figure('Color',[1 1 1])
+        set(gcf,'Name','Location Bins')
+        totDegrees = 1:360;
+        numDegrees = 0:9;
+        numBins = length(totDegrees)/length(numDegrees);
+        binLocMatrix = cell(1,numBins);
+        for bin = 1:numBins
+            low = bin*length(numDegrees);
+            high = low + 9;
+            range = low:high;
+            for run = 1:numel(theData)
+                for trialNum = 1:length(theData(run).p.trialEvents)
+                    counter = trialNum;
+                    currentLoc = theData(run).p.trialEvents(trialNum,2);
+                    for binIndex = length(range)
+                        if sum(range(binIndex) == currentLoc) == 1
+                            if exist('indexArray','var') == 1
+                                indexArray = [indexArray counter];
+                            else
+                                indexArray = counter;
+                            end
+                        end
+                    end
+                end
+                if exist('indexArray','var') == 1
+                    for index = indexArray
+                        if exist('LocDiff','var') == 1
+                            LocDiff = [LocDiff theData(run).data.DifferenceLocation(index)];
+                        else
+                            LocDiff = theData(run).data.DifferenceLocation(index);
+                        end
+                    end
+                end
+                
+            end
+            binLocMatrix{run,bin} = LocDiff;
+            clear LocDiff
         end
-    end    
 
     %% Printing Data (conditional print variable must not equal 0 to display) %%
     if printVar ~= 0
