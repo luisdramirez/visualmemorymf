@@ -28,7 +28,7 @@ for i = 1:numel(possibleFileNames)
     if exist(possibleFileNames{i,1},'file') == 1 ||exist(possibleFileNames{i,1},'file') == 2
        load(possibleFileNames{i,1})
        totalData{i} = theData;
-       fprintf('\nLoading %s',possibleFileNames{i,1})
+       fprintf('Loading %s\n',possibleFileNames{i,1})
     end
 end
 
@@ -82,14 +82,14 @@ for e = 1:numel(experiments)
             variableMat(subjCount,:) = overallData.workingmemmat(subjCount,:);
         end
           
-        % fit individual data with Normalization model
+        % Fit individual data with Normalization model
         options = optimset('MaxFunEvals', 10000, 'MaxIter', 10000);
         
         % Use formula from Xing&Heeger 2001 to use baseline data to constrain alpha and n, and look for the inhibitory weight 
         % to explain the suppressive influence of the surround 
-        % Wi: suppression weight
-        % C50: inflection point
-        % n: nonlinear transducer, determining steepness
+            % Wi: suppression weight
+            % C50: inflection point
+            % n: nonlinear transducer, determining steepness
         
         indv_r2_coll = zeros(2,numel(subjects),2);
         startValues = [C50 n Wi_var];
@@ -123,24 +123,26 @@ for e = 1:numel(experiments)
 
             %Display Fits 
             subplot(2,round(numel(visualmemory_subjectsRan)/2), subjCount)
-            loglog(C_fit, Y_var, 'r')
             hold all
             loglog(C_Test,Y_base,'b')
-            legend({'Variable Fit','Baseline Fit'})
-            hold all;
             if e == 1
-                errorbar(C_Test,Y_var1,overallData.perror(subjCount,:),'or');
+                loglog(C_Test,overallData.perceptionmat(subjCount,:),'k')
             elseif e == 2
-                errorbar(C_Test,Y_var1,overallData.wmerror(subjCount,:),'or');
+                loglog(C_Test,overallData.workingmemmat(subjCount,:),'k')
             end
-            hold on
-            ylim([0.05 0.8]); xlim([0.09 0.8]); box off
+            loglog(C_fit, Y_var, 'r')
+            hold all;
+            xlim([0.1 0.8]), ylim([0.1 0.8]); box off
             ylabel('Perceived Contrast')
             xlabel('Center Contrast');
-            plot([0.09 0.8], [0.09, 0.8], 'k-');
+            plot([0.09 0.8], [0.09, 0.8], 'k:');
+            if e == 1
+                legend({'Baseline Fit','Avg. Perception Estimation','Perception Fit'},'Location','northwest')
+            elseif e == 2
+                legend({'Baseline Fit','Avg. vWM Estimation','Working Memory Fit'},'Location','northwest')
+            end
             title(['Subject ' num2str(subjCount)]);
             axis square;
-            legend('Variable Condition','Baseline Condition') 
             set(gca,'YScale','log','XScale','log')
         end
     end % END OF SUBJECT LOOP %
@@ -195,7 +197,7 @@ bar([indvR2(2,:,1)' indvR2(2,:,2)']')
 set(gca, 'xtickLabel', {'Baseline' 'Working Memory'})
 ylabel('R2'), legend(strcat('Subject ',num2str((1:4)'))); box off; title('Visual working memory');
 
-% c50 - both perception and working memory conditions
+% c50 - both perception and working memory conditions %
 figure('Color', [1 1 1])
 set(gcf, 'Name', sprintf('C50, N, Gamma vs. Surround, & Gamma Estimate '));
 subplot(1,4,1)
@@ -211,7 +213,7 @@ set(gca, 'Xtick', [1 2], 'XtickLabel', {'Perc' 'vWM'})
 title('C50')
 
 subplot(1,4,2)
-% n - both perception and working memory conditions
+% n - both perception and working memory conditions %
 bar(1:2, mean(squeeze(est_params(:,:,2)),2)) %page 2 is n
 hold all
 handles = get(gca, 'Children');
@@ -224,15 +226,15 @@ set(gca, 'Xtick', [1 2], 'XtickLabel', {'Perc' 'vWM'})
 title('N')
 
 subplot(1,4,3)
-% Wi est - both perception and working memory conditions
-bar([0 1.0], mean(est_params(:,:,3),2), 0.3);
+% Wi est - both perception and working memory conditions %
+bar([0 1.0], mean(est_params(:,:,3),2), 0.3); % page 3 is surround induced noramlization parameter
 hold all
 handles = get(gca, 'Children');
 set(handles(1), 'FaceColor', [0 0 1], 'EdgeColor', 'none'); 
 errorbar([0 1], mean(est_params(:,:,3),2)',std(est_params(:,:,3),[], 2)'/sqrt(subjCount), 'k.')
 plot(repmat([0 1.0], [4 1]), est_params(:,:,3)', 'ok');
 box off; xlim([-0.5 1.5]); set(gca, 'Xtick', [0 1], 'XtickLabel', {'Perc' 'vWM'})
-title('Surround Induced Normalization')
+title(sprintf('Surround Induced Normalization\n Parameter'))
 
 % Gamma Estimate
 subplot(1,4,4)
