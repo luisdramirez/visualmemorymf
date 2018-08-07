@@ -62,12 +62,12 @@ cd(expDir);
 
 deviceNumber = 0;
 [keyBoardIndices, ProductNames] = GetKeyboardIndices;
-%deviceString = 'Apple Internal Keyboard / Trackpad';
+deviceString = 'Apple Internal Keyboard / Trackpad';
 %deviceString = 'USB-HID Keyboard';
 %deviceString = 'Wired USB Keyboard';
 %deviceString = 'Apple Keyboard';
 %deviceString = 'USB Keyboard';
- deviceString = 'Wired Keyboard 400';
+ %deviceString = 'Wired Keyboard 400';
 % deviceString = 'Lenovo Traditional USB Keyboard';
 
 for nTrial = 1:length(ProductNames)
