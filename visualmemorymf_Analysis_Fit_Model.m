@@ -3,12 +3,12 @@ clear all
 
 %% SETUP %%
 
-%expDir = '/Users/juliaschwartz/Desktop/visualmemorymf'; %Lab computer
-expDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf'; %Laptop
+expDir = '/Users/juliaschwartz/Desktop/visualmemorymf'; %Lab computer
+%expDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf'; %Laptop
 p = genpath(expDir);
 addpath(p);
-%dataDir = '/Users/juliaschwartz/Desktop/visualmemorymf/data_master'; %Lab computer
-dataDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf/data_master'; %Laptop
+dataDir = '/Users/juliaschwartz/Desktop/visualmemorymf/data_master'; %Lab computer
+%dataDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf/data_master'; %Laptop
 cd(dataDir)
 indvFiguresOn = 1; %Display plots
 load('visualmemory_subjectsRan.mat')
@@ -65,13 +65,6 @@ for e = 1:numel(experiments)
     %% SUBJECT LOOP %%
     for subject = subjects
         subjCount = subjCount + 1; % Subject Counter
-
-        % our trial duration is an estimate, calculations for actual trial
-        % duration.
-        % responseDurations(e,subjCount) = mean(trialDurations);
-        
-        % Perception or vWM matrices for average baseline/variable
-        % responses per subject.
         if e == 1
             % Perception Experiment
             baselineMat(subjCount,:) = overallData.baselineForP(subjCount,:);
@@ -124,25 +117,29 @@ for e = 1:numel(experiments)
             %Display Fits 
             subplot(2,round(numel(visualmemory_subjectsRan)/2), subjCount)
             hold all
-            loglog(C_Test,Y_base,'b')
+            colormap lines
             if e == 1
-                loglog(C_Test,overallData.perceptionmat(subjCount,:),'k')
+                loglog(C_Test,overallData.perceptionmat(subjCount,:),'Linewidth',1.25)
+                loglog(C_Test,overallData.baselineForP(subjCount,:),'Linewidth',1.25)
             elseif e == 2
-                loglog(C_Test,overallData.workingmemmat(subjCount,:),'k')
+                loglog(C_Test,overallData.workingmemmat(subjCount,:),'Linewidth',1.25)
+                loglog(C_Test,overallData.baselineForWM(subjCount,:),'Linewidth',1.25)
             end
-            loglog(C_fit, Y_var, 'r')
+            loglog(C_Test,Y_base,'Linewidth',2)
+            loglog(C_fit, Y_var,'Linewidth',2)
             hold all;
             xlim([0.1 0.8]), ylim([0.1 0.8]); box off
             ylabel('Perceived Contrast')
             xlabel('Center Contrast');
             plot([0.09 0.8], [0.09, 0.8], 'k:');
             if e == 1
-                legend({'Baseline Fit','Avg. Perception Estimation','Perception Fit'},'Location','northwest')
+                legend({'Perception Est.','Baseline Est.','Baseline Fit','Perception Fit'},'Location','northwest')
             elseif e == 2
-                legend({'Baseline Fit','Avg. vWM Estimation','Working Memory Fit'},'Location','northwest')
+                legend({'Working Memory Est.','Baseline Est.','Baseline Fit','Working Mem Fit'},'Location','northwest')
             end
             title(['Subject ' num2str(subjCount)]);
             axis square;
+            hold all;
             set(gca,'YScale','log','XScale','log')
         end
     end % END OF SUBJECT LOOP %
