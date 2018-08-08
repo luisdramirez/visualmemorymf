@@ -3,12 +3,12 @@ clear all
 
 %% SETUP %%
 
-expDir = '/Users/juliaschwartz/Desktop/visualmemorymf'; %Lab computer
-%expDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf'; %Laptop
+%expDir = '/Users/juliaschwartz/Desktop/visualmemorymf'; %Lab computer
+expDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf'; %Laptop
 p = genpath(expDir);
 addpath(p);
-dataDir = '/Users/juliaschwartz/Desktop/visualmemorymf/data_master'; %Lab computer
-%dataDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf/data_master'; %Laptop
+%dataDir = '/Users/juliaschwartz/Desktop/visualmemorymf/data_master'; %Lab computer
+dataDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf/data_master'; %Laptop
 cd(dataDir)
 indvFiguresOn = 1; %Display plots
 load('visualmemory_subjectsRan.mat')
@@ -294,6 +294,7 @@ end
 % [power, cohens_d] = powerAnalysis_exp1([squeeze(est_params(1,:,3)) squeeze(est_params(2,:,3))], 10000);
 % 
 % noPerm_cohens_d = st_ttest.tstat./sqrt(numSubjects);
-% 
 
-
+% save out baseline data in order to compare to Exp 2
+cd(expDir)
+save visualmemorymf_ModelParameters.mat est_params

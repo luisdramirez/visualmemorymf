@@ -11,7 +11,7 @@ close all;
 expDir = pwd;
 dataDir = 'data_master';
 allP.experiment = 'exp';
-allP.subject = 'JP';
+allP.subject = 'JS';
 cd(dataDir)
 
 %Load run data
@@ -26,7 +26,7 @@ else
 end
 cd(expDir)
 %Plotting and Printing Settings
-plotVar = 0; %Set equal to 1 to display plots, equal to 0 to not display plots.
+plotVar = 1; %Set equal to 1 to display plots, equal to 0 to not display plots.
 printVar = 1; %Set equal to 0 to not print information, equal to 1 to print information.
 
 % Pre-allocate Data cells.
