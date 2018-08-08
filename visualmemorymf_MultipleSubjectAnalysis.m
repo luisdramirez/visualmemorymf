@@ -8,10 +8,10 @@
 %% SETUP %%
 clear;
 close all;
-%expDir = '/Users/juliaschwartz/Desktop/visualmemorymf'; %Lab computer
-expDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf'; %Laptop
-%dataDir = '/Users/juliaschwartz/Desktop/visualmemorymf/data_master'; %Lab computer
-dataDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf/data_master'; %Laptop
+expDir = '/Users/juliaschwartz/Desktop/visualmemorymf'; %Lab computer
+%expDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf'; %Laptop
+dataDir = '/Users/juliaschwartz/Desktop/visualmemorymf/data_master'; %Lab computer
+%dataDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf/data_master'; %Laptop
 cd(dataDir)
 load('visualmemory_condition_order')
 load('visualmemory_subjectsRan')  
@@ -276,6 +276,22 @@ if plotVar ~= 0
             hold off
         end
 end
+
+%Location Averages over 10 degree long bins
+for subj = 1:length(master_subjectData)
+    binAvg(:,subj) = master_subjectData{subj,2}.binAvgs(:,1);
+end
+binMeans = mean(binAvg,2);
+if plotVar ~= 0
+    figure('Color',[1 1 1])
+    set(gcf,'Name','Average Location Difference Away Per 10 Degree Bin')
+    plot(1:length(binMeans),binMeans','r')
+    xlabel('Bin: Each Represents 10 Degree Bins (x*10)')
+    ylabel('Difference in Estimated versus Actual Degree Location (Abs)')
+end
+binMeans(:,2) = (1:length(binMeans));  
+sortedBinMeans = sortrows(binMeans,1);
+
 
   
 %% Statitsical Significance %%

@@ -13,7 +13,7 @@ expDir = '/Users/juliaschwartz/Desktop/visualmemorymf'; %Lab computer
 dataDir = '/Users/juliaschwartz/Desktop/visualmemorymf/data_master'; %Lab computer
 %dataDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf/data_master'; %Laptop
 allP.experiment = 'exp';
-allP.subject = 'MK';
+allP.subject = 'SL';
 cd(dataDir)
 
 %Load run data
@@ -389,44 +389,101 @@ subject.avgDiffLoc = nan(nTrials,theData(1).p.numContrasts,3);
             end
         end      
     end 
-    figure('Color',[1 1 1])
-        set(gcf,'Name','Location Bins')
-        totDegrees = 1:360;
-        numDegrees = 0:9;
-        numBins = length(totDegrees)/length(numDegrees);
-        binLocMatrix = cell(1,numBins);
+    
+    % LOCATION BINS %
+    totDegrees = 1:360;
+    numDegrees = 1:10;
+    numBins = length(totDegrees)/length(numDegrees);
+    binLocMatrix = cell(1,numBins);
+    for run = 1:numel(theData)
         for bin = 1:numBins
-            low = bin*length(numDegrees);
-            high = low + 9;
-            range = low:high;
-            for run = 1:numel(theData)
-                for trialNum = 1:length(theData(run).p.trialEvents)
-                    counter = trialNum;
-                    currentLoc = theData(run).p.trialEvents(trialNum,2);
-                    for binIndex = length(range)
-                        if sum(range(binIndex) == currentLoc) == 1
-                            if exist('indexArray','var') == 1
-                                indexArray = [indexArray counter];
-                            else
-                                indexArray = counter;
-                            end
-                        end
-                    end
+            high = bin*length(numDegrees);
+            low = high - (length(numDegrees)-1);
+            range = low:high; %1-10, 11-20, etc.
+            for binIndex = 1:length(range)
+                currentFindIndex = find(theData(run).p.trialEvents(:,2) == range(binIndex))';
+                if isempty(currentFindIndex) ~= 1
+                    if exist('indexMat','var') == 1
+                        currentFindIndex(2,:) = range(binIndex);
+                        indexMat = [indexMat  currentFindIndex];
+                    else
+                        currentFindIndex(2,:) = range(binIndex);
+                        indexMat =  currentFindIndex;
+                    end 
                 end
-                if exist('indexArray','var') == 1
-                    for index = indexArray
-                        if exist('LocDiff','var') == 1
-                            LocDiff = [LocDiff theData(run).data.DifferenceLocation(index)];
-                        else
-                            LocDiff = theData(run).data.DifferenceLocation(index);
-                        end
-                    end
-                end
-                
             end
-            binLocMatrix{run,bin} = LocDiff;
-            clear LocDiff
+            if exist('indexMat','var') == 1
+                indexCell{run,bin} = indexMat;
+                clear indexMat
+            end
         end
+    end
+ LocCell = cell(size(indexCell));     
+ for run = 1:numel(theData)
+    for bin = 1:numBins
+        % index loop through the indexCell numbers to match to the
+        % correct difference in location
+        if isempty(indexCell{run,bin}) ~= 1
+            lengthinArray = length(indexCell{run,bin}(1,:));
+        end
+        for i = 1:lengthinArray
+            if isempty(indexCell{run,bin}) ~= 1
+                 findLocations = theData(run).data.DifferenceLocation(indexCell{run,bin}(1,i));
+                 if exist('locationData','var') == 1
+                    locationData = [locationData findLocations];
+                 else
+                     locationData = findLocations;
+                 end
+            end
+        end
+        if exist('locationData','var') == 1
+            LocCell{run,bin} = locationData;
+            clear locationData
+        end
+    end
+ end
+ 
+ %if plotVar ~= 0
+    figure('Color',[1 1 1])
+    set(gcf,'Name','Location Bins') 
+    for run = 1:numel(theData)
+        subplot(2,2,run)
+        for bin = 1:numBins
+            if bin == 1
+                lengthBegin = 1;
+                lengthEnd = numel(LocCell{run,bin});
+                plot(lengthBegin:lengthEnd,LocCell{run,bin},'k')
+                hold on
+                binMean = mean(LocCell{run,bin});
+                LocCell{run+4,bin} = binMean;
+                plot([lengthBegin lengthEnd],[binMean binMean],'r-','Linewidth',1.75)
+            elseif isempty(LocCell{run,bin}) ~= 1
+                if  isempty(LocCell{run,bin-1}) ~= 1
+                 plot([lengthEnd lengthEnd+1],[LocCell{run,bin-1}(end) LocCell{run,bin}(1)],'k')
+                end
+                lengthBin = numel(LocCell{run,bin});
+                lengthBegin = lengthEnd+1;
+                lengthEnd = lengthBegin + lengthBin - 1;
+                plot(lengthBegin:lengthEnd,LocCell{run,bin},'k')
+                binMean = mean(LocCell{run,bin});
+                LocCell{run+4,bin} = binMean;
+                plot([lengthBegin lengthEnd],[binMean binMean],'r-','Linewidth',1.75)
+            end
+        end
+    end
+ end
+binAvgs = zeros(numBins,1);
+for bin = 1:numBins
+    arrayforlocavg = horzcat(LocCell{5:8,bin});
+    binAvgs(bin,1) = mean(arrayforlocavg);
+end
+binAvgs(:,2) = 1:10:360; %starting number for bin
+subject.binAvgs = binAvgs;
+%export these and compare amongst people
+     
+    
+     
+            
 
     %% Printing Data (conditional print variable must not equal 0 to display) %%
     if printVar ~= 0
@@ -446,7 +503,7 @@ subject.avgDiffLoc = nan(nTrials,theData(1).p.numContrasts,3);
             end
         end
     end
- end
+
 %% Perception mat and Working Memory mat %% 
  %Making perception and working memory matrices (to correctly graph
  %information exlcuding the NaNs).
