@@ -13,8 +13,13 @@ expDir = '/Users/juliaschwartz/Desktop/visualmemorymf'; %Lab computer
 dataDir = '/Users/juliaschwartz/Desktop/visualmemorymf/data_master'; %Lab computer
 %dataDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf/data_master'; %Laptop
 allP.experiment = 'exp';
-allP.subject = 'SL';
+allP.subject = 'JP';
 cd(dataDir)
+
+
+baselineIndex = 3;
+perceptionIndex = 1;
+workingmemIndex = 2;
 
 %Load run data
 if exist(['data_visualmemorymf_' allP.experiment '_' allP.subject '.mat'],'file') ~= 0
@@ -28,8 +33,8 @@ else
 end
 cd(expDir)
 %Plotting and Printing Settings
-plotVar = 0; %Set equal to 1 to display plots, equal to 0 to not display plots.
-printVar = 0; %Set equal to 0 to not print information, equal to 1 to print information.
+plotVar = 1; %Set equal to 1 to display plots, equal to 0 to not display plots.
+printVar = 1; %Set equal to 0 to not print information, equal to 1 to print information.
 
 % Pre-allocate Data cells.
 allP = cell(1,length(runNumbers)); % Parameters
@@ -349,7 +354,9 @@ subject.avgDiffLoc = nan(nTrials,theData(1).p.numContrasts,3);
             plot(perception.orgData(:,2));
             hold on
             title('PERCEPTION')
-            plot(1:length(perception.Data),repelem(subject.avgDiffLoc(nRun,:,1),20),'Linewidth',2);
+            if isnan(subject.avgDiffLoc(nRun,:,1)) == 0
+                plot(1:length(perception.Data),repelem(subject.avgDiffLoc(nRun,:,1),20),'Linewidth',2);
+            end
             legend('Location Difference','Avg. Location Difference');
             hold off
             
@@ -371,21 +378,21 @@ subject.avgDiffLoc = nan(nTrials,theData(1).p.numContrasts,3);
             plot(workingmem.orgData(:,2));
             title('WORKING MEMORY')
             hold on
-            plot(1:length(workingmem.Data),repelem(subject.avgDiffLoc(nRun,:,2),20),'Linewidth',2);
-%            legend('Estimated Contrast','Actual Contrast','Avg. Estimated Contrast');
+            if isnan(subject.avgDiffLoc(nRun,:,2)) == 0
+                plot(1:length(workingmem.Data),repelem(subject.avgDiffLoc(nRun,:,2),20),'Linewidth',2);
+            end
+
             hold off
             
             % Histogram Plots of Location Difference for each Contrast %
             for i = 1:p.numContrasts
                 subplot(2,p.numContrasts+1,p.numContrasts+2+i)
-                hist(workingmem.contData(:,4,i),10)
-                xlim([0 1])
-                ylim([0 8])
+                hist(workingmem.contData(:,2,i))
                 hold on
                 line([subject.avgDiffLoc(nRun,i,2) subject.avgDiffLoc(nRun,i,2)],ylim,'Linewidth',1.75,'Color','g')
                 hold off
                 title(sprintf('Histogram for %.2f Trials',workingmem.contTE(1,3,i)))
-%                legend('Est. Contrast Bins','Actual Contrast','Avg. Est Contrast')
+
             end
         end      
     end 
@@ -472,6 +479,9 @@ subject.avgDiffLoc = nan(nTrials,theData(1).p.numContrasts,3);
         end
     end
  end
+ 
+ % X axis have lim of 0 - 200, should mimic bin size as 1-36
+ 
 binAvgs = zeros(numBins,1);
 for bin = 1:numBins
     arrayforlocavg = horzcat(LocCell{5:8,bin});

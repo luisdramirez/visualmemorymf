@@ -292,8 +292,25 @@ end
 binMeans(:,2) = (1:length(binMeans));  
 sortedBinMeans = sortrows(binMeans,1);
 
+X = repmat(1,1,36);
+numBins = length(X);
+fig = figure;
+ax = axes('Parent',fig);
+hPieComponentHandles = pie(ax,ones(1,numBins));
+midcol = (0:0.0278:1)';
+autumnmat = zeros(36,3);
+autumnmat(:,1) = 1;
+autumnmat(:,2) = midcol;
 
-  
+% rgbmatrix = [ 1+(X(:) < 0).*X(:), 1-(X(:) > 0).*X(:),1-abs(X(:))];
+for k = 1:numBins
+    pieColorMap = autumnmat(k,:);
+    set(hPieComponentHandles(k*2-1),'FaceColor',pieColorMap);
+    set(hPieComponentHandles(k*2),'String',num2str(X(k)),'FontSize', 6 )
+end
+
+
+
 %% Statitsical Significance %%
 % T test between the different contrast levels between perception, working
 % memory, and baseline average responses.
