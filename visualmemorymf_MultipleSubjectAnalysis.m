@@ -293,21 +293,31 @@ binMeans(:,2) = (1:length(binMeans));
 sortedBinMeans = sortrows(binMeans,1);
 
 X = repmat(1,1,36);
+labels = cell(1,length(binMeans));
+for i = 1:length(binMeans)
+    labels{1,i} = num2str(i);
+end
 numBins = length(X);
 fig = figure;
 ax = axes('Parent',fig);
-hPieComponentHandles = pie(ax,ones(1,numBins));
-midcol = (0:0.0278:1)';
+hPieComponentHandles = pie(ax,ones(1,numBins),labels);
+midcol = fliplr((0:0.0278:1))';
 autumnmat = zeros(36,3);
 autumnmat(:,1) = 1;
 autumnmat(:,2) = midcol;
-
+autumnmat(:,4:5) = binMeans;
+autumnmat = sortrows(autumnmat,4);
+% sortedBinMeans col 2 is the order for the autumnmat
+colorOrder = sortedBinMeans(:,2)'; %lowest first, so yellow, highest last, reed
 % rgbmatrix = [ 1+(X(:) < 0).*X(:), 1-(X(:) > 0).*X(:),1-abs(X(:))];
-for k = 1:numBins
-    pieColorMap = autumnmat(k,:);
-    set(hPieComponentHandles(k*2-1),'FaceColor',pieColorMap);
-    set(hPieComponentHandles(k*2),'String',num2str(X(k)),'FontSize', 6 )
+for i = 1:length(binMeans)
+    pieColorMap = autumnmat(i,1:3);
+    set(hPieComponentHandles(i*2-1),'FaceColor',pieColorMap);
 end
+camroll(-90);
+% theta = -90;
+% R = [cosd(theta) -sind(theta); sind(theta) cosd(theta)];
+% rotpie = R*hPieComponentHandles;
 
 
 
