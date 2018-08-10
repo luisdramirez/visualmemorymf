@@ -13,7 +13,7 @@ expDir = '/Users/juliaschwartz/Desktop/visualmemorymf'; %Lab computer
 dataDir = '/Users/juliaschwartz/Desktop/visualmemorymf/data_master'; %Lab computer
 %dataDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf/data_master'; %Laptop
 allP.experiment = 'exp';
-allP.subject = 'JP';
+allP.subject = 'JS';
 cd(dataDir)
 
 
@@ -33,7 +33,7 @@ else
 end
 cd(expDir)
 %Plotting and Printing Settings
-plotVar = 1; %Set equal to 1 to display plots, equal to 0 to not display plots.
+plotVar = 0; %Set equal to 1 to display plots, equal to 0 to not display plots.
 printVar = 1; %Set equal to 0 to not print information, equal to 1 to print information.
 
 % Pre-allocate Data cells.
@@ -397,99 +397,145 @@ subject.avgDiffLoc = nan(nTrials,theData(1).p.numContrasts,3);
         end      
     end 
     
-    % LOCATION BINS %
-    totDegrees = 1:360;
-    numDegrees = 1:10;
-    numBins = length(totDegrees)/length(numDegrees);
-    binLocMatrix = cell(1,numBins);
-    for run = 1:numel(theData)
-        for bin = 1:numBins
-            high = bin*length(numDegrees);
-            low = high - (length(numDegrees)-1);
-            range = low:high; %1-10, 11-20, etc.
-            for binIndex = 1:length(range)
-                currentFindIndex = find(theData(run).p.trialEvents(:,2) == range(binIndex))';
-                if isempty(currentFindIndex) ~= 1
+        %% LOCATION BINS %%
+        totDegrees = 1:360;
+        numDegrees = 1:10;
+        numBins = length(totDegrees)/length(numDegrees);
+        binLocMatrix = cell(1,numBins);
+        for run = 1:numel(theData)
+                for bin = 1:numBins
+                    high = bin*length(numDegrees);
+                    low = high - (length(numDegrees)-1);
+                    range = low:high; %1-10, 11-20, etc.
+                    for binIndex = 1:length(range)
+                        currentFindIndex = find(theData(run).p.trialEvents(:,2) == range(binIndex))';
+                        if isempty(currentFindIndex) ~= 1
+                            if exist('indexMat','var') == 1
+                                currentFindIndex(2,:) = range(binIndex);
+                                indexMat = [indexMat  currentFindIndex];
+                            else
+                                currentFindIndex(2,:) = range(binIndex);
+                                indexMat =  currentFindIndex;
+                            end 
+                        end
+                    end
                     if exist('indexMat','var') == 1
-                        currentFindIndex(2,:) = range(binIndex);
-                        indexMat = [indexMat  currentFindIndex];
-                    else
-                        currentFindIndex(2,:) = range(binIndex);
-                        indexMat =  currentFindIndex;
-                    end 
+                        indexCell{run,bin} = indexMat;
+                        clear indexMat
+                    end
                 end
             end
-            if exist('indexMat','var') == 1
-                indexCell{run,bin} = indexMat;
-                clear indexMat
+         LocCell = cell(size(indexCell));    
+         
+         %Location Difference loop - based off of bins of 10 degrees
+         for run = 1:numel(theData)
+            for bin = 1:numBins
+                % index loop through the indexCell numbers to match to the
+                % correct difference in location
+                if isempty(indexCell{run,bin}) ~= 1
+                    lengthinArray = length(indexCell{run,bin}(1,:));
+                end
+                for i = 1:lengthinArray
+                    if isempty(indexCell{run,bin}) ~= 1
+                         findLocations = theData(run).data.DifferenceLocation(indexCell{run,bin}(1,i));
+                         if exist('locationData','var') == 1
+                            locationData = [locationData findLocations];
+                         else
+                             locationData = findLocations;
+                         end
+                    end
+                end
+                if exist('locationData','var') == 1
+                    LocCell{run,bin} = locationData;
+                    clear locationData
+                end
+            end
+         end
+         
+     %Which Locations had highest and lowest error for contrast
+     %difference (actual to estimated)
+      contCell = cell(size(indexCell)); 
+        for run = 1:numel(theData)
+            for bin = 1:numBins
+                % index loop through the indexCell numbers to match to the
+                % correct difference in contrast
+                if isempty(indexCell{run,bin}) ~= 1
+                    lengthincontArray = length(indexCell{run,bin}(1,:));
+                end
+                for i = 1:lengthincontArray
+                    if isempty(indexCell{run,bin}) ~= 1
+                         findContDiffs = abs(theData(run).data.DifferenceContrast(indexCell{run,bin}(1,i)));
+                         if exist('contrastDiffData','var') == 1
+                            contrastDiffData = [contrastDiffData findContDiffs];
+                         else
+                             contrastDiffData = findContDiffs;
+                         end
+                    end
+                end
+                if exist('contrastDiffData','var') == 1
+                    contCell{run,bin} = contrastDiffData;
+                    clear contrastDiffData
+                end
+            end
+         end
+         
+         
+    % if plotVar ~= 0
+        figure('Color',[1 1 1])
+        set(gcf,'Name','Location Bins') 
+        for run = 1:numel(theData)
+            subplot(2,2,run)
+            for bin = 1:numBins
+                if bin == 1
+                    lengthBegin = 1;
+                    lengthEnd = numel(LocCell{run,bin});
+                    plot(lengthBegin:lengthEnd,LocCell{run,bin},'k')
+                    hold on
+                    binMean = mean(LocCell{run,bin});
+                    LocCell{run+4,bin} = binMean;
+                    plot([lengthBegin lengthEnd],[binMean binMean],'r-','Linewidth',1.75)
+                elseif isempty(LocCell{run,bin}) ~= 1
+                    if  isempty(LocCell{run,bin-1}) ~= 1
+                     plot([lengthEnd lengthEnd+1],[LocCell{run,bin-1}(end) LocCell{run,bin}(1)],'k')
+                    end
+                    lengthBin = numel(LocCell{run,bin});
+                    lengthBegin = lengthEnd+1;
+                    lengthEnd = lengthBegin + lengthBin - 1;
+                    plot(lengthBegin:lengthEnd,LocCell{run,bin},'k')
+                    binMean = mean(LocCell{run,bin});
+                    LocCell{run+4,bin} = binMean;
+                    plot([lengthBegin lengthEnd],[binMean binMean],'r-','Linewidth',1.75)
+                end
             end
         end
-    end
- LocCell = cell(size(indexCell));     
+     end
+
  for run = 1:numel(theData)
-    for bin = 1:numBins
-        % index loop through the indexCell numbers to match to the
-        % correct difference in location
-        if isempty(indexCell{run,bin}) ~= 1
-            lengthinArray = length(indexCell{run,bin}(1,:));
-        end
-        for i = 1:lengthinArray
-            if isempty(indexCell{run,bin}) ~= 1
-                 findLocations = theData(run).data.DifferenceLocation(indexCell{run,bin}(1,i));
-                 if exist('locationData','var') == 1
-                    locationData = [locationData findLocations];
-                 else
-                     locationData = findLocations;
-                 end
-            end
-        end
-        if exist('locationData','var') == 1
-            LocCell{run,bin} = locationData;
-            clear locationData
-        end
-    end
- end
- 
- %if plotVar ~= 0
-    figure('Color',[1 1 1])
-    set(gcf,'Name','Location Bins') 
-    for run = 1:numel(theData)
-        subplot(2,2,run)
-        for bin = 1:numBins
-            if bin == 1
-                lengthBegin = 1;
-                lengthEnd = numel(LocCell{run,bin});
-                plot(lengthBegin:lengthEnd,LocCell{run,bin},'k')
-                hold on
-                binMean = mean(LocCell{run,bin});
-                LocCell{run+4,bin} = binMean;
-                plot([lengthBegin lengthEnd],[binMean binMean],'r-','Linewidth',1.75)
-            elseif isempty(LocCell{run,bin}) ~= 1
-                if  isempty(LocCell{run,bin-1}) ~= 1
-                 plot([lengthEnd lengthEnd+1],[LocCell{run,bin-1}(end) LocCell{run,bin}(1)],'k')
-                end
-                lengthBin = numel(LocCell{run,bin});
-                lengthBegin = lengthEnd+1;
-                lengthEnd = lengthBegin + lengthBin - 1;
-                plot(lengthBegin:lengthEnd,LocCell{run,bin},'k')
-                binMean = mean(LocCell{run,bin});
-                LocCell{run+4,bin} = binMean;
-                plot([lengthBegin lengthEnd],[binMean binMean],'r-','Linewidth',1.75)
-            end
-        end
-    end
+     for bin = 1:numBins
+        binMean = mean(contCell{run,bin});
+        contCell{run+4,bin} = binMean;
+     end
  end
  
  % X axis have lim of 0 - 200, should mimic bin size as 1-36
  
 binAvgs = zeros(numBins,1);
+binContAvgs = zeros(numBins,1);
 for bin = 1:numBins
     arrayforlocavg = horzcat(LocCell{5:8,bin});
     binAvgs(bin,1) = mean(arrayforlocavg);
+    
+    arrayforcontavg_perbin = horzcat(contCell{5:8,bin});
+    binContAvgs(bin,1) = mean(arrayforcontavg_perbin);
 end
-binAvgs(:,2) = 1:10:360; %starting number for bin
+binAvgs(:,2) = 1:10:360; %starting degree of bin
+binContAvgs(:,2) = 1:10:360;%starting degree of bin
 subject.binAvgs = binAvgs;
+subject.binContAvgs = binContAvgs;
 %export these and compare amongst people
+
+
+
      
     
      

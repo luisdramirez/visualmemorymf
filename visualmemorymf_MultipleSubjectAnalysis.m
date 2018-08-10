@@ -280,8 +280,10 @@ end
 %Location Averages over 10 degree long bins
 for subj = 1:length(master_subjectData)
     binAvg(:,subj) = master_subjectData{subj,2}.binAvgs(:,1);
+    binContAvg(:,subj) = master_subjectData{subj,2}.binContAvgs(:,1);
 end
 binMeans = mean(binAvg,2);
+binContMeans = mean(binContAvg,2,'omitNan');
 if plotVar ~= 0
     figure('Color',[1 1 1])
     set(gcf,'Name','Average Location Difference Away Per 10 Degree Bin')
@@ -290,17 +292,20 @@ if plotVar ~= 0
     ylabel('Difference in Estimated versus Actual Degree Location (Abs)')
 end
 binMeans(:,2) = (1:length(binMeans));  
+binContMeans(:,2) = (1:length(binContMeans));
 sortedBinMeans = sortrows(binMeans,1);
+sortedBinContMeans = sortrows(binContMeans,1);
 
 X = repmat(1,1,36);
 labels = cell(1,length(binMeans));
 for i = 1:length(binMeans)
-    labels{1,i} = num2str(i);
+    labels{1,i} = num2str(i*10);
 end
 numBins = length(X);
 fig = figure;
 ax = axes('Parent',fig);
-hPieComponentHandles = pie(ax,ones(1,numBins),labels);
+locPie = pie(ax,ones(1,numBins),labels);
+set(gcf,'name','Avg Location Difference Per 10 Degree Bin (yellow lowest) (red highest)')
 midcol = fliplr((0:0.0278:1))';
 autumnmat = zeros(36,3);
 autumnmat(:,1) = 1;
@@ -312,12 +317,24 @@ colorOrder = sortedBinMeans(:,2)'; %lowest first, so yellow, highest last, reed
 % rgbmatrix = [ 1+(X(:) < 0).*X(:), 1-(X(:) > 0).*X(:),1-abs(X(:))];
 for i = 1:length(binMeans)
     pieColorMap = autumnmat(i,1:3);
-    set(hPieComponentHandles(i*2-1),'FaceColor',pieColorMap);
+    set(locPie(i*2-1),'FaceColor',pieColorMap);
 end
 camroll(-90);
-% theta = -90;
-% R = [cosd(theta) -sind(theta); sind(theta) cosd(theta)];
-% rotpie = R*hPieComponentHandles;
+
+fig1 = figure;
+ax1 = axes('Parent',fig1);
+contPie = pie(ax1,ones(1,numBins),labels);
+set(gcf,'name','Avg Contrast Per 10 Degree Bin (yellow lowest) (red highest)')
+autumnmat = zeros(36,3);
+autumnmat1(:,1) = repmat(1,36,1);
+autumnmat1(:,2) = midcol;
+autumnmat1(:,4:5) = binContMeans;
+autumnmat1 = sortrows(autumnmat1,4);
+for i = 1:length(binContMeans)
+    pieColorMap1 = autumnmat1(i,1:3);
+    set(contPie(i*2-1),'FaceColor',pieColorMap1);
+end
+camroll(-90);
 
 
 
