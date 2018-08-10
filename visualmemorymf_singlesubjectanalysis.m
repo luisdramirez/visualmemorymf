@@ -13,7 +13,7 @@ expDir = '/Users/juliaschwartz/Desktop/visualmemorymf'; %Lab computer
 dataDir = '/Users/juliaschwartz/Desktop/visualmemorymf/data_master'; %Lab computer
 %dataDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf/data_master'; %Laptop
 allP.experiment = 'exp';
-allP.subject = 'JS';
+allP.subject = 'JP';
 cd(dataDir)
 
 
@@ -33,8 +33,8 @@ else
 end
 cd(expDir)
 %Plotting and Printing Settings
-plotVar = 0; %Set equal to 1 to display plots, equal to 0 to not display plots.
-printVar = 1; %Set equal to 0 to not print information, equal to 1 to print information.
+plotVar = 1; %Set equal to 1 to display plots, equal to 0 to not display plots.
+printVar = 0; %Set equal to 0 to not print information, equal to 1 to print information.
 
 % Pre-allocate Data cells.
 allP = cell(1,length(runNumbers)); % Parameters
@@ -335,6 +335,24 @@ subject.avgDiffLoc = nan(nTrials,theData(1).p.numContrasts,3);
         legend('Location Difference','Avg. Loc. Diff. per Contrast');
         hold off
         
+        % X Limits for Location Responses %
+        % Max Location Difference:
+        if strcmp(variableCondition,'Perception') == 1
+            xMax = zeros(1,p.numContrasts);
+            for i = 1:p.numContrasts
+                  xMax(i) = max([max(baseline.contData(:,2,i)) max(perception.contData(:,2,i))]);
+            end
+            xLim = max(xMax);
+        elseif strcmp(variableCondition,'Working Memory') == 1
+            xMax = zeros(1,p.numContrasts);
+            for i = 1:p.numContrasts
+                  xMax(i) = max([max(baseline.contData(:,2,i)) max(workingmem.contData(:,2,i))]);
+            end
+            xLim = max(xMax);
+        end
+            
+            
+        
         % Histogram Plots for each contrast %
         for i = 1:p.numContrasts
             subplot(2,p.numContrasts+1,i+1)
@@ -343,7 +361,10 @@ subject.avgDiffLoc = nan(nTrials,theData(1).p.numContrasts,3);
             line([subject.avgDiffLoc(nRun,i,3) subject.avgDiffLoc(nRun,i,3)],ylim,'Linewidth',1.75,'Color','r');
             hold off
             title(sprintf('Histogram for %.2f Trials',baseline.contTE(1,3,i)))
-            legend('Location Difference','Avg. Loc. Diff. Per Contrast')
+            legend('Location Difference','Avg. Loc. Error ')
+            ylabel('Number Responses')
+            xlabel('Location Error')
+            xlim([0 xLim])
         end
         
         % VARIABLE CONDITION LOCATION DIFFERENCE %
@@ -368,7 +389,10 @@ subject.avgDiffLoc = nan(nTrials,theData(1).p.numContrasts,3);
                 line([subject.avgDiffLoc(nRun,i,1) subject.avgDiffLoc(nRun,i,1)],ylim,'Linewidth',1.75,'Color','r');
                 hold off
                 title(sprintf('Histogram for %.2f Trials',perception.contTE(1,3,i)))
-                legend('Location Diff. Bins','Avg. Location Diff.')
+                legend('Location Difference','Avg. Loc. Error ')
+                ylabel('Number Responses')
+                xlabel('Location Error')
+                xlim([0 xLim])
             end
   
         elseif sum(strcmp(variableCondition,'Working Memory')) == 1
@@ -389,10 +413,13 @@ subject.avgDiffLoc = nan(nTrials,theData(1).p.numContrasts,3);
                 subplot(2,p.numContrasts+1,p.numContrasts+2+i)
                 hist(workingmem.contData(:,2,i))
                 hold on
-                line([subject.avgDiffLoc(nRun,i,2) subject.avgDiffLoc(nRun,i,2)],ylim,'Linewidth',1.75,'Color','g')
+                line([subject.avgDiffLoc(nRun,i,2) subject.avgDiffLoc(nRun,i,2)],ylim,'Linewidth',1.75,'Color','r')
                 hold off
                 title(sprintf('Histogram for %.2f Trials',workingmem.contTE(1,3,i)))
-
+                legend('Location Difference','Avg. Loc. Error ')
+                ylabel('Number Responses')
+                xlabel('Location Error')
+                xlim([0 xLim])
             end
         end      
     end 
@@ -486,29 +513,11 @@ subject.avgDiffLoc = nan(nTrials,theData(1).p.numContrasts,3);
         for run = 1:numel(theData)
             subplot(2,2,run)
             for bin = 1:numBins
-                if bin == 1
-                    lengthBegin = 1;
-                    lengthEnd = numel(LocCell{run,bin});
-                    plot(lengthBegin:lengthEnd,LocCell{run,bin},'k')
-                    hold on
-                    binMean = mean(LocCell{run,bin});
-                    LocCell{run+4,bin} = binMean;
-                    plot([lengthBegin lengthEnd],[binMean binMean],'r-','Linewidth',1.75)
-                elseif isempty(LocCell{run,bin}) ~= 1
-                    if  isempty(LocCell{run,bin-1}) ~= 1
-                     plot([lengthEnd lengthEnd+1],[LocCell{run,bin-1}(end) LocCell{run,bin}(1)],'k')
-                    end
-                    lengthBin = numel(LocCell{run,bin});
-                    lengthBegin = lengthEnd+1;
-                    lengthEnd = lengthBegin + lengthBin - 1;
-                    plot(lengthBegin:lengthEnd,LocCell{run,bin},'k')
-                    binMean = mean(LocCell{run,bin});
-                    LocCell{run+4,bin} = binMean;
-                    plot([lengthBegin lengthEnd],[binMean binMean],'r-','Linewidth',1.75)
-                end
+                binMean = mean(LocCell{run,bin});
+                LocCell{run+4,bin} = binMean;
             end
         end
-     end
+ end
 
  for run = 1:numel(theData)
      for bin = 1:numBins
@@ -534,12 +543,33 @@ subject.binAvgs = binAvgs;
 subject.binContAvgs = binContAvgs;
 %export these and compare amongst people
 
-
-
-     
+currP = theData(1).p;
+centerContrast = (10.^linspace(log10(currP.minContrast),log10(currP.maxContrast),currP.numContrasts));
+if plotVar ~= 0
+    figure(14)
+    set(gcf,'name','Average Location Error Per 10 Degree Bin (all conditions)')
+    bar(binAvgs(:,2),binAvgs(:,1))
+    xlabel('First Degree in Bin')
+    ylabel('Average Location Difference (actual-estimated)')
+    xticks(1:10:360)
+    hold off
     
-     
-            
+    
+    figure(15)
+    set(gcf,'name','Average Location Error/Bin, conditions split')
+    locdiffmeanMat = zeros(3,p.numContrasts);
+    locdiffmeanMat(1,:) = perception.LocDiffMeanVec;
+    locdiffmeanMat(2,:) = workingmem.LocDiffMeanVec;
+    locdiffmeanMat(3,:) = baseline.LocDiffMeanVec;
+    locdiffmeanMat = locdiffmeanMat';
+    bar(locdiffmeanMat);
+    xlabel('Contrast Level')
+    ylabel('Difference in Location Estimate')
+    legend({'Perception','Working Memory','Baseline'})
+    xticks(centerContrast);
+end
+
+
 
     %% Printing Data (conditional print variable must not equal 0 to display) %%
     if printVar ~= 0
