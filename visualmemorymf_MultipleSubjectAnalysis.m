@@ -282,14 +282,16 @@ for subj = 1:length(master_subjectData)
     binAvg(:,subj) = master_subjectData{subj,2}.binAvgs(:,1);
     binContAvg(:,subj) = master_subjectData{subj,2}.binContAvgs(:,1);
 end
-binMeans = mean(binAvg,2);
+binMeans = mean(binAvg,2,'omitnan');
 binContMeans = mean(binContAvg,2,'omitNan');
 if plotVar ~= 0
     figure('Color',[1 1 1])
     set(gcf,'Name','Average Location Difference Away Per 10 Degree Bin')
     plot(1:length(binMeans),binMeans','r')
-    xlabel('Bin: Each Represents 10 Degree Bins (x*10)')
+    xlabel('Location on 360 Degree Circle')
     ylabel('Difference in Estimated versus Actual Degree Location (Abs)')
+    xticks([0 9 18 27 36]);
+    xticklabels({'East','North','West','South','East'})
 end
 binMeans(:,2) = (1:length(binMeans));  
 binContMeans(:,2) = (1:length(binContMeans));
@@ -324,7 +326,7 @@ camroll(-90);
 fig1 = figure;
 ax1 = axes('Parent',fig1);
 contPie = pie(ax1,ones(1,numBins),labels);
-set(gcf,'name','Avg Contrast Per 10 Degree Bin (yellow lowest) (red highest)')
+set(gcf,'name','Avg Contrast Error Per 10 Degree Bin (yellow lowest) (red highest)')
 autumnmat = zeros(36,3);
 autumnmat1(:,1) = repmat(1,36,1);
 autumnmat1(:,2) = midcol;
@@ -336,7 +338,28 @@ for i = 1:length(binContMeans)
 end
 camroll(-90);
 
+perceptionLocDiffMean = zeros(subjectsLong,length(centerContrast));
+workingmemLocDiffMean = zeros(subjectsLong,length(centerContrast));
+baselineLocDiffMean = zeros(subjectsLong,length(centerContrast));
+for subj = 1:length(master_subjectData)
+    perceptionLocDiffMean(subj,:) = master_subjectData{subj,2}.perceptionLocDiffMean;
+    workingmemLocDiffMean(subj,:) = master_subjectData{subj,2}.workingmemLocDiffMean;
+    baselineLocDiffMean(subj,:) = master_subjectData{subj,2}.baselineLocDiffMean;
+end
 
+figure('Color',[1 1 1])
+    set(gcf,'name','Average Location Error/Bin, conditions split')
+    locdiffmeanMat = zeros(3,length(centerContrast));
+    locdiffmeanMat(1,:) = mean(perceptionLocDiffMean);
+    locdiffmeanMat(2,:) = mean(workingmemLocDiffMean);
+    locdiffmeanMat(3,:) = mean(baselineLocDiffMean);
+    locdiffmeanMat = locdiffmeanMat';
+    bar(locdiffmeanMat);
+    xlabel('Contrast Level')
+    ylabel('Difference in Location Estimate')
+    legend({'Perception','Working Memory','Baseline'})
+    xticks([1 2 3 4 5]);
+    
 
 %% Statitsical Significance %%
 % T test between the different contrast levels between perception, working

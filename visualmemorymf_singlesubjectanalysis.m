@@ -8,12 +8,12 @@
 % Preliminary data loading and setup %
 clear;
 close all;
-expDir = '/Users/juliaschwartz/Desktop/visualmemorymf'; %Lab computer
-%expDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf'; %Laptop
-dataDir = '/Users/juliaschwartz/Desktop/visualmemorymf/data_master'; %Lab computer
-%dataDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf/data_master'; %Laptop
+%expDir = '/Users/juliaschwartz/Desktop/visualmemorymf'; %Lab computer
+expDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf'; %Laptop
+%dataDir = '/Users/juliaschwartz/Desktop/visualmemorymf/data_master'; %Lab computer
+dataDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf/data_master'; %Laptop
 allP.experiment = 'exp';
-allP.subject = 'JP';
+allP.subject = 'MK';
 cd(dataDir)
 
 
@@ -566,9 +566,11 @@ if plotVar ~= 0
     xlabel('Contrast Level')
     ylabel('Difference in Location Estimate')
     legend({'Perception','Working Memory','Baseline'})
-    xticks(centerContrast);
+    xticks([1 2 3 4 5]);
 end
-
+subject.perceptionLocDiffMean = perception.LocDiffMeanVec;
+subject.workingmemLocDiffMean = workingmem.LocDiffMeanVec;
+subject.baselineLocDiffMean = baseline.LocDiffMeanVec;
 
 
     %% Printing Data (conditional print variable must not equal 0 to display) %%
