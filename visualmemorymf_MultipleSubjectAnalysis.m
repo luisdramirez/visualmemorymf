@@ -8,10 +8,10 @@
 %% SETUP %%
 clear;
 close all;
-expDir = '/Users/juliaschwartz/Desktop/visualmemorymf'; %Lab computer
-%expDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf'; %Laptop
-dataDir = '/Users/juliaschwartz/Desktop/visualmemorymf/data_master'; %Lab computer
-%dataDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf/data_master'; %Laptop
+%expDir = '/Users/juliaschwartz/Desktop/visualmemorymf'; %Lab computer
+expDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf'; %Laptop
+%dataDir = '/Users/juliaschwartz/Desktop/visualmemorymf/data_master'; %Lab computer
+dataDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf/data_master'; %Laptop
 cd(dataDir)
 load('visualmemory_condition_order')
 load('visualmemory_subjectsRan')  
