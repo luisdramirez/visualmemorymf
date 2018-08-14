@@ -80,7 +80,7 @@ for subj = 1:subjectsLong
         master.avgDiffLocation(subj,contNum,3) = subject.meanEstContBaseline(contNum);
     end
 end
-%cant take nans out because then the size of the 3D matrix changes
+
     
 
 %Take mean down the column of each page of each field of "master" to find
@@ -349,7 +349,7 @@ end
 percepLocError = std(perceptionLocDiffMean)/length(master_subjectData);
 wmLocError = std(workingmemLocDiffMean)/length(master_subjectData);
 blLocError = std(baselineLocDiffMean)/length(master_subjectData);
-
+%%
 figure('Color',[1 1 1])
     set(gcf,'name','Average Location Error/Bin, conditions split')
     locdiffmeanMat = zeros(3,length(centerContrast));
@@ -357,12 +357,15 @@ figure('Color',[1 1 1])
     locdiffmeanMat(2,:) = mean(workingmemLocDiffMean);
     locdiffmeanMat(3,:) = mean(baselineLocDiffMean);
     locdiffmeanMat = locdiffmeanMat';
-    bar(locdiffmeanMat);
+    bar(1:5,locdiffmeanMat);
     hold all
-%     for  i = 1:length(centerContrast)
-%         errorbar(
+    for cont = 1:length(centerContrast)
+        errorbar(cont,locdiffmeanMat(cont,2),wmLocError(cont),'k-')
+        errorbar(cont-0.225,locdiffmeanMat(cont,1),percepLocError(cont),'k-')
+        errorbar(cont+0.225,locdiffmeanMat(cont,3),blLocError(cont),'k-')
+    end
     xlabel('Contrast Level')
-    ylabel('Difference in Location Estimate')
+    ylabel('Difference in Location Estimate (Degrees)')
     legend({'Perception','Working Memory','Baseline'})
     xticks([1 2 3 4 5]);
     
