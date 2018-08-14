@@ -3,12 +3,12 @@ clear all
 
 %% SETUP %%
 
-%expDir = '/Users/juliaschwartz/Desktop/visualmemorymf'; %Lab computer
-expDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf'; %Laptop
+expDir = '/Users/juliaschwartz/Desktop/visualmemorymf'; %Lab computer
+%expDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf'; %Laptop
 p = genpath(expDir);
 addpath(p);
-%dataDir = '/Users/juliaschwartz/Desktop/visualmemorymf/data_master'; %Lab computer
-dataDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf/data_master'; %Laptop
+dataDir = '/Users/juliaschwartz/Desktop/visualmemorymf/data_master'; %Lab computer
+%dataDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf/data_master'; %Laptop
 cd(dataDir)
 indvFiguresOn = 1; %Display plots
 load('visualmemory_subjectsRan.mat')
