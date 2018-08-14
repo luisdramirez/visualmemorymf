@@ -8,10 +8,10 @@
 %% SETUP %%
 clear;
 close all;
-%expDir = '/Users/juliaschwartz/Desktop/visualmemorymf'; %Lab computer
-expDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf'; %Laptop
-%dataDir = '/Users/juliaschwartz/Desktop/visualmemorymf/data_master'; %Lab computer
-dataDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf/data_master'; %Laptop
+expDir = '/Users/juliaschwartz/Desktop/visualmemorymf'; %Lab computer
+%expDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf'; %Laptop
+dataDir = '/Users/juliaschwartz/Desktop/visualmemorymf/data_master'; %Lab computer
+%dataDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf/data_master'; %Laptop
 cd(dataDir)
 load('visualmemory_condition_order')
 load('visualmemory_subjectsRan')  
@@ -346,6 +346,9 @@ for subj = 1:length(master_subjectData)
     workingmemLocDiffMean(subj,:) = master_subjectData{subj,2}.workingmemLocDiffMean;
     baselineLocDiffMean(subj,:) = master_subjectData{subj,2}.baselineLocDiffMean;
 end
+percepLocError = std(perceptionLocDiffMean)/length(master_subjectData);
+wmLocError = std(workingmemLocDiffMean)/length(master_subjectData);
+blLocError = std(baselineLocDiffMean)/length(master_subjectData);
 
 figure('Color',[1 1 1])
     set(gcf,'name','Average Location Error/Bin, conditions split')
@@ -355,6 +358,9 @@ figure('Color',[1 1 1])
     locdiffmeanMat(3,:) = mean(baselineLocDiffMean);
     locdiffmeanMat = locdiffmeanMat';
     bar(locdiffmeanMat);
+    hold all
+%     for  i = 1:length(centerContrast)
+%         errorbar(
     xlabel('Contrast Level')
     ylabel('Difference in Location Estimate')
     legend({'Perception','Working Memory','Baseline'})
