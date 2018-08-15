@@ -10,11 +10,11 @@ test_env = 0;
 % visualmemory_subjectsRan = {};
 
 %% PREPARE
-p.repetitions = 20; % set to 20 for ~40min; data will be saved if repetitions > 5
+p.repetitions = 1; % set to 20 for ~40min; data will be saved if repetitions > 5
 
 % Experiment & Subject Name
-p.experiment = 'exp'; % 'exp=5 contrasts, w/WM; 'test_HC'=1 contrast, no WM; 'test'=5 contrasts, no WM;
-p.subject = 'SL';
+p.experiment = 'test'; % 'exp=5 contrasts, w/WM; 'test_HC'=1 contrast, no WM; 'test'=5 contrasts, no WM;
+p.subject = 'BC';
 
 % Set directories
 expDir = pwd; % set the experimental directory to the current directory 'pwd'
@@ -30,6 +30,7 @@ p.numConditions = 2;
 cd(dataDir);
 if sum(strcmp(p.experiment,{'test','test_HC'})) == 0
     load('visualmemory_condition_order.mat')
+    visualmemory_condition_order = visualmemory_condition_order_real;
     load('visualmemory_subjectsRan.mat')
 end
 
@@ -208,7 +209,7 @@ if strcmp(p.experiment,{'test_HC'})
     col1 = repmat(col1,p.repetitions,1);
     
     p.numTrials = length(col1);
-    p.numSets = p.numTrials/p.numTrialsPerSet;
+    p.numSets = round(p.numTrials/p.numTrialsPerSet);
     
 else
     p.stimConfigurations = 1:length(p.centerContrast)*length(conds);
@@ -224,7 +225,7 @@ else
     
     p.numTrials = length(col1);
     p.numBlocks = p.numTrials/p.numTrialsPerBlock;
-    p.numSets = p.numTrials/p.numTrialsPerSet;
+    p.numSets = round(p.numTrials/p.numTrialsPerSet);
 end
 
 %--------------------%
@@ -406,7 +407,7 @@ end
 if ~test_env
     % Welcome Screen
     Screen('TextStyle', window, 1);
-    Screen('TextSize', window, 16);
+    Screen('TextSize', window, 18);
     if p.testCondition == 1 %perception
         welcomeText = ['Hello' '\n' ...
             'In this session you will be asked to complete a run of a visual memory experiment.' '\n'...
@@ -593,7 +594,7 @@ for nTrial = 1:size(p.trialEvents,1)
     end
     
     %--------------------%
-    %                Probe               %
+    %        Probe       %
     %--------------------%
     
     % Check if ESCAPE has been pressed
@@ -719,7 +720,7 @@ for nTrial = 1:size(p.trialEvents,1)
         
         data.responseTime(nTrial) = (GetSecs-startResponseTime);
         %--------------------%
-        %               Break                %
+        %       Break        %
         %--------------------%
         if mod(nTrial,p.numTrialsPerSet) == 0 && nTrial == p.numTrialsPerSet*nSet && nSet < p.numSets
             rest = GetSecs;
