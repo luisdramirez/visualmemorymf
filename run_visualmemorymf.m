@@ -624,7 +624,9 @@ for nTrial = 1:size(p.trialEvents,1)
     if test_env
         GetClicks;
     end
-    if ~test_env     
+    if ~test_env 
+        
+        %%% CONTRAST REPORT %%%  
         % Allow for dial rotation for contrast update
         [~, contrastangle] = PsychPowerMate('Get', powermate);
         while 1 %start inf loop
@@ -634,7 +636,7 @@ for nTrial = 1:size(p.trialEvents,1)
             if contrastangle ~= angle2
                 %
                 % % Convert turn of dial first to degrees and then to contrast:
-                angles = (angle * 3.8298)/360;
+                angles = (angle2 * 3.8298)/360;
                 angles = ((contrastangle-angle2)*3.8298);
                 changecontrast = angles/360;
                 intial_contrast = intial_contrast - changecontrast; % update the contrast relative to last dial position
@@ -669,6 +671,7 @@ for nTrial = 1:size(p.trialEvents,1)
         % % break to make sure it doesn't skip the contrast task
         WaitSecs(1);
         
+        %%% LOCATION REPORT %%%
         % Allow for dial rotation for location update
         [~, startangle] = PsychPowerMate('Get',powermate);
         while 1 %start inf loop
