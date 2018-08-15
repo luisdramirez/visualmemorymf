@@ -14,7 +14,7 @@ p.repetitions = 20; % set to 20 for ~40min; data will be saved if repetitions > 
 
 % Experiment & Subject Name
 p.experiment = 'exp'; % 'exp=5 contrasts, w/WM; 'test_HC'=1 contrast, no WM; 'test'=5 contrasts, no WM;
-p.subject = 'SL';
+p.subject = 'MK';
 
 
 % Set directories
@@ -31,6 +31,7 @@ p.numConditions = 2;
 cd(dataDir);
 if sum(strcmp(p.experiment,{'test','test_HC'})) == 0
     load('visualmemory_condition_order.mat')
+    visualmemory_condition_order = visualmemory_condition_order_real;
     load('visualmemory_subjectsRan.mat')
 end
 
