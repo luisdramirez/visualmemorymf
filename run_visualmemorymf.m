@@ -16,7 +16,6 @@ p.repetitions = 20; % set to 20 for ~40min; data will be saved if repetitions > 
 p.experiment = 'exp'; % 'exp=5 contrasts, w/WM; 'test_HC'=1 contrast, no WM; 'test'=5 contrasts, no WM;
 p.subject = 'MK';
 
-
 % Set directories
 expDir = pwd; % set the experimental directory to the current directory 'pwd'
 dataDir = 'data_master'; %Set the path to a directory called 'data'
@@ -595,7 +594,7 @@ for nTrial = 1:size(p.trialEvents,1)
     end
     
     %--------------------%
-    %                   Probe             %
+    %                Probe               %
     %--------------------%
     
     % Check if ESCAPE has been pressed
@@ -626,7 +625,51 @@ for nTrial = 1:size(p.trialEvents,1)
     if test_env
         GetClicks;
     end
-    if ~test_env
+    if ~test_env     
+        % Allow for dial rotation for contrast update
+        [~, contrastangle] = PsychPowerMate('Get', powermate);
+        while 1 %start inf loop
+            % % Query PowerMate button state and rotation angle in "clicks"
+            [pmbutton_contrast, angle2] = PsychPowerMate('Get', powermate);
+            % % 1st button is the "or" of the 1st mouse button and the actual PowerMate button
+            if contrastangle ~= angle2
+                %
+                % % Convert turn of dial first to degrees and then to contrast:
+                angles = (angle * 3.8298)/360;
+                angles = ((contrastangle-angle2)*3.8298);
+                changecontrast = angles/360;
+                intial_contrast = intial_contrast - changecontrast; % update the contrast relative to last dial position
+                % % Make sure we stay in range
+                %
+                if intial_contrast > 1
+                    intial_contrast = 1;
+                elseif intial_contrast < 0
+                    intial_contrast = 0.001;
+                end
+                Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
+                
+                Target = Screen('MakeTexture', window, squeeze(centerGrating)* (intial_contrast*colors.grey) + colors.grey);
+                Screen('DrawTexture', window, Target, [], CenterRectOnPoint([0 0 size(centerTexture,1) size(centerTexture,1)], ProbeXY(1), ProbeXY(2)), p.stimorientation)
+                Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation]);
+                Screen('FillOval', window, colors.green, [CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation])
+                Screen('Flip', window);
+                
+                contrastangle = angle2;
+            end
+            if pmbutton_contrast == 1
+                contrastTime = GetSecs;
+                data.EstimatedContrast(nTrial) = intial_contrast;
+                data.DifferenceContrast(nTrial) = p.trialEvents(nTrial,3) - data.EstimatedContrast(nTrial);
+                data.ResponseTime_Contrast(nTrial) = (contrastTime - startResponseTime);
+                pmbutton_contrast = 0;
+                break
+            end
+        end
+        
+        % % PowerMate is sampled at 10msec intervals, therefore have a short
+        % % break to make sure it doesn't skip the contrast task
+        WaitSecs(1);
+        
         % Allow for dial rotation for location update
         [~, startangle] = PsychPowerMate('Get',powermate);
         while 1 %start inf loop
@@ -670,51 +713,8 @@ for nTrial = 1:size(p.trialEvents,1)
                 pmbutton = 0;
                 break
             end
-        end
+        end        
         
-        % % PowerMate is sampled at 10msec intervals, therefore have a short
-        % % break to make sure it doesn't skip the contrast task
-        WaitSecs(1);
-        
-        % Allow for dial rotation for contrast update
-        [~, contrastangle] = PsychPowerMate('Get', powermate);
-        while 1 %start inf loop
-            % % Query PowerMate button state and rotation angle in "clicks"
-            [pmbutton_contrast, angle2] = PsychPowerMate('Get', powermate);
-            % % 1st button is the "or" of the 1st mouse button and the actual PowerMate button
-            if contrastangle ~= angle2
-                %
-                % % Convert turn of dial first to degrees and then to contrast:
-                angles = (angle * 3.8298)/360;
-                angles = ((contrastangle-angle2)*3.8298);
-                changecontrast = angles/360;
-                intial_contrast = intial_contrast - changecontrast; % update the contrast relative to last dial position
-                % % Make sure we stay in range
-                %
-                if intial_contrast > 1
-                    intial_contrast = 1;
-                elseif intial_contrast < 0
-                    intial_contrast = 0.001;
-                end
-                Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
-                
-                Target = Screen('MakeTexture', window, squeeze(centerGrating)* (intial_contrast*colors.grey) + colors.grey);
-                Screen('DrawTexture', window, Target, [], CenterRectOnPoint([0 0 size(centerTexture,1) size(centerTexture,1)], ProbeXY(1), ProbeXY(2)), p.stimorientation)
-                Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation]);
-                Screen('FillOval', window, colors.green, [CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation])
-                Screen('Flip', window);
-                
-                contrastangle = angle2;
-            end
-            if pmbutton_contrast == 1
-                contrastTime = GetSecs;
-                data.EstimatedContrast(nTrial) = intial_contrast;
-                data.DifferenceContrast(nTrial) = p.trialEvents(nTrial,3) - data.EstimatedContrast(nTrial);
-                data.ResponseTime_Contrast(nTrial) = (contrastTime - startResponseTime);
-                pmbutton_contrast = 0;
-                break
-            end
-        end
         data.responseTime(nTrial) = (GetSecs-startResponseTime);
         %--------------------%
         %               Break                %
