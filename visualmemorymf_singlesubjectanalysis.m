@@ -15,7 +15,8 @@ expDir = pwd;
 % dataDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf/data_master'; %Laptop
 dataDir = 'data_master';
 allP.experiment = 'exp';
-allP.subject = 'BC';
+allP.subject = '006';
+whomst = allP.subject;
 cd(dataDir)
 
 
@@ -876,6 +877,6 @@ subject.nTrials = nTrials;
     
 %% SAVE SUBJECT STRUCTURE %%
 cd(dataDir)
-save(['analyzed_visualmemorymf_' p.experiment '_' p.subject '.mat'], 'subject','theData')
+save(['analyzed_visualmemorymf_' p.experiment '_' whomst '.mat'], 'subject','theData')
 
       
