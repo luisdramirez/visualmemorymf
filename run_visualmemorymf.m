@@ -4,7 +4,7 @@ close all; clear all; clc;
 commandwindow;
 Screen('Preference', 'SkipSyncTests', 1);
 commandwindow;
-test_env = 0;
+test_env = 1;
 
 % visualmemory_condition_order = unique(perms([1 2 1 2]),'rows');
 % visualmemory_subjectsRan = {};
@@ -13,7 +13,7 @@ test_env = 0;
 p.repetitions = 1; % set to 20 for ~40min; data will be saved if repetitions > 5
 
 % Experiment & Subject Name
-p.experiment = 'test'; % 'exp=5 contrasts, w/WM; 'test_HC'=1 contrast, no WM; 'test'=5 contrasts, no WM;
+p.experiment = 'test_HC'; % 'exp=5 contrasts, w/WM; 'test_HC'=1 contrast, no WM; 'test'=5 contrasts, no WM;
 p.subject = 'BC';
 
 % Set directories
@@ -74,8 +74,8 @@ end
 
 deviceNumber = 0;
 [keyBoardIndices, ProductNames] = GetKeyboardIndices;
-deviceString = 'Lenovo Traditional USB Keyboard'; %rm208 
-% deviceString = 'Apple Internal Keyboard / Trackpad';
+% deviceString = 'Lenovo Traditional USB Keyboard'; %rm208 
+deviceString = 'Apple Internal Keyboard / Trackpad';
 % deviceString = 'USB-HID Keyboard'; %luis' desk keyboard
 % deviceString = 'Wired USB Keyboard';
 % deviceString = 'Apple Keyboard';
@@ -209,6 +209,7 @@ if strcmp(p.experiment,{'test_HC'})
     col1 = repmat(col1,p.repetitions,1);
     
     p.numTrials = length(col1);
+    p.numBlocks = p.numTrials/p.numTrialsPerBlock;
     p.numSets = round(p.numTrials/p.numTrialsPerSet);
     
 else
