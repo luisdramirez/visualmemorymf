@@ -10,8 +10,8 @@ clear all;
 close all;
 expDir = 'visualmemorymf';
 dataDir = 'data_master';
-p.experiment = 'test';
-p.subject = 'JS';
+p.experiment = 'exp';
+p.subject = 'BC';
 cd(dataDir)
 
 if exist(['data_visualmemorymf_' p.experiment '_' p.subject '.mat'],'file') ~= 0
