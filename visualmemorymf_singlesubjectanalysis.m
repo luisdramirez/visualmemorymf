@@ -9,11 +9,13 @@
 clear;
 close all;
 %expDir = '/Users/juliaschwartz/Desktop/visualmemorymf'; %Lab computer
-expDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf'; %Laptop
+% expDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf'; %Laptop
+expDir = pwd;
 %dataDir = '/Users/juliaschwartz/Desktop/visualmemorymf/data_master'; %Lab computer
-dataDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf/data_master'; %Laptop
+% dataDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf/data_master'; %Laptop
+dataDir = 'data_master';
 allP.experiment = 'exp';
-allP.subject = 'SL';
+allP.subject = 'BC';
 cd(dataDir)
 
 
