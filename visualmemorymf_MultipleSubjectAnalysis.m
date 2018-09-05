@@ -8,21 +8,18 @@
 %% SETUP %%
 clear;
 close all;
-%expDir = '/Users/juliaschwartz/Desktop/visualmemorymf'; %Lab computer
-expDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf'; %Laptop
-%dataDir = '/Users/juliaschwartz/Desktop/visualmemorymf/data_master'; %Lab computer
-dataDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf/data_master'; %Laptop
+expDir = pwd;
+dataDir = 'data_master';
 cd(dataDir)
 load('visualmemory_condition_order')
 load('visualmemory_subjectsRan')  
 
-cd(dataDir)
 files = struct2cell(dir(dataDir))';
 
 [numFiles, ~] = size(files);
 possibleFileNames = cell(length(visualmemory_subjectsRan),1);
 for i = 1:length(visualmemory_subjectsRan)
-    filename = strcat('data_visualmemorymf_exp_',visualmemory_subjectsRan{i},'.mat');
+    filename = strcat('analyzed_visualmemorymf_exp_',visualmemory_subjectsRan{i},'.mat');
     possibleFileNames{i,1} = filename;
 end
 
@@ -435,4 +432,4 @@ overallData.baselineForWMMean = mean(avgdBL_WM);
 overallData.baselineForPMean = mean(avgdBL_P);
 overallData.perceptionmean = mean(perceptionmat);
 overallData.workingmemmean = mean(workingmemmat);
-save(['data_visualmemorymf_overallData.mat'], 'overallData')
+save(['analyzed_visualmemorymf_overallData.mat'], 'overallData')

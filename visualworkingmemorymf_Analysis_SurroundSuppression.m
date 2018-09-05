@@ -5,17 +5,14 @@
 close all
 clear all
 
-% expDir = '/Users/ywatanabe/Dropbox/NormalizationVisualMemory/Experiment1';
-expDir = '/Users/juliaschwartz/Desktop/visualmemorymf';
-p = genpath(expDir);
-addpath(p);
-dataDir = '/Users/juliaschwartz/Desktop/visualmemorymf/data_master';
+expDir = pwd;
+dataDir = 'data_master';
 cd(dataDir)
 indvFiguresOn = 1;
 
 experiment = 'Exp 1';
 load('visualmemory_subjectsRan.mat')
-load('data_visualmemorymf_overallData.mat')
+load('analyzed_visualmemorymf_overallData.mat')
 
 numSubjects = length(visualmemory_subjectsRan);
 numContrast = 5;
