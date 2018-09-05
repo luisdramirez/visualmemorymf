@@ -661,9 +661,9 @@ for nTrial = 1:size(p.trialEvents,1)
             end
             if pmbutton_contrast == 1
                 contrastTime = GetSecs;
-                data.EstimatedContrast(nTrial) = intial_contrast;
-                data.DifferenceContrast(nTrial) = p.trialEvents(nTrial,3) - data.EstimatedContrast(nTrial);
-                data.ResponseTime_Contrast(nTrial) = (contrastTime - startResponseTime);
+                EstimatedContrast(nTrial) = intial_contrast;
+                DifferenceContrast(nTrial) = p.trialEvents(nTrial,3) - EstimatedContrast(nTrial);
+                ResponseTime_Contrast(nTrial) = (contrastTime - startResponseTime);
                 pmbutton_contrast = 0;
                 break
             end
@@ -702,24 +702,24 @@ for nTrial = 1:size(p.trialEvents,1)
                 % % % make sure angle stays in 0-360 range
                 correctedAngle = mod(initialAngle, 360);
                 
-                data.EstimatedLocation(nTrial) = correctedAngle;
+                EstimatedLocation(nTrial) = correctedAngle;
                 %
                 % % %make sure difference is in the 180 range
-                difference = abs(p.trialEvents(nTrial,2) - data.EstimatedLocation(nTrial));
+                difference = abs(p.trialEvents(nTrial,2) - EstimatedLocation(nTrial));
                 
                 if difference > 180
                     difference = abs(difference - 360);
                 end
                 
-                data.DifferenceLocation(nTrial) = difference;
+                DifferenceLocation(nTrial) = difference;
                 
-                data.ResponseTime_location(nTrial) = (locationTime - startResponseTime);
+                ResponseTime_location(nTrial) = (locationTime - startResponseTime);
                 pmbutton = 0;
                 break
             end
         end        
         
-        data.responseTime(nTrial) = (GetSecs-startResponseTime);
+        responseTime(nTrial) = (GetSecs-startResponseTime);
         %--------------------%
         %       Break        %
         %--------------------%
@@ -771,6 +771,14 @@ Screen('LoadNormalizedGammaTable', window, OriginalCLUT);
 Screen('CloseAll')
 ShowCursor;
 %% SAVE OUT THE DATA FILE
+data.EstimatedLocation = EstimatedLocation;
+data.DifferenceLocation = DifferenceLocation;
+data.ResponseTime_location = ResponseTime_location; 
+data.EstimatedContrast = EstimatedContrast;
+data.DifferenceContrast = DifferenceContrast;
+data.ResponseTime_Contrast = ResponseTime_Contrast;
+data.responseTime = responseTime;
+
 if p.repetitions > 5 && ~test_env
     cd(dataDir);
     theData(p.runNumber).t = t;
