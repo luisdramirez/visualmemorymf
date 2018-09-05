@@ -876,6 +876,6 @@ subject.nTrials = nTrials;
     
 %% SAVE SUBJECT STRUCTURE %%
 cd(dataDir)
-save(['data_visualmemorymf_' p.experiment '_' p.subject '.mat'], 'subject','theData')
+save(['analyzed_visualmemorymf_' p.experiment '_' p.subject '.mat'], 'subject','theData')
 
       

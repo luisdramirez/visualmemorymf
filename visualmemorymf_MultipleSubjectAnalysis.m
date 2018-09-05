@@ -22,7 +22,7 @@ files = struct2cell(dir(dataDir))';
 [numFiles, ~] = size(files);
 possibleFileNames = cell(length(visualmemory_subjectsRan),1);
 for i = 1:length(visualmemory_subjectsRan)
-    filename = strcat('data_visualmemorymf_exp_',visualmemory_subjectsRan{i},'.mat');
+    filename = strcat('analyzed_visualmemorymf_exp_',visualmemory_subjectsRan{i},'.mat');
     possibleFileNames{i,1} = filename;
 end
 
