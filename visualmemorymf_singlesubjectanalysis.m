@@ -103,6 +103,14 @@ subject.avgDiffLoc = nan(nTrials,theData(1).p.numContrasts,3);
     data = cell2mat(struct2cell(data));
     data = data';
     
+%    if sum(strcmp(allP{1,1}.subject,{'BC','006'})) > 0
+%        reshapeData = zeros(size(data));
+%        reshapeData(:,1:3) = data(:,4:6);
+%        reshapeData(:,4:6) = data(:,1:3);
+%        reshapeData(:,7) = data(:,7);
+%        data = reshapeData;
+%    end
+%     
     p.centerContrast = (10.^linspace(log10(p.minContrast),log10(p.maxContrast),p.numContrasts));
     
     % Add on Trial Number to end of p.trialEvents/data
@@ -658,6 +666,7 @@ end
         % avg Estimated Contrast
         figure(nTrials*2 + 1)
         set(gcf, 'Name', sprintf('Perceived Contrast Versus Center Contrast'));
+        subplot(1,1,1)
         % Baseline
         [howmanybl,~] = size(baselinemat);
         blerror = (std(baselinemat,'omitnan')/sqrt(howmanybl));
