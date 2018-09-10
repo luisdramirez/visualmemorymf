@@ -10,10 +10,10 @@ test_env = 0;
 % visualmemory_subjectsRan = {};
 
 %% PREPARE
-p.repetitions = 1; % set to 20 for ~40min; data will be saved if repetitions > 5
+p.repetitions = 20; % set to 20 for ~40min; data will be saved if repetitions > 5
 
 % Experiment & Subject Name
-p.experiment = 'test'; % 'exp=5 contrasts, w/WM; 'test_HC'=1 contrast, no WM; 'test'=5 contrasts, no WM;
+p.experiment = 'exp'; % 'exp=5 contrasts, w/WM; 'test_HC'=1 contrast, no WM; 'test'=5 contrasts, no WM;
 p.subject = 'BC';
 
 % Set directories
