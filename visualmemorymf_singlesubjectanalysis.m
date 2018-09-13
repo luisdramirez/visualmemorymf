@@ -14,19 +14,17 @@ close all;
 expDir = pwd;
 
 dataDir = 'data_master';
-allP.experiment = 'exp';
-allP.subject = '005';
-whomst = allP.subject;
+experiment = 'exp';
+whomst = '005';  % lol
 cd(dataDir)
 
 baselineIndex = 3;
 perceptionIndex = 1;
 workingmemIndex = 2;
 
-cd(dataDir)
 %Load run data
-if exist(['data_visualmemorymf_' allP.experiment '_' allP.subject '.mat'],'file') ~= 0
-    load(['data_visualmemorymf_' allP.experiment '_' allP.subject '.mat']);
+if exist(['data_visualmemorymf_' experiment '_' whomst '.mat'],'file') ~= 0
+    load(['data_visualmemorymf_' experiment '_' whomst '.mat']);
     load('visualmemory_subjectsRan'); load('visualmemory_condition_order');
     visualmemory_condition_order = visualmemory_condition_order_real;
     runNumbers = 1:length(theData);
@@ -41,23 +39,23 @@ plotVar = 1; %Set equal to 1 to display plots, equal to 0 to not display plots.
 printVar = 1; %Set equal to 0 to not print information, equal to 1 to print information.
 
 % Pre-allocate Data cells.
-allP = cell(1,length(runNumbers)); % Parameters
-allT = cell(1,length(runNumbers)); % Experiment Timing Information
+params = cell(1,length(runNumbers)); % Parameters
+timing = cell(1,length(runNumbers)); % Experiment Timing Information
 allData = cell(1,length(runNumbers)); % Subject-entered Data
 stats = cell(1,length(runNumbers));
 
 % Assign cells based off of data size.
 for nRun = 1:numRuns
-    allP{nRun} = theData(nRun).p;
-    allT{nRun} = theData(nRun).t;
+    params{nRun} = theData(nRun).p;
+    timing{nRun} = theData(nRun).t;
     allData{nRun} = theData(nRun).data;
 end
 
 %Finding subject name and indexing to condition order
-if sum(strcmp(allP{1,1}.experiment,{'test','test_HC'})) == 1
+if sum(strcmp(params{1,1}.experiment,{'test','test_HC'})) == 1
     subjectCondSchedule = [1 1 1 1]; % Fixed to perception for test trials.
 else
-    condIndex = find(strcmp(visualmemory_subjectsRan,allP{1,1}.subject));
+    condIndex = find(strcmp(visualmemory_subjectsRan(1,:),params{1,1}.subject));
     if condIndex > 24
         condIndex = condIndex - 24; %The condition order resets after 24, this matches to the reset.
     end
@@ -81,7 +79,7 @@ subject.avgDiffLoc = nan(numRuns,theData(1).p.numContrasts,3);
         
 % Shortens the condition schedule to only go through trials already ran.
  if numRuns == 1
-     subjectCondSchedule = allP{1,1}.trialSchedule(1); 
+     subjectCondSchedule = params{1,1}.trialSchedule(1); 
  elseif numRuns < 4
      subjectCondSchedule = subjectCondSchedule(1:numRuns);
  end
@@ -99,8 +97,8 @@ subject.avgDiffLoc = nan(numRuns,theData(1).p.numContrasts,3);
     else 
         error('Condition numbers/scheduling are set up incorrectly.')
     end
-    p = allP{nRun};
-    t = allT{nRun};
+    p = params{nRun};
+    t = timing{nRun};
     data = allData{nRun};
     data = cell2mat(struct2cell(data));
     data = data';
