@@ -59,7 +59,7 @@ end
 if sum(strcmp(allP{1,1}.experiment,{'test','test_HC'})) == 1
     subjectCondSchedule = [1 1 1 1]; % Fixed to perception for test trials.
 else
-    condIndex = find(strcmp(visualmemory_subjectsRan,allP{1,1}.subject));
+    condIndex = find(strcmp(visualmemory_subjectsRan{1,:},allP{1,1}.subject));
     if condIndex > 24
         condIndex = condIndex - 24; %The condition order resets after 24, this matches to the reset.
     end

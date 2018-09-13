@@ -349,6 +349,31 @@ end
 percepLocError = std(perceptionLocDiffMean)/length(master_subjectData);
 wmLocError = std(workingmemLocDiffMean)/length(master_subjectData);
 blLocError = std(baselineLocDiffMean)/length(master_subjectData);
+
+
+%% COMPARING DIFFERENT REPORT ORDERS %%
+% report orders: index into visualmemory_subjectsRan, second row of a
+% subjects column in the cell.
+    %the first 4 subjects were asked in condition a: location, then
+    %contrast. Also subject 10.
+    %the next five subjects were asked in condition b: contrast, then
+    %location.
+ % we want to compare between the different reporting orders.
+ for subj = 1:size(visualmemory_subjectsRan,2)
+     currentOrder = visualmemory_subjectsRan{2,1};
+     %if loop that will add specific subjects into a seperate master
+     %subject dad matrix based off of their order number. then from there
+     %you can split up the data.
+     if currentOrder == 'a'
+         subjectDataA = master_subjectData(subj,:);
+     elseif currentOrder == 'b'
+         subjectDataB = master_subjectData(subj,:);
+     else
+         error('subjects ran file doesnt contain order numbers')
+     end
+     
+ end
+ 
 %%
 figure('Color',[1 1 1])
     set(gcf,'name','Average Location Error/Bin, conditions split')
