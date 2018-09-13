@@ -4,17 +4,17 @@ close all; clear all; clc;
 commandwindow;
 Screen('Preference', 'SkipSyncTests', 1);
 commandwindow;
-test_env = 1;
+test_env = 0;
 
 % visualmemory_condition_order = unique(perms([1 2 1 2]),'rows');
 % visualmemory_subjectsRan = {};
 
 %% PREPARE
-p.repetitions = 1; % set to 20 for ~40min; data will be saved if repetitions > 5
+p.repetitions = 20; % set to 20 for ~40min; data will be saved if repetitions > 5
 
 % Experiment & Subject Name
 p.experiment = 'exp'; % 'exp=5 contrasts, w/WM; 'test_HC'=1 contrast, no WM; 'test'=5 contrasts, no WM;
-p.subject = '';
+p.subject = '009';
 
 % Set directories
 expDir = pwd; % set the experimental directory to the current directory 'pwd'
@@ -74,8 +74,8 @@ end
 
 deviceNumber = 0;
 [keyBoardIndices, ProductNames] = GetKeyboardIndices;
-% deviceString = 'Lenovo Traditional USB Keyboard'; %rm208 
-deviceString = 'Apple Internal Keyboard / Trackpad';
+deviceString = 'Lenovo Traditional USB Keyboard'; %rm208 
+% deviceString = 'Apple Internal Keyboard / Trackpad';
 % deviceString = 'USB-HID Keyboard'; %luis' desk keyboard
 % deviceString = 'Wired USB Keyboard';
 % deviceString = 'Apple Keyboard';
@@ -408,7 +408,7 @@ end
 if ~test_env
     % Welcome Screen
     Screen('TextStyle', window, 1);
-    Screen('TextSize', window, 18);
+    Screen('TextSize', window, 14);
     if p.testCondition == 1 %perception
         welcomeText = ['Hello' '\n' ...
             'In this session you will be asked to complete a run of a visual memory experiment.' '\n'...
