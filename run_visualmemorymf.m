@@ -82,7 +82,6 @@ if sum(strcmp(p.experiment,{'test','test_HC'})) == 0
 elseif sum(strcmp(p.experiment,{'test','test_HC'})) == 1
     disp('You are in a test session. The session condition has been fixed to 1.')
 end
-reportOrder = 'a';
 %% KEYBOARD
 
 deviceNumber = 0;
