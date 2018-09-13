@@ -38,6 +38,7 @@ if exist(['data_visualmemorymf_' p.experiment '_' p.subject '.mat'],'file') ~= 0
     load(['data_visualmemorymf_' p.experiment '_' p.subject '.mat']);
     p = theData(1).p;
     p.runNumber = length(theData)+1;
+    subject_indx = find(visualmemory_subjectsRan{1,:} == p.subject);
     if sum(strcmp(p.experiment,{'test', 'test_HC'})) == 1
         p.testCondition = 1; % fixed to perception condition for hard coded testing
     elseif sum(strcmp(p.experiment,{'test', 'test_HC'})) == 0
@@ -54,6 +55,7 @@ else
         p.trialSchedule = visualmemory_condition_order(p.orderRow,:);
         % Which Test condition, run these test conditions on different days
         p.testCondition = p.trialSchedule(1);
+        subject_indx = find(visualmemory_subjectsRan{1,:} == p.subject);
     elseif sum(strcmp(p.experiment,{'test','test_HC'})) == 1
         p.testCondition = 1; % fixed to perception condition
     end
@@ -74,7 +76,7 @@ end
 
 deviceNumber = 0;
 [keyBoardIndices, ProductNames] = GetKeyboardIndices;
-% deviceString = 'Lenovo Traditional USB Keyboard'; %rm208 
+% deviceString = 'Lenovo Traditional USB Keyboard'; %rm208
 deviceString = 'Apple Internal Keyboard / Trackpad';
 % deviceString = 'USB-HID Keyboard'; %luis' desk keyboard
 % deviceString = 'Wired USB Keyboard';
@@ -475,7 +477,7 @@ elseif test_env && sum(strcmp(p.experiment,{'test' 'test_HC'})) == 0
     DrawFormattedText(window, welcomeText, 'center', 'center', 255);
     Screen('Flip', window);
     GetClicks;
-    elseif test_env && sum(strcmp(p.experiment,{'test' 'test_HC'})) == 1
+elseif test_env && sum(strcmp(p.experiment,{'test' 'test_HC'})) == 1
     % Welcome Screen
     Screen('TextStyle', window, 1);
     Screen('TextSize', window, 16);
@@ -626,102 +628,195 @@ for nTrial = 1:size(p.trialEvents,1)
     if test_env
         GetClicks;
     end
-    if ~test_env 
-        
-        %%% CONTRAST REPORT %%%  
-        % Allow for dial rotation for contrast update
-        [~, contrastangle] = PsychPowerMate('Get', powermate);
-        while 1 %start inf loop
-            % % Query PowerMate button state and rotation angle in "clicks"
-            [pmbutton_contrast, angle2] = PsychPowerMate('Get', powermate);
-            % % 1st button is the "or" of the 1st mouse button and the actual PowerMate button
-            if contrastangle ~= angle2
-                %
-                % % Convert turn of dial first to degrees and then to contrast:
-                angles = (angle2 * 3.8298)/360;
-                angles = ((contrastangle-angle2)*3.8298);
-                changecontrast = angles/360;
-                intial_contrast = intial_contrast - changecontrast; % update the contrast relative to last dial position
-                % % Make sure we stay in range
-                %
-                if intial_contrast > 1
-                    intial_contrast = 1;
-                elseif intial_contrast < 0
-                    intial_contrast = 0.001;
+    if ~test_env
+        switch visualmemory_subjectsRan{2,subjects_indx}
+            case 'a' % report order = 1. location 2. contrast
+                %%% LOCATION REPORT %%%
+                % Allow for dial rotation for location update
+                [~, startangle] = PsychPowerMate('Get',powermate);
+                while 1 %start inf loop
+                    % Query PowerMate button state and rotation angle in "clicks"
+                    [pmbutton, angle] = PsychPowerMate('Get', powermate);
+                    % 1st button is the "or" of the 1st mouse button and the actual PowerMate button
+                    if startangle ~= angle
+                        % Convert turn of dial first to degrees and then to contrast:
+                        Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
+                        
+                        angles = ((startangle-angle)*3.8298);
+                        changeposition = (angles/(2*pi));
+                        initialAngle = initialAngle + changeposition; % update the location relative to last dial position
+                        ProbeXY = round([CenterX + p.eccentricity*(cos(initialAngle*(pi/180)))' CenterY - p.eccentricity*(sin(initialAngle*(pi/180)))']);
+                        
+                        Target = Screen('MakeTexture', window, squeeze(centerGrating)* (intial_contrast*colors.grey) + colors.grey);
+                        Screen('DrawTexture', window, Target, [], CenterRectOnPoint([0 0 size(centerTexture,1) size(centerTexture,1)], ProbeXY(1), ProbeXY(2)), p.stimorientation)
+                        Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation]);
+                        Screen('FillOval', window, colors.green, [CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation])
+                        Screen('Flip', window);
+                        
+                        startangle = angle;
+                    end
+                    if pmbutton == 1;
+                        locationTime = GetSecs;
+                        % % % make sure angle stays in 0-360 range
+                        correctedAngle = mod(initialAngle, 360);
+                        
+                        EstimatedLocation(nTrial) = correctedAngle;
+                        %
+                        % % %make sure difference is in the 180 range
+                        difference = abs(p.trialEvents(nTrial,2) - EstimatedLocation(nTrial));
+                        
+                        if difference > 180
+                            difference = abs(difference - 360);
+                        end
+                        
+                        DifferenceLocation(nTrial) = difference;
+                        
+                        ResponseTime_location(nTrial) = (locationTime - startResponseTime);
+                        pmbutton = 0;
+                        break
+                    end
                 end
-                Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
+                % % PowerMate is sampled at 10msec intervals, therefore have a short
+                % % break to make sure it doesn't skip the contrast task
+                WaitSecs(1);
+                %%% CONTRAST REPORT %%%
+                % Allow for dial rotation for contrast update
+                [~, contrastangle] = PsychPowerMate('Get', powermate);
+                while 1 %start inf loop
+                    % % Query PowerMate button state and rotation angle in "clicks"
+                    [pmbutton_contrast, angle2] = PsychPowerMate('Get', powermate);
+                    % % 1st button is the "or" of the 1st mouse button and the actual PowerMate button
+                    if contrastangle ~= angle2
+                        %
+                        % % Convert turn of dial first to degrees and then to contrast:
+                        angles = (angle2 * 3.8298)/360;
+                        angles = ((contrastangle-angle2)*3.8298);
+                        changecontrast = angles/360;
+                        intial_contrast = intial_contrast - changecontrast; % update the contrast relative to last dial position
+                        % % Make sure we stay in range
+                        %
+                        if intial_contrast > 1
+                            intial_contrast = 1;
+                        elseif intial_contrast < 0
+                            intial_contrast = 0.001;
+                        end
+                        Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
+                        
+                        Target = Screen('MakeTexture', window, squeeze(centerGrating)* (intial_contrast*colors.grey) + colors.grey);
+                        Screen('DrawTexture', window, Target, [], CenterRectOnPoint([0 0 size(centerTexture,1) size(centerTexture,1)], ProbeXY(1), ProbeXY(2)), p.stimorientation)
+                        Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation]);
+                        Screen('FillOval', window, colors.green, [CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation])
+                        Screen('Flip', window);
+                        
+                        contrastangle = angle2;
+                    end
+                    if pmbutton_contrast == 1
+                        contrastTime = GetSecs;
+                        EstimatedContrast(nTrial) = intial_contrast;
+                        DifferenceContrast(nTrial) = p.trialEvents(nTrial,3) - EstimatedContrast(nTrial);
+                        ResponseTime_Contrast(nTrial) = (contrastTime - startResponseTime);
+                        pmbutton_contrast = 0;
+                        break
+                    end
+                end
+                responseTime(nTrial) = (GetSecs-startResponseTime);
                 
-                Target = Screen('MakeTexture', window, squeeze(centerGrating)* (intial_contrast*colors.grey) + colors.grey);
-                Screen('DrawTexture', window, Target, [], CenterRectOnPoint([0 0 size(centerTexture,1) size(centerTexture,1)], ProbeXY(1), ProbeXY(2)), p.stimorientation)
-                Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation]);
-                Screen('FillOval', window, colors.green, [CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation])
-                Screen('Flip', window);
                 
-                contrastangle = angle2;
-            end
-            if pmbutton_contrast == 1
-                contrastTime = GetSecs;
-                EstimatedContrast(nTrial) = intial_contrast;
-                DifferenceContrast(nTrial) = p.trialEvents(nTrial,3) - EstimatedContrast(nTrial);
-                ResponseTime_Contrast(nTrial) = (contrastTime - startResponseTime);
-                pmbutton_contrast = 0;
-                break
-            end
+            case 'b' % report order = 1. contrast 2. location
+                %%% CONTRAST REPORT %%%
+                % Allow for dial rotation for contrast update
+                [~, contrastangle] = PsychPowerMate('Get', powermate);
+                while 1 %start inf loop
+                    % % Query PowerMate button state and rotation angle in "clicks"
+                    [pmbutton_contrast, angle2] = PsychPowerMate('Get', powermate);
+                    % % 1st button is the "or" of the 1st mouse button and the actual PowerMate button
+                    if contrastangle ~= angle2
+                        %
+                        % % Convert turn of dial first to degrees and then to contrast:
+                        angles = (angle2 * 3.8298)/360;
+                        angles = ((contrastangle-angle2)*3.8298);
+                        changecontrast = angles/360;
+                        intial_contrast = intial_contrast - changecontrast; % update the contrast relative to last dial position
+                        % % Make sure we stay in range
+                        %
+                        if intial_contrast > 1
+                            intial_contrast = 1;
+                        elseif intial_contrast < 0
+                            intial_contrast = 0.001;
+                        end
+                        Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
+                        
+                        Target = Screen('MakeTexture', window, squeeze(centerGrating)* (intial_contrast*colors.grey) + colors.grey);
+                        Screen('DrawTexture', window, Target, [], CenterRectOnPoint([0 0 size(centerTexture,1) size(centerTexture,1)], ProbeXY(1), ProbeXY(2)), p.stimorientation)
+                        Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation]);
+                        Screen('FillOval', window, colors.green, [CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation])
+                        Screen('Flip', window);
+                        
+                        contrastangle = angle2;
+                    end
+                    if pmbutton_contrast == 1
+                        contrastTime = GetSecs;
+                        EstimatedContrast(nTrial) = intial_contrast;
+                        DifferenceContrast(nTrial) = p.trialEvents(nTrial,3) - EstimatedContrast(nTrial);
+                        ResponseTime_Contrast(nTrial) = (contrastTime - startResponseTime);
+                        pmbutton_contrast = 0;
+                        break
+                    end
+                end
+                
+                % % PowerMate is sampled at 10msec intervals, therefore have a short
+                % % break to make sure it doesn't skip the contrast task
+                WaitSecs(1);
+                
+                %%% LOCATION REPORT %%%
+                % Allow for dial rotation for location update
+                [~, startangle] = PsychPowerMate('Get',powermate);
+                while 1 %start inf loop
+                    % Query PowerMate button state and rotation angle in "clicks"
+                    [pmbutton, angle] = PsychPowerMate('Get', powermate);
+                    % 1st button is the "or" of the 1st mouse button and the actual PowerMate button
+                    if startangle ~= angle
+                        % Convert turn of dial first to degrees and then to contrast:
+                        Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
+                        
+                        angles = ((startangle-angle)*3.8298);
+                        changeposition = (angles/(2*pi));
+                        initialAngle = initialAngle + changeposition; % update the location relative to last dial position
+                        ProbeXY = round([CenterX + p.eccentricity*(cos(initialAngle*(pi/180)))' CenterY - p.eccentricity*(sin(initialAngle*(pi/180)))']);
+                        
+                        Target = Screen('MakeTexture', window, squeeze(centerGrating)* (intial_contrast*colors.grey) + colors.grey);
+                        Screen('DrawTexture', window, Target, [], CenterRectOnPoint([0 0 size(centerTexture,1) size(centerTexture,1)], ProbeXY(1), ProbeXY(2)), p.stimorientation)
+                        Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation]);
+                        Screen('FillOval', window, colors.green, [CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation])
+                        Screen('Flip', window);
+                        
+                        startangle = angle;
+                    end
+                    if pmbutton == 1;
+                        locationTime = GetSecs;
+                        % % % make sure angle stays in 0-360 range
+                        correctedAngle = mod(initialAngle, 360);
+                        
+                        EstimatedLocation(nTrial) = correctedAngle;
+                        %
+                        % % %make sure difference is in the 180 range
+                        difference = abs(p.trialEvents(nTrial,2) - EstimatedLocation(nTrial));
+                        
+                        if difference > 180
+                            difference = abs(difference - 360);
+                        end
+                        
+                        DifferenceLocation(nTrial) = difference;
+                        
+                        ResponseTime_location(nTrial) = (locationTime - startResponseTime);
+                        pmbutton = 0;
+                        break
+                    end
+                end
+                responseTime(nTrial) = (GetSecs-startResponseTime);
         end
-        
-        % % PowerMate is sampled at 10msec intervals, therefore have a short
-        % % break to make sure it doesn't skip the contrast task
-        WaitSecs(1);
-        
-        %%% LOCATION REPORT %%%
-        % Allow for dial rotation for location update
-        [~, startangle] = PsychPowerMate('Get',powermate);
-        while 1 %start inf loop
-            % Query PowerMate button state and rotation angle in "clicks"
-            [pmbutton, angle] = PsychPowerMate('Get', powermate);
-            % 1st button is the "or" of the 1st mouse button and the actual PowerMate button
-            if startangle ~= angle
-                % Convert turn of dial first to degrees and then to contrast:
-                Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
-                
-                angles = ((startangle-angle)*3.8298);
-                changeposition = (angles/(2*pi));
-                initialAngle = initialAngle + changeposition; % update the location relative to last dial position
-                ProbeXY = round([CenterX + p.eccentricity*(cos(initialAngle*(pi/180)))' CenterY - p.eccentricity*(sin(initialAngle*(pi/180)))']);
-                
-                Target = Screen('MakeTexture', window, squeeze(centerGrating)* (intial_contrast*colors.grey) + colors.grey);
-                Screen('DrawTexture', window, Target, [], CenterRectOnPoint([0 0 size(centerTexture,1) size(centerTexture,1)], ProbeXY(1), ProbeXY(2)), p.stimorientation)
-                Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation]);
-                Screen('FillOval', window, colors.green, [CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation])
-                Screen('Flip', window);
-                
-                startangle = angle;
-            end
-            if pmbutton == 1;
-                locationTime = GetSecs;
-                % % % make sure angle stays in 0-360 range
-                correctedAngle = mod(initialAngle, 360);
-                
-                EstimatedLocation(nTrial) = correctedAngle;
-                %
-                % % %make sure difference is in the 180 range
-                difference = abs(p.trialEvents(nTrial,2) - EstimatedLocation(nTrial));
-                
-                if difference > 180
-                    difference = abs(difference - 360);
-                end
-                
-                DifferenceLocation(nTrial) = difference;
-                
-                ResponseTime_location(nTrial) = (locationTime - startResponseTime);
-                pmbutton = 0;
-                break
-            end
-        end        
-        
-        responseTime(nTrial) = (GetSecs-startResponseTime);
         %--------------------%
-        %       Break        %
+        %               Break              %
         %--------------------%
         if mod(nTrial,p.numTrialsPerSet) == 0 && nTrial == p.numTrialsPerSet*nSet && nSet < p.numSets
             rest = GetSecs;
@@ -773,7 +868,7 @@ ShowCursor;
 %% SAVE OUT THE DATA FILE
 data.EstimatedLocation = EstimatedLocation;
 data.DifferenceLocation = DifferenceLocation;
-data.ResponseTime_location = ResponseTime_location; 
+data.ResponseTime_location = ResponseTime_location;
 data.EstimatedContrast = EstimatedContrast;
 data.DifferenceContrast = DifferenceContrast;
 data.ResponseTime_Contrast = ResponseTime_Contrast;
