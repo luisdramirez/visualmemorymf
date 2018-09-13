@@ -38,12 +38,13 @@ if exist(['data_visualmemorymf_' p.experiment '_' p.subject '.mat'],'file') ~= 0
     load(['data_visualmemorymf_' p.experiment '_' p.subject '.mat']);
     p = theData(1).p;
     p.runNumber = length(theData)+1;
-    subject_indx = find(visualmemory_subjectsRan{1,:} == p.subject);
+    subject_indx = find(strcmp(visualmemory_subjectsRan(1,:), p.subject)==1);
     if sum(strcmp(p.experiment,{'test', 'test_HC'})) == 1
         p.testCondition = 1; % fixed to perception condition for hard coded testing
     elseif sum(strcmp(p.experiment,{'test', 'test_HC'})) == 0
         p.testCondition = theData(1).p.trialSchedule(p.runNumber);
     end
+    reportOrder = visualmemory_subjectsRan{2,subject_indx};
 else
     p.runNumber = 1;
     if sum(strcmp(p.experiment,{'test','test_HC'})) == 0
@@ -51,13 +52,23 @@ else
         if p.orderRow > length(visualmemory_condition_order)
             p.orderRow = p.orderRow - length(visualmemory_condition_order);
         end
-        visualmemory_subjectsRan{end+1} = p.subject;
+        visualmemory_subjectsRan{1,end+1} = p.subject;
+        subject_indx = find(strcmp(visualmemory_subjectsRan(1,:), p.subject)==1);
+
+        % determine which stimulus feature report order to give subject
+        if mod(subject_indx,2) == 0
+        visualmemory_subjectsRan{2,subject_indx} = 'a';
+        else
+            visualmemory_subjectsRan{2,subject_indx} = 'b';
+        end
         p.trialSchedule = visualmemory_condition_order(p.orderRow,:);
         % Which Test condition, run these test conditions on different days
         p.testCondition = p.trialSchedule(1);
-        subject_indx = find(visualmemory_subjectsRan{1,:} == p.subject);
+        reportOrder = visualmemory_subjectsRan{2,subject_indx};
+
     elseif sum(strcmp(p.experiment,{'test','test_HC'})) == 1
         p.testCondition = 1; % fixed to perception condition
+        reportOrder = 'a';
     end
 end
 cd(expDir);
@@ -71,7 +82,7 @@ if sum(strcmp(p.experiment,{'test','test_HC'})) == 0
 elseif sum(strcmp(p.experiment,{'test','test_HC'})) == 1
     disp('You are in a test session. The session condition has been fixed to 1.')
 end
-
+reportOrder = 'a';
 %% KEYBOARD
 
 deviceNumber = 0;
@@ -630,7 +641,7 @@ for nTrial = 1:size(p.trialEvents,1)
         GetClicks;
     end
     if ~test_env
-        switch visualmemory_subjectsRan{2,subjects_indx}
+        switch reportOrder
             case 'a' % report order = 1. location 2. contrast
                 %%% LOCATION REPORT %%%
                 % Allow for dial rotation for location update
