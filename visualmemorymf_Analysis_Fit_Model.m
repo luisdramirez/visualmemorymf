@@ -34,7 +34,7 @@ end
 
 numContrasts = 5;
 numExperiments = numel(experiments); % 2 experiments now, perception is 1 and working memory is 2...
-numSubjects = round(numel(visualmemory_subjectsRan)); % 4 subjects
+numSubjects = round(size(visualmemory_subjectsRan,2)); % 4 subjects
 TotalSuppressionIndexVariable = NaN(numExperiments,numSubjects, numContrasts);
 subjAge = [19,19,26,26];
 
@@ -49,7 +49,7 @@ n = 2;
 
 %% EXPERIMENT LOOP %%
 for e = 1:numel(experiments)
-    subjects = (1:numel(visualmemory_subjectsRan)); %number of subjects
+    subjects = (1:size(visualmemory_subjectsRan,2)); %number of subjects
     subjCount = 0;
     
     %Figure Title
@@ -76,7 +76,7 @@ for e = 1:numel(experiments)
         end
           
         % Fit individual data with Normalization model
-        options = optimset('MaxFunEvals', 10000, 'MaxIter', 10000);
+        options = optimset('MaxFunEvals', 10^4, 'MaxIter', 10^4);
         
         % Use formula from Xing&Heeger 2001 to use baseline data to constrain alpha and n, and look for the inhibitory weight 
         % to explain the suppressive influence of the surround 
@@ -154,7 +154,7 @@ for e = 1:numel(experiments)
     end
     
     %Suppression Index over subjects    
-    TotalSuppressionIndexVariable(e,1:numel(visualmemory_subjectsRan),:) = ((variableMat) - (baselineMat))./((variableMat) + (baselineMat)); 
+    TotalSuppressionIndexVariable(e,1:size(visualmemory_subjectsRan,2),:) = ((variableMat) - (baselineMat))./((variableMat) + (baselineMat)); 
     
     totalbaselineMat(:,:,e) = baselineMat;
     totalvarMat(:,:,e) = variableMat;

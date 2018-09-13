@@ -4,6 +4,9 @@
 % It will show or print meaningful data for all runs completed for one
 % subject.
 
+
+% 533-566 ARE CURRENTLY COMMENTED OUT
+
 %% SETUP %%
 % Preliminary data loading and setup %
 clear;
@@ -15,7 +18,7 @@ expDir = pwd;
 % dataDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf/data_master'; %Laptop
 dataDir = 'data_master';
 allP.experiment = 'exp';
-allP.subject = '006';
+allP.subject = '005';
 whomst = allP.subject;
 cd(dataDir)
 
@@ -37,7 +40,7 @@ end
 cd(expDir)
 %Plotting and Printing Settings
 plotVar = 1; %Set equal to 1 to display plots, equal to 0 to not display plots.
-printVar = 0; %Set equal to 0 to not print information, equal to 1 to print information.
+printVar = 1; %Set equal to 0 to not print information, equal to 1 to print information.
 
 % Pre-allocate Data cells.
 allP = cell(1,length(runNumbers)); % Parameters
@@ -537,7 +540,7 @@ subject.avgDiffLoc = nan(nTrials,theData(1).p.numContrasts,3);
      end
  end
  
- % X axis have lim of 0 - 200, should mimic bin size as 1-36
+%  % X axis have lim of 0 - 200, should mimic bin size as 1-36
  
 binAvgs = zeros(numBins,1);
 binContAvgs = zeros(numBins,1);
@@ -552,7 +555,7 @@ binAvgs(:,2) = 1:10:360; %starting degree of bin
 binContAvgs(:,2) = 1:10:360;%starting degree of bin
 subject.binAvgs = binAvgs;
 subject.binContAvgs = binContAvgs;
-%export these and compare amongst people
+% export these and compare amongst people
 
 currP = theData(1).p;
 centerContrast = (10.^linspace(log10(currP.minContrast),log10(currP.maxContrast),currP.numContrasts));
@@ -578,7 +581,7 @@ if plotVar ~= 0
     ylabel('Difference in Location Estimate')
     legend({'Perception','Working Memory','Baseline'})
     xticks([1 2 3 4 5]);
-end
+    end
 subject.perceptionLocDiffMean = perception.LocDiffMeanVec;
 subject.workingmemLocDiffMean = workingmem.LocDiffMeanVec;
 subject.baselineLocDiffMean = baseline.LocDiffMeanVec;
