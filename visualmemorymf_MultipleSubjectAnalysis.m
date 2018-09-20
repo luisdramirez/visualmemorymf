@@ -365,13 +365,18 @@ blLocError = std(baselineLocDiffMean)/length(master_subjectData);
      %subject dad matrix based off of their order number. then from there
      %you can split up the data.
      if currentOrder == 'a'
-         subjectDataA = master_subjectData(subj,:);
+         subjectDataA = master_subjectData(subj,:); %should be theData in column 1, subject in column 2.
      elseif currentOrder == 'b'
          subjectDataB = master_subjectData(subj,:);
      else
          error('subjects ran file doesnt contain order numbers')
      end
-     
+     %from here grab the data from each subject (within the for loop, ie
+     %contrast differences, location differences (seperate by level of
+     %actual contrast).
+     %comparing the two, make graphs where it will display the two on the
+     %same window but with different features.
+     %statistical sigificance - ttest, and all of the rest.
  end
  
 %%
