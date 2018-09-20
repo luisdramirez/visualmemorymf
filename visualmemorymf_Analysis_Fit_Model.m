@@ -16,7 +16,7 @@ load('data_visualmemorymf_overallData.mat')
 experiments = {'Perception Condition','Visual Working Memory'};
 
 % Load Subject files
-totalData = cell(1:numel(visualmemory_subjectsRan));
+totalData = cell(1:size(visualmemory_subjectsRan,2));
 files = struct2cell(dir(dataDir))';
 [numFiles, ~] = size(files);
 possibleFileNames = cell(length(visualmemory_subjectsRan),1);

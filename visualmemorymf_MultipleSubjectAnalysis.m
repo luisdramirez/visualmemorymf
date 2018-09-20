@@ -226,9 +226,27 @@ if plotVar ~= 0
         end
         
         for i = 1:subjectsLong
+            evens = [2 4 6 8 10];
+            odds = [ 1 3 5 7 9];
+            subjectsColumn = 0;
+            for i = length(evens)
+                if isequal(subjectsLong, odds(i)) == 1
+                    subjectsColumn = subjectsLong + 1;
+                    if subjectsColumn == 1
+                        subjectsColNumber = subjectsColumn;
+                    end
+                elseif isequal(subjectsLong, evens(i)) == 1
+                    subjectsColNumber = subjectsLong ;
+                    if subjectsColumn == 1
+                      subjectsColNumber = subjectsColumn;
+                    end
+                end
+            end
+                   
             figure(3)
             set(gcf, 'Name', sprintf('Perception: Estimated versus Center Contrast'));
-            subplot(2,subjectsLong/2,i)
+            
+            subplot(2,subjectsColNumber/2,i)
             [howmanypercep,~] = size(master_subjectData{i,2}.perceptionmat);
             if howmanypercep == 1
                 loglog(centerContrast,master_subjectData{i,2}.perceptionmat,'-o','LineWidth',1.25)
@@ -253,7 +271,7 @@ if plotVar ~= 0
         for i = 1:subjectsLong
             figure(4)
             set(gcf, 'Name', sprintf('Working Memory: Estimated versus Center Contrast'));
-            subplot(2,subjectsLong/2,i)
+            subplot(2,subjectsColNumber/2,i)
            
             [howmanywm,~] = size(master_subjectData{i,2}.workingmemmat);
             if howmanywm == 1

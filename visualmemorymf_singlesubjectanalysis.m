@@ -5,8 +5,6 @@
 % subject.
 
 
-% 533-566 ARE CURRENTLY COMMENTED OUT
-
 %% SETUP %%
 % Preliminary data loading and setup %
 clear;
@@ -18,7 +16,7 @@ expDir = pwd;
 % dataDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf/data_master'; %Laptop
 dataDir = 'data_master';
 allP.experiment = 'exp';
-allP.subject = '005';
+allP.subject = '008';
 whomst = allP.subject;
 cd(dataDir)
 
@@ -59,7 +57,11 @@ end
 if sum(strcmp(allP{1,1}.experiment,{'test','test_HC'})) == 1
     subjectCondSchedule = [1 1 1 1]; % Fixed to perception for test trials.
 else
-    condIndex = find(strcmp(visualmemory_subjectsRan{1,:},allP{1,1}.subject));
+    condIndexvector = zeros(1,size(visualmemory_subjectsRan,2));
+    for i = size(visualmemory_subjectsRan,2)
+        condIndexvector(i) = strcmp(visualmemory_subjectsRan{1,i},allP{1,1}.subject);
+    end
+    condIndex = find(condIndexvector == 1);
     if condIndex > 24
         condIndex = condIndex - 24; %The condition order resets after 24, this matches to the reset.
     end
@@ -710,6 +712,7 @@ end
         loglog([0.1 0.8],[0.1 0.8],'k--')
         xlabel('Center Contrast')
         ylabel('Perceived Contrast')
+        xlim([0 1]); ylim([0 1]);
         xticks([0.1 0.8]); yticks([0.1 0.8]);
         xticklabels({'10','80'});yticklabels({'10','80'});
         if exist('notNanPer','var') == 0 && exist('notNanWM','var') == 0
@@ -742,8 +745,10 @@ end
                 set(gcf, 'Name', sprintf('Perception: Estimated versus Center Contrast'));
                 subplot(1,2,i)
                 loglog(p.centerContrast,perceptionmat(i,:),'-o') % Perception
+                xlim([0 1]); ylim([0 1]);
                 hold on
                 loglog([0.1 0.8],[0.1 0.8],'k--') %log scale line
+                xlim([0 1]); ylim([0 1]);
                 xlabel('Center Contrast')
                 ylabel('Estimated Contrast')
                 hold off
