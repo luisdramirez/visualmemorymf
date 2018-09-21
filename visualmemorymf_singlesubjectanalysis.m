@@ -15,23 +15,22 @@ expDir = pwd;
 %dataDir = '/Users/juliaschwartz/Desktop/visualmemorymf/data_master'; %Lab computer
 % dataDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf/data_master'; %Laptop
 dataDir = 'data_master';
-allP.experiment = 'exp';
-allP.subject = '008';
-whomst = allP.subject;
+experiment = 'exp';
+subjectName = '008';
+whomst = subjectName;
 cd(dataDir)
-
 
 baselineIndex = 3;
 perceptionIndex = 1;
 workingmemIndex = 2;
 
 %Load run data
-if exist(['data_visualmemorymf_' allP.experiment '_' allP.subject '.mat'],'file') ~= 0
-    load(['data_visualmemorymf_' allP.experiment '_' allP.subject '.mat']); % Loads HC, test, and Regular trials
+if exist(['data_visualmemorymf_' experiment '_' subjectName '.mat'],'file') ~= 0
+    load(['data_visualmemorymf_' experiment '_' subjectName '.mat']); % Loads HC, test, and Regular trials
     load('visualmemory_subjectsRan'); load('visualmemory_condition_order');
     visualmemory_condition_order = visualmemory_condition_order_real;
     runNumbers = 1:length(theData);
-    [fields, nTrials] = size(theData);
+    [fields, numRuns] = size(theData);
 else
     error('data file does not exist')
 end
@@ -47,32 +46,24 @@ allData = cell(1,length(runNumbers)); % Subject-entered Data
 stats = cell(1,length(runNumbers));
 
 % Assign cells based off of data size.
-for nRun = 1:nTrials
+for nRun = 1:numRuns
     allP{nRun} = theData(nRun).p;
     allT{nRun} = theData(nRun).t;
     allData{nRun} = theData(nRun).data;
 end
 
-%Finding subject name and indexing to condition order
+%Gives the current condition schedule, 
+% Columns 1-4 represent the condition for each run.
 if sum(strcmp(allP{1,1}.experiment,{'test','test_HC'})) == 1
     subjectCondSchedule = [1 1 1 1]; % Fixed to perception for test trials.
 else
-    condIndexvector = zeros(1,size(visualmemory_subjectsRan,2));
-    for i = size(visualmemory_subjectsRan,2)
-        condIndexvector(i) = strcmp(visualmemory_subjectsRan{1,i},allP{1,1}.subject);
-    end
-    condIndex = find(condIndexvector == 1);
-    if condIndex > 24
-        condIndex = condIndex - 24; %The condition order resets after 24, this matches to the reset.
-    end
-    subjectCondSchedule = theData(1).p.trialSchedule;
-    %subjectCondSchedule = visualmemory_condition_order(condIndex,:); %Gives the current condition schedule, indexes to the row we are on, columns 1-4 represent the condition for each run
+    subjectCondSchedule = theData(1).p.trialSchedule;  
 end
 
 %Save out Relevant Information, 3 for bl+percep+wm
-subject.avgEstContrast = nan(nTrials,theData(1).p.numContrasts,3);
-subject.avgDiffContrast = nan(nTrials,theData(1).p.numContrasts,3);
-subject.avgDiffLoc = nan(nTrials,theData(1).p.numContrasts,3);
+subject.avgEstContrast = nan(numRuns,theData(1).p.numContrasts,3);
+subject.avgDiffContrast = nan(numRuns,theData(1).p.numContrasts,3);
+subject.avgDiffLoc = nan(numRuns,theData(1).p.numContrasts,3);
 
 %% ANALYSIS LOOP %%
 % Will include 2 nested for loops.
@@ -84,16 +75,12 @@ subject.avgDiffLoc = nan(nTrials,theData(1).p.numContrasts,3);
         % 3 = BASELINE
         
 % Shortens the condition schedule to only go through trials already ran.
- if nTrials == 1
-     subjectCondSchedule = allP{1,1}.trialSchedule(1); 
- elseif nTrials < 4
-     subjectCondSchedule = subjectCondSchedule(1:nTrials);
- end
+runsCompleted = subjectCondSchedule(1:length(theData));
  
 %% MAIN FOR LOOP: NUMBER OF TRIALS %%
 
- for nRun = 1:nTrials
-     thisRunsCond = subjectCondSchedule(nRun);
+ for nRun = 1:numRuns
+     thisRunsCond = runsCompleted(nRun);
     if thisRunsCond == 1
         variableCondition = 'Perception';
         baselineCondition = 'Baseline';
@@ -109,14 +96,6 @@ subject.avgDiffLoc = nan(nTrials,theData(1).p.numContrasts,3);
     data = cell2mat(struct2cell(data));
     data = data';
     
-%    if sum(strcmp(allP{1,1}.subject,{'BC','006'})) > 0
-%        reshapeData = zeros(size(data));
-%        reshapeData(:,1:3) = data(:,4:6);
-%        reshapeData(:,4:6) = data(:,1:3);
-%        reshapeData(:,7) = data(:,7);
-%        data = reshapeData;
-%    end
-%     
     p.centerContrast = (10.^linspace(log10(p.minContrast),log10(p.maxContrast),p.numContrasts));
     
     % Add on Trial Number to end of p.trialEvents/data
@@ -244,7 +223,7 @@ subject.avgDiffLoc = nan(nTrials,theData(1).p.numContrasts,3);
     %% Plotting (conditional plot variable must not equal 0 to display) %%
     % The plots within this for loop display location and contrast visuals
     % for each trial.
-    if plotVar ~= 0 
+    if plotVar  
         % ESTIMATED CONTRAST PLOTTING %
         figure(nRun)
         set(gcf, 'Name', sprintf('Estimated Contrast Statistics over %i Contrasts for %s versus %s Trials',p.numContrasts,baselineCondition,variableCondition));
@@ -338,7 +317,7 @@ subject.avgDiffLoc = nan(nTrials,theData(1).p.numContrasts,3);
         end
         
         % LOCATION DIFFERENCE PLOTTING %
-        figure(nRun+nTrials)
+        figure(nRun+numRuns)
         set(gcf, 'Name', sprintf('Estimated Location Statistics over %i Contrasts for %s versus %s Trials',p.numContrasts,baselineCondition,variableCondition));
         
         % BASELINE %
@@ -670,7 +649,7 @@ end
     if plotVar ~= 0 
         
         % avg Estimated Contrast
-        figure(nTrials*2 + 1)
+        figure(numRuns*2 + 1)
         set(gcf, 'Name', sprintf('Perceived Contrast Versus Center Contrast'));
         subplot(1,1,1)
         % Baseline
@@ -730,7 +709,7 @@ end
         if exist('perceptionmat','var') == 1
             [numpercep,~] = size(perceptionmat);
             if numpercep == 1
-                figure(nTrials*2 + 4)
+                figure(numRuns*2 + 4)
                 set(gcf, 'Name', sprintf('Perception: Estimated versus Center Contrast'));
                 subplot(1,2,1)
                 loglog(p.centerContrast,perceptionmat(:),'-o') % Perception
@@ -741,7 +720,7 @@ end
                 hold off
             else
                 for i = 1:numpercep
-                figure(nTrials*2 + 4)
+                figure(numRuns*2 + 4)
                 set(gcf, 'Name', sprintf('Perception: Estimated versus Center Contrast'));
                 subplot(1,2,i)
                 loglog(p.centerContrast,perceptionmat(i,:),'-o') % Perception
@@ -758,7 +737,7 @@ end
         if exist('workingmemmat','var') == 1
             [numwm,~] = size(workingmemmat);
             if numwm == 1
-                figure(nTrials*2 + 5)
+                figure(numRuns*2 + 5)
                 set(gcf, 'Name', sprintf('Working Memory: Estimated versus Center Contrast'));
                 subplot(1,2,1)
                 loglog(p.centerContrast,workingmemmat(:),'-o') % Perception
@@ -769,7 +748,7 @@ end
                 hold off
             else
                 for i = 1:numwm
-                figure(nTrials*2 + 5)
+                figure(numRuns*2 + 5)
                 set(gcf, 'Name', sprintf('Working Memory: Estimated versus Center Contrast'));
                 subplot(1,2,i)
                 loglog(p.centerContrast,workingmemmat(i,:),'-o') % Perception
@@ -796,7 +775,7 @@ end
         
         
         % avg Contrast Difference
-        figure(nTrials*2 + 2)
+        figure(numRuns*2 + 2)
         set(gcf, 'Name', ('Contrast Difference versus Center Contrast'))
         hold on
         loglog(p.centerContrast,mean(subject.avgDiffContrast(:,:,3),1),'-o')
@@ -823,7 +802,7 @@ end
         hold off
 
         % avg Location Difference
-        figure(nTrials*2 + 3)
+        figure(numRuns*2 + 3)
         set(gcf, 'Name',('Location Difference versus Center Contrast'));
         hold on
         loglog(p.centerContrast,mean(subject.avgDiffLoc(:,:,3),1),'-o') 
@@ -853,15 +832,15 @@ end
     
 %% TTest and Statistical Significance %%
 
-if nTrials == 4
+if numRuns == 4
     % Paired Sample T Test for difference between baseline and perception.
-    [h_BLP,p_BLP,ci_BLP,stats_BLP] = ttest(perceptionmat,baselinemat(find(subjectCondSchedule==1),:));
+    [h_BLP,p_BLP,ci_BLP,stats_BLP] = ttest(perceptionmat,baselinemat(find(runsCompleted==1),:));
     % Paired Sameple T Test for difference between baseline and working memory.
-    [h_BLWM,p_BLWM,ci_BLWM,stats_BLWM] = ttest(workingmemmat,baselinemat(find(subjectCondSchedule==2),:));
+    [h_BLWM,p_BLWM,ci_BLWM,stats_BLWM] = ttest(workingmemmat,baselinemat(find(runsCompleted==2),:));
     % Paired Sample T Test for significance between working memory and perception.
     [h_PWM,p_PWM,ci_PWM,stats_PWM] = ttest(workingmemmat,perceptionmat);
     % Paired Sample T test between the two different baselines (diff conds)
-    [h_BLBL,p_BLBL,ci_BLBL,stats_BLBL] = ttest(baselinemat(find(subjectCondSchedule==1),:),baselinemat(find(subjectCondSchedule==2),:));
+    [h_BLBL,p_BLBL,ci_BLBL,stats_BLBL] = ttest(baselinemat(find(runsCompleted==1),:),baselinemat(find(runsCompleted==2),:));
     % if h = 0 then ttest cannot reject the null hypothesis 
 end
 
@@ -881,10 +860,10 @@ subject.meanDiffLocPerception = mean(subject.avgDiffLoc(:,:,1),1);
 subject.meanDiffLocWorkingMemory = mean(subject.avgDiffLoc(:,:,2),1);
 subject.meanDiffLocBaseline = mean(subject.avgDiffLoc(:,:,3),1);
 
-subject.nTrials = nTrials;
+subject.numRuns = numRuns;
     
 %% SAVE SUBJECT STRUCTURE %%
 cd(dataDir)
-save(['analyzed_visualmemorymf_' p.experiment '_' whomst '.mat'], 'subject','theData')
+save(['analyzed_visualmemorymf_' experiment '_' whomst '.mat'], 'subject','theData')
 
       

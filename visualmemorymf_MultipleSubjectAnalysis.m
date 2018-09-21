@@ -8,52 +8,48 @@
 %% SETUP %%
 clear;
 close all;
+
+experiment = 'exp';
 %expDir = '/Users/juliaschwartz/Desktop/visualmemorymf'; %Lab computer
-expDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf'; %Laptop
+expDir =pwd; %Laptop
 %dataDir = '/Users/juliaschwartz/Desktop/visualmemorymf/data_master'; %Lab computer
-dataDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf/data_master'; %Laptop
+dataDir = 'data_master'; %Laptop
+files = struct2cell(dir(dataDir))';
+
 cd(dataDir)
 load('visualmemory_condition_order')
 load('visualmemory_subjectsRan')  
 
-cd(dataDir)
-files = struct2cell(dir(dataDir))';
-
 [numFiles, ~] = size(files);
 possibleFileNames = cell(size(visualmemory_subjectsRan,2),1);
+%preallocate a cell that will load theData structures from each participant
+%into one cell
+master_subjectData = cell(length(possibleFileNames),2); %files by 2 columns
 for i = 1:length(visualmemory_subjectsRan)
     filename = strcat('analyzed_visualmemorymf_exp_',visualmemory_subjectsRan{1,i},'.mat');
+    if exist(filename,'file') ~= 0
+        load(filename); % Loads HC, test, and Regular trials
+        runNumbers = 1:length(theData);
+        [fields, numRuns] = size(theData);
+    end
     possibleFileNames{i,1} = filename;
+    master_subjectData{i,1} = theData;
+    master_subjectData{i,2} = subject;
 end
 
 plotVar = 1; %if equal to 0, doesnt plot
 printVar = 1; %if equal to 0, doesnt print
 
-%preallocate a cell that will load theData structures from each participant
-%into one cell
-master_subjectData = cell(length(possibleFileNames),2); %files by 2 columns
-
-% if any of files.name = possibleFilesNames then load the file and put
-% into a cell array
-for currfilenum = 1:numFiles
-    dataFile = files{currfilenum,1};
-    for i = 1:length(possibleFileNames)
-        if strcmp(dataFile,possibleFileNames{i,1}) == 1
-            load(dataFile)
-            %index into the subjectsRan and compare to p.subject to find
-            %out who is who if needed
-            master_subjectData{i,1} = theData;
-            master_subjectData{i,2} = subject;
-            fprintf('\nLoading %s',dataFile)
-        end
-    end
-end
+cd(expDir)
 fprintf('\n\n')
 [subjectsLong,~] = size(master_subjectData);
 p = theData(1).p;
 centerContrast = (10.^linspace(log10(p.minContrast),log10(p.maxContrast),p.numContrasts));
 
 %% ANALYSIS %%
+perceptionIndex = 1;
+workingmemIndex = 2;
+baselineIndex = 3;
 
 % Preallocate matrices for subject data %
 master.avgContEstimation = nan(length(visualmemory_subjectsRan),master_subjectData{1,1}(1).p.numContrasts,3);
@@ -67,41 +63,39 @@ for subj = 1:subjectsLong
         
         subject = master_subjectData{subj,2};
          
-        master.avgContEstimation(subj,contNum,1) = subject.meanEstContPerception(contNum);
-        master.avgContEstimation(subj,contNum,2) = subject.meanEstContWorkingMemory(contNum);
-        master.avgContEstimation(subj,contNum,3) = subject.meanEstContBaseline(contNum);
+        master.avgContEstimation(subj,contNum,perceptionIndex) = subject.meanEstContPerception(contNum);
+        master.avgContEstimation(subj,contNum,workingmemIndex) = subject.meanEstContWorkingMemory(contNum);
+        master.avgContEstimation(subj,contNum,baselineIndex) = subject.meanEstContBaseline(contNum);
         
-        master.avgDiffContrast(subj,contNum,1) = subject.meanDiffContPerception(contNum);
-        master.avgDiffContrast(subj,contNum,2) = subject.meanDiffContWorkingMemory(contNum);
-        master.avgDiffContrast(subj,contNum,3) = subject.meanDiffContBaseline(contNum);
+        master.avgDiffContrast(subj,contNum,perceptionIndex) = subject.meanDiffContPerception(contNum);
+        master.avgDiffContrast(subj,contNum,workingmemIndex) = subject.meanDiffContWorkingMemory(contNum);
+        master.avgDiffContrast(subj,contNum,baselineIndex) = subject.meanDiffContBaseline(contNum);
         
-        master.avgDiffLocation(subj,contNum,1) = subject.meanEstContPerception(contNum);
-        master.avgDiffLocation(subj,contNum,2) = subject.meanEstContWorkingMemory(contNum);
-        master.avgDiffLocation(subj,contNum,3) = subject.meanEstContBaseline(contNum);
+        master.avgDiffLocation(subj,contNum,perceptionIndex) = subject.meanEstContPerception(contNum);
+        master.avgDiffLocation(subj,contNum,workingmemIndex) = subject.meanEstContWorkingMemory(contNum);
+        master.avgDiffLocation(subj,contNum,baselineIndex) = subject.meanEstContBaseline(contNum);
     end
 end
-
-    
 
 %Take mean down the column of each page of each field of "master" to find
 %averages over subjects. Then plot these as done in single analysis.
 %Final average over all subjects will be in the last row, subjectsLong+1
 for i = 1:subjectsLong
-    if isnan(master.avgContEstimation(i,:,1)) == 0
+    if isnan(master.avgContEstimation(i,:,perceptionIndex)) == 0
         if exist('notNanPer','var') == 0
             notNanPer = (i);
         else
             notNanPer = horzcat([notNanPer,i]);
         end
     end
-    if isnan(master.avgContEstimation(i,:,2)) == 0
+    if isnan(master.avgContEstimation(i,:,workingmemIndex)) == 0
         if exist('notNanWM','var') == 0
             notNanWM = (i);
         else
             notNanWM = horzcat([notNanWM,i]);
         end
     end
-    if isnan(master.avgContEstimation(i,:,3)) == 0
+    if isnan(master.avgContEstimation(i,:,baselineIndex)) == 0
         if exist('notNanBL','var') == 0
             notNanBL = (i);
         else
@@ -113,23 +107,23 @@ for i = 1:length(notNanPer)
    if exist('perceptionmat','var') == 0
         perceptionmat = master.avgContEstimation(notNanPer(i),:,1);
     else
-    perceptionmat = vertcat(perceptionmat,master.avgContEstimation(notNanPer(i),:,1));
+    perceptionmat = vertcat(perceptionmat,master.avgContEstimation(notNanPer(i),:,perceptionIndex));
     end
 end
     master.avgContEstimation(subjectsLong+1,:,1) = mean(perceptionmat,1);
 for i = 1:length(notNanWM)
     if exist('workingmemmat','var') == 0
-        workingmemmat = master.avgContEstimation(notNanWM(i),:,2);
+        workingmemmat = master.avgContEstimation(notNanWM(i),:,workingmemIndex);
     else
-    workingmemmat = vertcat(workingmemmat,master.avgContEstimation(notNanWM(i),:,2));
+    workingmemmat = vertcat(workingmemmat,master.avgContEstimation(notNanWM(i),:,workingmemIndex));
     end
 end
     master.avgContEstimation(subjectsLong+1,:,2) = mean(workingmemmat,1);
 for i = 1:length(notNanBL)
    if exist('baselinemat','var') == 0
-        baselinemat = master.avgContEstimation(notNanBL(i),:,3);
+        baselinemat = master.avgContEstimation(notNanBL(i),:,baselineIndex);
     else
-    baselinemat = vertcat(baselinemat,master.avgContEstimation(notNanBL(i),:,3));
+    baselinemat = vertcat(baselinemat,master.avgContEstimation(notNanBL(i),:,baselineIndex));
     end
 end
     master.avgContEstimation(subjectsLong+1,:,3) = mean(baselinemat,1);
@@ -228,7 +222,7 @@ if plotVar ~= 0
         for i = 1:subjectsLong
            % change if there is an even number of participants and fix
            % later on
-           subjectsColNumber = subjectsLong + 1;
+           subjectsColNumber = round(subjectsLong);
 %             evens = [2 4 6 8 10];
 %             odds = [ 1 3 5 7 9];
 %             subjectsColumn = 0;
@@ -474,7 +468,7 @@ end
     avgdBL_WM = zeros(subjectsLong,theData(1).p.numContrasts);
     fourArray = zeros(1,subjectsLong);
 for i = 1:subjectsLong
-    if master_subjectData{i,2}.nTrials == 4
+    if master_subjectData{i,2}.numRuns == 4
         fourArray(i) = 1;
     end
 end
