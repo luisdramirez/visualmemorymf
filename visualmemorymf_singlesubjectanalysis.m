@@ -15,7 +15,7 @@ expDir = pwd;
 
 dataDir = 'data_master';
 experiment = 'exp';
-whomst = '005';  % lol
+whomst = '006';  % lol
 cd(dataDir)
 
 baselineIndex = 3;

@@ -18,7 +18,7 @@ files = struct2cell(dir(dataDir))';
 
 [numFiles, ~] = size(files);
 possibleFileNames = cell(size(visualmemory_subjectsRan,2),1);
-for i = 1:length(visualmemory_subjectsRan)
+for i = 1:size(visualmemory_subjectsRan,2)
     filename = strcat('analyzed_visualmemorymf_exp_',visualmemory_subjectsRan{1,i},'.mat');
     possibleFileNames{i,1} = filename;
 end
@@ -53,9 +53,9 @@ centerContrast = (10.^linspace(log10(p.minContrast),log10(p.maxContrast),p.numCo
 %% ANALYSIS %%
 
 % Preallocate matrices for subject data %
-master.avgContEstimation = nan(length(visualmemory_subjectsRan),master_subjectData{1,1}(1).p.numContrasts,3);
-master.avgDiffLocation = nan(length(visualmemory_subjectsRan),master_subjectData{1,1}(1).p.numContrasts,3);
-master.avgDiffContrast = nan(length(visualmemory_subjectsRan),master_subjectData{1,1}(1).p.numContrasts,3);
+master.avgContEstimation = nan(size(visualmemory_subjectsRan,2),master_subjectData{1,1}(1).p.numContrasts,3);
+master.avgDiffLocation = nan(size(visualmemory_subjectsRan,2),master_subjectData{1,1}(1).p.numContrasts,3);
+master.avgDiffContrast = nan(size(visualmemory_subjectsRan,2),master_subjectData{1,1}(1).p.numContrasts,3);
 
 % Loop through the subject data and add to matrices
 for subj = 1:subjectsLong
