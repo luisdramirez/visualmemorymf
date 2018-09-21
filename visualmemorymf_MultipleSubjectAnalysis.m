@@ -226,22 +226,25 @@ if plotVar ~= 0
         end
         
         for i = 1:subjectsLong
-            evens = [2 4 6 8 10];
-            odds = [ 1 3 5 7 9];
-            subjectsColumn = 0;
-            for i = length(evens)
-                if isequal(subjectsLong, odds(i)) == 1
-                    subjectsColumn = subjectsLong + 1;
-                    if subjectsColumn == 1
-                        subjectsColNumber = subjectsColumn;
-                    end
-                elseif isequal(subjectsLong, evens(i)) == 1
-                    subjectsColNumber = subjectsLong ;
-                    if subjectsColumn == 1
-                      subjectsColNumber = subjectsColumn;
-                    end
-                end
-            end
+           % change if there is an even number of participants and fix
+           % later on
+           subjectsColNumber = subjectsLong + 1;
+%             evens = [2 4 6 8 10];
+%             odds = [ 1 3 5 7 9];
+%             subjectsColumn = 0;
+%             for i = length(evens)
+%                 if isequal(subjectsLong, odds(i)) == 1
+%                     subjectsColumn = subjectsLong + 1;
+%                     if subjectsColumn == 1
+%                         subjectsColNumber = subjectsColumn;
+%                     end
+%                 elseif isequal(subjectsLong, evens(i)) == 1
+%                     subjectsColNumber = subjectsLong ;
+%                     if subjectsColumn == 1
+%                       subjectsColNumber = subjectsColumn;
+%                     end
+%                 end
+%             end
                    
             figure(3)
             set(gcf, 'Name', sprintf('Perception: Estimated versus Center Contrast'));
@@ -378,24 +381,55 @@ blLocError = std(baselineLocDiffMean)/length(master_subjectData);
     %location.
  % we want to compare between the different reporting orders.
  for subj = 1:size(visualmemory_subjectsRan,2)
-     currentOrder = visualmemory_subjectsRan{2,1};
+     currentOrder = visualmemory_subjectsRan{2,subj};
      %if loop that will add specific subjects into a seperate master
      %subject dad matrix based off of their order number. then from there
      %you can split up the data.
      if currentOrder == 'a'
-         subjectDataA = master_subjectData(subj,:); %should be theData in column 1, subject in column 2.
+         subjectDataA{subj,1} = master_subjectData(subj,1); %should be theData in column 1, subject in column 2.
+         subjectDataA{subj,2} = master_subjectData(subj,2);
      elseif currentOrder == 'b'
-         subjectDataB = master_subjectData(subj,:);
+         subjectDataB{subj,1} = master_subjectData(subj,1); %should be theData in column 1, subject in column 2.
+         subjectDataB{subj,2} = master_subjectData(subj,2);
      else
          error('subjects ran file doesnt contain order numbers')
      end
+ end
+     
+% Use these indexes to see wherein the cells actually have elements, use it
+% to loop through
+%from here make an array that has the index numbers for the rows equal to
+%one, then loop through that array
+indexA = cellfun(@isempty, subjectDataA) == 0;
+indexB = cellfun(@isempty, subjectDataB) == 0;
+
+arrayforA = zeros(1,size(indexA,2));
+for i = 1:size(indexA,2)
+    if indexA(i,1) == 1
+        arrayforA(i) = i;
+    end
+end
+arrayforA(arrayforA==0) = [];
+
+arrayforB = zeros(1,size(indexB,2));
+for i = 1:size(indexB,2)
+    if indexB(i,1) == 1
+        arrayforB(i) = i;
+    end
+end
+arrayforB(arrayforB==0) = [];
+
+
+
+   
+             
      %from here grab the data from each subject (within the for loop, ie
      %contrast differences, location differences (seperate by level of
      %actual contrast).
      %comparing the two, make graphs where it will display the two on the
      %same window but with different features.
      %statistical sigificance - ttest, and all of the rest.
- end
+
  
 %%
 figure('Color',[1 1 1])
