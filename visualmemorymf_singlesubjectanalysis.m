@@ -16,7 +16,7 @@ expDir = pwd;
 % dataDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf/data_master'; %Laptop
 dataDir = 'data_master';
 allP.experiment = 'exp';
-allP.subject = '008';
+allP.subject = '009';
 whomst = allP.subject;
 cd(dataDir)
 
