@@ -397,23 +397,139 @@ blLocError = std(baselineLocDiffMean)/length(master_subjectData);
 indexA = cellfun(@isempty, subjectDataA) == 0;
 indexB = cellfun(@isempty, subjectDataB) == 0;
 
-arrayforA = zeros(1,size(indexA,2));
+arrayforA = zeros(1,size(indexA,1));
 for i = 1:size(indexA,2)
-    if indexA(i,1) == 1
+    if indexA(i,1) == 1 || indexA(i,2) == 1
         arrayforA(i) = i;
     end
 end
 arrayforA(arrayforA==0) = [];
 
-arrayforB = zeros(1,size(indexB,2));
-for i = 1:size(indexB,2)
-    if indexB(i,1) == 1
+arrayforB = zeros(1,size(indexB,1));
+for i = 1:size(indexB,2) 
+    if indexB(i,1) == 1 || indexA(i,2) == 1
         arrayforB(i) = i;
     end
 end
 arrayforB(arrayforB==0) = [];
 
+%% move on from the array thing and come back!!! 
+%for now just go through subject data a and b and if the cell row is empty
+%skip that row.
 
+for subj = 1:size(subjectDataA,1)
+    if isempty(subjectDataA{subj,2}) == 0
+        currentSubj = subjectDataA{subj,2};
+        %Perception - order A
+        if exist('meanContAPerception','var') == 0
+            meanContAPerception = currentSubj{1,1}.meanEstContPerception;
+        else
+            meanContAPerception = [meanContAPerception; currentSubj{1,1}.meanEstContPerception];
+        end
+        % Working Memory - order A
+        if exist('meanContAWM','var') == 0
+            meanContAWM = currentSubj{1,1}.meanEstContWorkingMemory;
+        else
+            meanContAWM = [meanContAWM; currentSubj{1,1}.meanEstContWorkingMemory];
+        end
+        % Baseline - order A
+        if exist('meanContABL','var') == 0
+            meanContABL = currentSubj{1,1}.meanEstContBaseline;
+        else
+            meanContABL = [meanContABL; currentSubj{1,1}.meanEstContBaseline];
+        end
+    end
+end
+%Means of each response
+totalaverageContAPerception = mean(meanContAPerception);
+totalaverageContAWM = mean(meanContAWM);
+totalaverageContABL = mean(meanContABL);
+
+% Subject B
+for subj = 1:size(subjectDataB,1)
+    if isempty(subjectDataB{subj,2}) == 0
+        currentsubjectB = subjectDataB{subj,2};
+        %Perception - order B
+        if exist('meanContBPerception','var') == 0
+            meanContBPerception = currentsubjectB{1,1}.meanEstContPerception;
+        else
+            meanContBPerception = [meanContBPerception; currentsubjectB{1,1}.meanEstContPerception];
+        end
+        % Working Memory - order B
+        if exist('meanContBWM','var') == 0
+            meanContBWM = currentsubjectB{1,1}.meanEstContWorkingMemory;
+        else
+            meanContBWM = [meanContBWM; currentsubjectB{1,1}.meanEstContWorkingMemory];
+        end
+        % Baseline - order B
+        if exist('meanContBBL','var') == 0
+            meanContBBL = currentsubjectB{1,1}.meanEstContBaseline;
+        else
+            meanContBBL = [meanContBBL; currentsubjectB{1,1}.meanEstContBaseline];
+        end
+    end
+end
+       
+totalaverageContBPerception = mean(meanContBPerception);
+totalaverageContBWM = mean(meanContBWM);
+totalaverageContBBL = mean(meanContBBL); 
+
+stdAP = (std(meanContAPerception)/sqrt(size(meanContAPerception,1)));
+stdAWM = (std(meanContAWM)/sqrt(size(meanContAWM,1)));
+stdABL = (std(meanContABL)/sqrt(size(meanContABL,1)));
+
+stdBP = (std(meanContBPerception)/sqrt(size(meanContBPerception,1)));
+stdBWM = (std(meanContBWM)/sqrt(size(meanContBWM,1)));
+stdBBL = (std(meanContBBL)/sqrt(size(meanContBBL,1)));
+
+
+% PLOT THE CENTER CONTRAST VERSUS ESTIMATED CONTRAST FOR BOTH ORDERING
+% CONDITIONS
+if plotVar ~= 0
+    figure
+    subplot(1,2,1) %A (location then contrast)
+    errorbar(centerContrast,totalaverageContAPerception,stdAP,'LineWidth',2)
+    hold on
+    errorbar(centerContrast,totalaverageContAWM,stdAWM,'LineWidth',2)
+    hold on
+    errorbar(centerContrast,totalaverageContABL,stdABL,'LineWidth',2)
+    hold on
+    % change to include errorbars!
+    loglog([0.1 0.8],[0.1 0.8],'k--') %log scale line
+    set(gca,'YScale','log','XScale','log')
+    xlim([0 0.8])
+    ylim([0 0.8])
+    xlabel('Center Contrast')
+    ylabel('Estimated Contrast')
+    title('Location then Contrast Trials')
+    legend('Perception','Working Memory','Baseline')
+    
+    subplot(1,2,2) %B, contrast then location
+    errorbar(centerContrast,totalaverageContBPerception,stdBP,'LineWidth',2)
+    hold on
+    errorbar(centerContrast,totalaverageContBWM,stdBWM,'LineWidth',2)
+    hold on
+    errorbar(centerContrast,totalaverageContBBL,stdBBL,'LineWidth',2)
+    hold on
+    % change to include errorbars!
+    loglog([0.1 0.8],[0.1 0.8],'k--') %log scale line
+    set(gca,'YScale','log','XScale','log')
+    xlim([0 0.8])
+    ylim([0 0.8])
+    xlabel('Center Contrast')
+    ylabel('Estimated Contrast')
+    title('Contrast then Location Trials')
+    legend('Perception','Working Memory','Baseline')
+end
+    
+ 
+   
+    
+    
+%     howmanywm = length(notNanWM);
+%         wmerror = (std(master.avgContEstimation(1:subjectsLong-1,:,2),'omitnan')/sqrt(howmanywm));
+%         wmy = mean(workingmemmat,1);
+%         errorbar(centerContrast,wmy,wmerror,'LineWidth',1.25);
 
    
              
