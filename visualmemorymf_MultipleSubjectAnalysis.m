@@ -7,7 +7,7 @@
 
 %% SETUP %%
 clear;
-close all;
+% close all;
 
 experiment = 'exp';
 %expDir = '/Users/juliaschwartz/Desktop/visualmemorymf'; %Lab computer
@@ -18,7 +18,8 @@ files = struct2cell(dir(dataDir))';
 
 cd(dataDir)
 load('visualmemory_condition_order')
-load('visualmemory_subjectsRan')  
+load('visualmemory_subjectsRan_All') 
+
 
 [numFiles, ~] = size(files);
 possibleFileNames = cell(size(visualmemory_subjectsRan,2),1);
@@ -413,9 +414,7 @@ for i = 1:size(indexB,2)
 end
 arrayforB(arrayforB==0) = [];
 
-%% move on from the array thing and come back!!! 
-%for now just go through subject data a and b and if the cell row is empty
-%skip that row.
+%%
 
 for subj = 1:size(subjectDataA,1)
     if isempty(subjectDataA{subj,2}) == 0
@@ -438,12 +437,39 @@ for subj = 1:size(subjectDataA,1)
         else
             meanContABL = [meanContABL; currentSubj{1,1}.meanEstContBaseline];
         end
+        
+        
+        %Location Data
+        %Baseline
+        if exist('meanBLlocA','var') == 0
+            meanBLlocA = currentSubj{1,1}.baselineLocDiffMean;
+        else
+            meanBLlocA = [meanBLlocA; currentSubj{1,1}.baselineLocDiffMean];
+        end
+        %Perception
+         if exist('meanPlocA','var') == 0
+            meanPlocA = currentSubj{1,1}.perceptionLocDiffMean;
+        else
+            meanPlocA = [meanPlocA; currentSubj{1,1}.perceptionLocDiffMean];
+         end
+         %Working mem
+         if exist('meanWMlocA','var') == 0
+            meanWMlocA = currentSubj{1,1}.workingmemLocDiffMean;
+        else
+            meanWMlocA = [meanWMlocA; currentSubj{1,1}.workingmemLocDiffMean];
+         end
+        
+     
+       
     end
 end
 %Means of each response
 totalaverageContAPerception = mean(meanContAPerception);
 totalaverageContAWM = mean(meanContAWM);
 totalaverageContABL = mean(meanContABL);
+totalavgPlocA = mean(meanPlocA);
+totalavgBLlocA = mean(meanBLlocA);
+totalavgWMlocA = mean(meanWMlocA);
 
 % Subject B
 for subj = 1:size(subjectDataB,1)
@@ -467,12 +493,36 @@ for subj = 1:size(subjectDataB,1)
         else
             meanContBBL = [meanContBBL; currentsubjectB{1,1}.meanEstContBaseline];
         end
+        
+        %Location Data
+        %Baseline
+        if exist('meanBLlocB','var') == 0
+            meanBLlocB = currentsubjectB{1,1}.baselineLocDiffMean;
+        else
+            meanBLlocB = [meanBLlocB; currentsubjectB{1,1}.baselineLocDiffMean];
+        end
+        %Perception
+         if exist('meanPlocB','var') == 0
+            meanPlocB = currentsubjectB{1,1}.perceptionLocDiffMean;
+        else
+            meanPlocB = [meanPlocB; currentsubjectB{1,1}.perceptionLocDiffMean];
+         end
+         %Working mem
+         if exist('meanWMlocB','var') == 0
+            meanWMlocB = currentsubjectB{1,1}.workingmemLocDiffMean;
+        else
+            meanWMlocB = [meanWMlocB; currentsubjectB{1,1}.workingmemLocDiffMean];
+         end
     end
 end
        
 totalaverageContBPerception = mean(meanContBPerception);
 totalaverageContBWM = mean(meanContBWM);
 totalaverageContBBL = mean(meanContBBL); 
+totalavgPlocB = mean(meanPlocB);
+totalavgBLlocB = mean(meanBLlocB);
+totalavgWMlocB = mean(meanWMlocB);
+
 
 stdAP = (std(meanContAPerception)/sqrt(size(meanContAPerception,1)));
 stdAWM = (std(meanContAWM)/sqrt(size(meanContAWM,1)));
@@ -520,26 +570,24 @@ if plotVar ~= 0
     ylabel('Estimated Contrast')
     title('Contrast then Location Trials')
     legend('Perception','Working Memory','Baseline')
+    
+    %Location difference between conditions
+    figure
+    subplot(3,2,1)
+    %condition a right side, condition b is left side bl, percep, working memory
+    bar(totalavgBLlocA,'r'); title('A: Baseline'); xlabel('Contrast Level'); ylabel('Location Difference'); ylim([0 17])
+    subplot(3,2,2)
+    bar(totalavgBLlocB,'r'); title('B: Baseline'); xlabel('Contrast Level'); ylabel('Location Difference'); ylim([0 17])
+    subplot(3,2,3)
+    bar(totalavgPlocA,'g'); title('A: Perception'); xlabel('Contrast Level'); ylabel('Location Difference'); ylim([0 17])
+    subplot(3,2,4)
+    bar(totalavgPlocB,'g'); title('B: Perception'); xlabel('Contrast Level'); ylabel('Location Difference'); ylim([0 17])
+    subplot(3,2,5)
+    bar(totalavgWMlocA,'b'); title('A: Working Memory'); xlabel('Contrast Level'); ylabel('Location Difference'); ylim([0 17])
+    subplot(3,2,6)
+    bar(totalavgWMlocB,'b'); title('B: Working Memory'); xlabel('Contrast Level'); ylabel('Location Difference'); ylim([0 17])
+    
 end
-    
- 
-   
-    
-    
-%     howmanywm = length(notNanWM);
-%         wmerror = (std(master.avgContEstimation(1:subjectsLong-1,:,2),'omitnan')/sqrt(howmanywm));
-%         wmy = mean(workingmemmat,1);
-%         errorbar(centerContrast,wmy,wmerror,'LineWidth',1.25);
-
-   
-             
-     %from here grab the data from each subject (within the for loop, ie
-     %contrast differences, location differences (seperate by level of
-     %actual contrast).
-     %comparing the two, make graphs where it will display the two on the
-     %same window but with different features.
-     %statistical sigificance - ttest, and all of the rest.
-
  
 %%
 figure('Color',[1 1 1])
@@ -589,7 +637,7 @@ for i = 1:subjectsLong
     end
 end
 for i = 1:subjectsLong
-    if sum(fourArray == 1) == 4
+    if sum(fourArray == 1) == subjectsLong
         avgdBL_WM(i,:) = mean(master_subjectData{i,2}.baselinemat(master_subjectData{i,1}(1).p.trialSchedule  == 2,:));
     end
 end
@@ -619,6 +667,7 @@ if printVar ~= 0
 end
 
 %% Saving variables %%
+cd(dataDir)
 overallData.baselineForWM = avgdBL_WM;
 overallData.baselineForP = avgdBL_P;
 overallData.perceptionmat = perceptionmat;
@@ -628,3 +677,4 @@ overallData.baselineForPMean = mean(avgdBL_P);
 overallData.perceptionmean = mean(perceptionmat);
 overallData.workingmemmean = mean(workingmemmat);
 save(['data_visualmemorymf_overallData.mat'], 'overallData')
+cd(expDir)
