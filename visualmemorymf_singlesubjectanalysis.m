@@ -16,7 +16,7 @@ expDir = pwd;
 % dataDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf/data_master'; %Laptop
 dataDir = 'data_master';
 experiment = 'exp';
-subjectName = '002';
+subjectName = '010';
 whomst = subjectName;
 cd(dataDir)
 
@@ -843,6 +843,21 @@ if numRuns == 4
     [h_BLBL,p_BLBL,ci_BLBL,stats_BLBL] = ttest(baselinemat(find(runsCompleted==1),:),baselinemat(find(runsCompleted==2),:));
     % if h = 0 then ttest cannot reject the null hypothesis 
 end
+
+%want to see if there is a correlation between subjects error in contrast
+%estimation and error is subjects estimation of location.
+%find average error for location and contrast difference per each trial.
+%Then convert this to a 4*2 mat. then supply this to the multiple subject
+%analysis.
+subject.avgLocationContrastCompareDiff = zeros(2,4);
+for i = 1:size(theData,2)
+    subject.avgLocationContrastCompareDiff(1,i) = mean(theData(i).data.DifferenceLocation);
+    subject.avgLocationContrastCompareDiff(2,i) = mean(abs(theData(i).data.DifferenceContrast));
+end
+%import into multiplesubject analysis - want to find an average over
+%participants and standard deviation (for mean location difference, mean
+%contrast difference). Then run t tests on these to see if being bad at one
+%can correlate to being bad at the other.
 
 %% SAVE OUT AVERAGES (AVG OVER TRIALS RAN FOR A SINGLE SUBJECT) %%
 subject.meanEstContPerception = mean(perceptionmat,1);

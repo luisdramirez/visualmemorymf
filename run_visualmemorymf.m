@@ -202,7 +202,7 @@ elseif strcmp(p.experiment, 'test')
     p.numTrialsPerSet = p.numTrialsPerBlock*p.numBlocksPerSet;
     p.numBlocksPerSet = p.numTrialsPerSet/p.numTrialsPerBlock;
     
-    col1 = [p.testCondition*ones(p.numTrialsPerBlock,1); 3*ones(p.numTrialsPerBlock,1)];
+    col1 = [(p.testCondition*ones(p.numTrialsPerBlock,1))*2; 3*ones(p.numTrialsPerBlock,1)];
     col1 = repmat(col1,p.repetitions,1);
     
     p.numTrials = length(col1);
@@ -232,7 +232,7 @@ if sum(strcmp(p.experiment,{'test_HC'})) == 1
 else
     for nBlock = 1:p.numBlocks-1
         for n=1:2*randi(10,1,1)
-            temp_col3 = Shuffle(p.centerContrast');
+            temp_col3 = p.centerContrast';
         end
         col3(p.numContrasts+nBlock*p.numTrialsPerBlock-p.numTrialsPerBlock+1:p.numContrasts+nBlock*p.numTrialsPerBlock) = temp_col3;
     end
@@ -333,7 +333,7 @@ end
 
 %% WINDOW SETUP
 
-[window,rect] = Screen('OpenWindow', useScreen, colors.black, []); %test screen size [0 0 700 500]
+[window,rect] = Screen('OpenWindow', useScreen, colors.black, [0 0 700 700]); %test screen size [0 0 700 500]
 
 OriginalCLUT = Screen('ReadNormalizedGammaTable', window);
 if ~test_env
@@ -353,7 +353,7 @@ Screen('TextSize', window, 16);
 t.ifi = Screen('GetFlipInterval',window); % grab screen refresh rate
 
 %% EXPERIMENT LOOP
-HideCursor;
+%HideCursor;
 % Esc to quit
 StartKey=zeros(1,256); StartKey(KbName({'ESCAPE'})) = 1;
 PsychHID('KbQueueCreate', deviceNumber, StartKey);
@@ -381,7 +381,7 @@ if ~test_env
          end
     end
 end
-
+%%
 % Starting Screen
 Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
 Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation]);

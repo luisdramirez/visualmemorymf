@@ -115,7 +115,7 @@ for e = 1:numel(experiments)
             ((est_params(e,subjCount,1).^est_params(e,subjCount,2)) + (C_fit.^est_params(e,subjCount,2)) + (est_params(e,subjCount,3)*(C_Surround.^est_params(e,subjCount,2)))); 
 
             %Display Fits 
-            subplot(2,round(numel(visualmemory_subjectsRan)/2), subjCount)
+            subplot(2,round(numel(visualmemory_subjectsRan)/2)/2, subjCount)
             hold all
             colormap lines
             if e == 1
@@ -167,11 +167,11 @@ figure('Color', [1 1 1]);
 set(gcf, 'Name', sprintf('Suppression Index: Perception vs. Working Memory'));
 hold all;
 errorbar(C_Test, nanmean(squeeze(TotalSuppressionIndexVariable(1,:,:))), ...
-        nanstd(squeeze(TotalSuppressionIndexVariable(1,:,:)))/sqrt(numel(visualmemory_subjectsRan)), 'ko-'); 
+        nanstd(squeeze(TotalSuppressionIndexVariable(1,:,:)))/sqrt(numel(visualmemory_subjectsRan)), 'k','LineWidth',3); 
 errorbar(C_Test, nanmean(squeeze(TotalSuppressionIndexVariable(2,:,:))), ...
-        nanstd(squeeze(TotalSuppressionIndexVariable(2,:,:)))/sqrt(numel(visualmemory_subjectsRan)), 'ro-');  
-plot(repmat(C_Test, [length(subjects) 1]), (squeeze(TotalSuppressionIndexVariable(1,:,:))),'ko');
-plot(repmat(C_Test, [length(subjects) 1]), (squeeze(TotalSuppressionIndexVariable(2,:,:))),'ro');
+        nanstd(squeeze(TotalSuppressionIndexVariable(2,:,:)))/sqrt(numel(visualmemory_subjectsRan)), 'r','LineWidth',3);  
+plot(repmat(C_Test, [length(subjects) 1]), (squeeze(TotalSuppressionIndexVariable(1,:,:))),'k.','MarkerSize',25);
+plot(repmat(C_Test, [length(subjects) 1]), (squeeze(TotalSuppressionIndexVariable(2,:,:))),'r.','MarkerSize',25);
 hold on
 plot([0.09 0.8],[0 0],':k')
 ylabel('Suppression Index (surround-nosurround)/(surround+nosurround)'); 

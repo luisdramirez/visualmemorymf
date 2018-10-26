@@ -1,8 +1,8 @@
 %% MULTIPLE SUBJECT ANALYSIS %% 
 % This script is designed to run based off of data calculated in the single
 % subject analysis. It is designed to take all the average data collected
-% from each subject who has ran (and ideally completeld 4) visualmemorymf
-% trials. It will compara this data amongst subjects to produce concise
+% from each subject who has ran (and ideally completed 4) visualmemorymf
+% trials. It will compare this data amongst subjects to produce concise
 % results.
 
 %% SETUP %%
@@ -362,9 +362,9 @@ for subj = 1:length(master_subjectData)
     workingmemLocDiffMean(subj,:) = master_subjectData{subj,2}.workingmemLocDiffMean;
     baselineLocDiffMean(subj,:) = master_subjectData{subj,2}.baselineLocDiffMean;
 end
-percepLocError = std(perceptionLocDiffMean)/length(master_subjectData);
-wmLocError = std(workingmemLocDiffMean)/length(master_subjectData);
-blLocError = std(baselineLocDiffMean)/length(master_subjectData);
+percepLocError = std(perceptionLocDiffMean)/sqrt(length(master_subjectData));
+wmLocError = std(workingmemLocDiffMean)/sqrt(length(master_subjectData));
+blLocError = std(baselineLocDiffMean)/sqrt(length(master_subjectData));
 
 
 %% COMPARING DIFFERENT REPORT ORDERS %%
@@ -596,19 +596,140 @@ figure('Color',[1 1 1])
     locdiffmeanMat(1,:) = mean(perceptionLocDiffMean);
     locdiffmeanMat(2,:) = mean(workingmemLocDiffMean);
     locdiffmeanMat(3,:) = mean(baselineLocDiffMean);
+    locerrorperception = std(locdiffmeanMat(1,:))/sqrt(length(locdiffmeanMat(1,:)));
+    locerrorworkingmem = std(locdiffmeanMat(2,:))/sqrt(length(locdiffmeanMat(2,:)));
+    locerrorbaseline = std(locdiffmeanMat(3,:))/sqrt(length(locdiffmeanMat(3,:)));
     locdiffmeanMat = locdiffmeanMat';
-    bar(1:5,locdiffmeanMat);
+    locdiffmeanMatmean = mean(locdiffmeanMat);
+ figure
+    bar(1:3,locdiffmeanMatmean);
+    xticks(fprintf('Perception','vWM','Baseline'));
     hold all
-    for cont = 1:length(centerContrast)
-        errorbar(cont,locdiffmeanMat(cont,2),wmLocError(cont),'k-')
-        errorbar(cont-0.225,locdiffmeanMat(cont,1),percepLocError(cont),'k-')
-        errorbar(cont+0.225,locdiffmeanMat(cont,3),blLocError(cont),'k-')
+        errorbar(1,locdiffmeanMatmean(1),locerrorperception,'k-','LineWidth',2)
+        errorbar(2,locdiffmeanMatmean(2),locerrorworkingmem,'k-','LineWidth',2)
+        errorbar(3,locdiffmeanMatmean(3),locerrorbaseline,'k-','LineWidth',2)
+    for i = 1:length(centerContrast)
+        plot(1-0.05,locdiffmeanMat(i,1),'k.','MarkerSize',20)
+        plot(2-0.05,locdiffmeanMat(i,2),'k.','MarkerSize',20)
+        plot(3-0.05,locdiffmeanMat(i,3),'k.','MarkerSize',20)
     end
+
     xlabel('Contrast Level')
     ylabel('Difference in Location Estimate (Degrees)')
-    legend({'Perception','Working Memory','Baseline'})
-    xticks([1 2 3 4 5]);
     
+    
+%%
+%Subject Data A location difference graphs
+for subj = 1:size(subjectDataA,1)
+    if isempty(subjectDataA{subj,2}) == 0
+        currentsubjectlocA = subjectDataA{subj,2};
+        %Perception - order A
+        if exist('locdiffAP','var') == 0
+            locdiffAP = currentsubjectlocA{1,1}.perceptionLocDiffMean;
+        else
+            locdiffAP = [locdiffAP; currentsubjectlocA{1,1}.perceptionLocDiffMean];
+        end
+        %WM
+        if exist('locdiffAWM','var') == 0
+            locdiffAWM = currentsubjectlocA{1,1}.workingmemLocDiffMean;
+        else
+            locdiffAWM = [locdiffAWM; currentsubjectlocA{1,1}.workingmemLocDiffMean];
+        end
+        %baseline
+        if exist('locdiffABL','var') == 0
+            locdiffABL = currentsubjectlocA{1,1}.baselineLocDiffMean;
+        else
+            locdiffABL = [locdiffABL; currentsubjectlocA{1,1}.baselineLocDiffMean];
+        end
+    end
+end
+%Subject Data B location difference graphs
+for subj = 1:size(subjectDataB,1)
+    if isempty(subjectDataB{subj,2}) == 0
+        currentsubjectlocB = subjectDataB{subj,2};
+        %Perception - order B
+        if exist('locdiffBP','var') == 0
+            locdiffBP = currentsubjectlocB{1,1}.perceptionLocDiffMean;
+        else
+            locdiffBP = [locdiffBP; currentsubjectlocB{1,1}.perceptionLocDiffMean];
+        end
+        %WM
+        if exist('locdiffBWM','var') == 0
+            locdiffBWM = currentsubjectlocB{1,1}.workingmemLocDiffMean;
+        else
+            locdiffBWM = [locdiffBWM; currentsubjectlocB{1,1}.workingmemLocDiffMean];
+        end
+        %baseline
+        if exist('locdiffBBL','var') == 0
+            locdiffBBL = currentsubjectlocB{1,1}.baselineLocDiffMean;
+        else
+            locdiffBBL = [locdiffBBL; currentsubjectlocB{1,1}.baselineLocDiffMean];
+        end
+    end
+end
+MeanlocdiffAP = mean(locdiffAP);
+MeanlocdiffAWM = mean(locdiffAWM);
+MeanlocdiffABL = mean(locdiffABL);
+MeanlocdiffBP = mean(locdiffBP);
+MeanlocdiffBWM = mean(locdiffBWM);
+MeanlocdiffBBL = mean(locdiffBBL);
+
+stdAPloc = (std(locdiffAP)/sqrt(size(locdiffAP,1)));
+stdAWMloc = (std(locdiffAWM)/sqrt(size(locdiffAWM,1)));
+stdABLloc = (std(locdiffABL)/sqrt(size(locdiffABL,1)));
+stdBPloc = (std(locdiffBP)/sqrt(size(locdiffBP,1)));
+stdBWMloc = (std(locdiffBWM)/sqrt(size(locdiffBWM,1)));
+stdBBLloc = (std(locdiffBBL)/sqrt(size(locdiffBBL,1)));
+
+figure
+subplot(1,2,1)
+locdiffmeanMatA(1,:) = MeanlocdiffAP;
+locdiffmeanMatA(2,:) = MeanlocdiffAWM;
+locdiffmeanMatA(3,:) = MeanlocdiffABL;
+locdiffmeanMatA = locdiffmeanMatA';
+bar(1:5,locdiffmeanMatA);
+hold all
+title('Condition A: Location Estimation Error')
+ylim([0 27])
+for cont = 1:length(centerContrast)
+        errorbar(cont,locdiffmeanMatA(cont,2),stdAWMloc(cont),'k')
+        hold all 
+        errorbar(cont-0.225,locdiffmeanMatA(cont,1),stdAPloc(cont),'k')
+        errorbar(cont+0.225,locdiffmeanMatA(cont,3),stdABLloc(cont),'k')
+        plot(cont-0.225,locdiffAP(:,cont),'ko')
+        plot(cont,locdiffAWM(:,cont),'ko')
+        plot(cont,locdiffABL(:,cont),'ko')
+end
+xticks([10 17 27 45 75])
+xlabel('Contrast Level')
+ylabel('Difference in Location Estimate (Degrees)')
+legend({'Perception','Working Memory','Baseline'})
+xticks([10 17 27 45 75]);
+
+
+subplot(1,2,2)
+locdiffmeanMatB(1,:) = MeanlocdiffBP;
+locdiffmeanMatB(2,:) = MeanlocdiffBWM;
+locdiffmeanMatB(3,:) = MeanlocdiffBBL;
+locdiffmeanMatB = locdiffmeanMatB';
+bar(1:5,locdiffmeanMatB);
+hold all
+title('Condition B: Location Estimation Error')
+ylim([0 27])
+for cont = 1:length(centerContrast)
+        errorbar(cont,locdiffmeanMatB(cont,2),stdBWMloc(cont),'k-')
+        errorbar(cont-0.225,locdiffmeanMatB(cont,1),stdBPloc(cont),'k-')
+        errorbar(cont+0.225,locdiffmeanMatB(cont,3),stdBBLloc(cont),'k-')
+        plot(cont-0.225,locdiffBP(:,cont),'ko')
+        plot(cont,locdiffBWM(:,cont),'ko')
+        plot(cont,locdiffBBL(:,cont),'ko')
+end
+xlabel('Contrast Level')
+ylabel('Difference in Location Estimate (Degrees)')
+legend({'Perception','Working Memory','Baseline'})
+xticks([10 17 27 45 75]);
+set(gcf,'Name','Location Error: Condition A vs. Condition B')
+
 
 %% Statitsical Significance %%
 % T test between the different contrast levels between perception, working
@@ -655,7 +776,46 @@ end
 for i = 1:theData(1).p.numContrasts
     [h_BL_P(i),p_BL_P(i)] = ttest(avgdBL_P(:,i),perceptionmat(:,i));
 end
+
+% Statistical Difference between how well people did in reporting contrast,
+% versus how well people did in reporting location.
+
+% subjectContLocCompare 
+for subj = 1:size(visualmemory_subjectsRan,2)
+    if exist('subjectContCompare' ,'var') == 0
+        subjectContCompare = master_subjectData{subj,2}.avgLocationContrastCompareDiff(2,:);
+    else
+        subjectContCompare = [subjectContCompare; master_subjectData{subj,2}.avgLocationContrastCompareDiff(2,:)];
+    end
+    if exist('subjectLocCompare' ,'var') == 0
+        subjectLocCompare = master_subjectData{subj,2}.avgLocationContrastCompareDiff(1,:);
+    else
+        subjectLocCompare = [subjectLocCompare; master_subjectData{subj,2}.avgLocationContrastCompareDiff(1,:)];
+    end
+    meanPerPerson_LocComapre = mean(subjectLocCompare,2)
     
+    %0-100 scoring system:
+    if exist('comparisonScoreSystem' ,'var') == 0
+        comparisonScoreSystem = master_subjectData{subj,2}.avgLocationContrastCompareDiff(2,:);
+    else
+        subjectContCompare = [subjectContCompare; master_subjectData{subj,2}.avgLocationContrastCompareDiff(2,:)];
+    end
+    
+end       
+% come back to this point and seperate based on condition if necessary
+% in order to compare: convert each person to a certain score for both
+% contrast and location: 0 - 100 ?, and then add these scores together for
+% a superscore between the two to assess how well people did on the task.
+figure; set(gcf,'Name','Comparing Location and Contrast Error: How well did a subject do?')
+for subj = 1:size(visualmemory_subjectsRan,2)
+    subplot(2,round(size(visualmemory_subjectsRan,2)/2),subj)
+    plot(subjectContCompare(subj,:),subjectLocCompare(subj,:),'.r','MarkerSize',20)
+    hold all
+    xlabel('Contrast Diff.');ylabel('Location Diff.'); title(sprintf('Subject %i',subj))
+    xlim([0 0.3]); ylim([0 30]);
+end
+hist(mean(subjectLocCompare,2))
+hist(mean(subjectContCompare,2))
 
 %% PRINTING %%
 if printVar ~= 0
