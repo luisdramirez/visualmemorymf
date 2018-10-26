@@ -792,15 +792,19 @@ for subj = 1:size(visualmemory_subjectsRan,2)
     else
         subjectLocCompare = [subjectLocCompare; master_subjectData{subj,2}.avgLocationContrastCompareDiff(1,:)];
     end
-    meanPerPerson_LocComapre = mean(subjectLocCompare,2)
+    meanPerPerson_LocComapre = mean(subjectLocCompare,2);
     
-    %0-100 scoring system:
-    if exist('comparisonScoreSystem' ,'var') == 0
-        comparisonScoreSystem = master_subjectData{subj,2}.avgLocationContrastCompareDiff(2,:);
-    else
-        subjectContCompare = [subjectContCompare; master_subjectData{subj,2}.avgLocationContrastCompareDiff(2,:)];
-    end
+   %statistical significant 
     
+    
+    
+%     %0-100 scoring system:
+%     if exist('comparisonScoreSystem' ,'var') == 0
+%         comparisonScoreSystem = master_subjectData{subj,2}.avgLocationContrastCompareDiff(2,:);
+%     else
+%         comparisonScoreSystem = [subjectContCompare; master_subjectData{subj,2}.avgLocationContrastCompareDiff(2,:)];
+%     end
+%     
 end       
 % come back to this point and seperate based on condition if necessary
 % in order to compare: convert each person to a certain score for both
@@ -814,8 +818,7 @@ for subj = 1:size(visualmemory_subjectsRan,2)
     xlabel('Contrast Diff.');ylabel('Location Diff.'); title(sprintf('Subject %i',subj))
     xlim([0 0.3]); ylim([0 30]);
 end
-hist(mean(subjectLocCompare,2))
-hist(mean(subjectContCompare,2))
+
 
 %% PRINTING %%
 if printVar ~= 0
