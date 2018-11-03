@@ -818,26 +818,49 @@ end
  %disqualifying worthy.
  disqualifyingFactor = zeros(2,size(visualmemory_subjectsRan,2));
  for subj = 1:size(visualmemory_subjectsRan,2)
-     if meanPerPerson_LocCompare(subj) >  (meanPerGroup_LocCompare + (2*stdLocCompare))
+     if meanPerPerson_LocCompare(subj) >  (meanPerGroup_LocCompare + (3*stdLocCompare))
          disqualifyingFactor(1,subj) = 1;
-     elseif meanPerPerson_LocCompare(subj) <  (meanPerGroup_LocCompare - (2*stdLocCompare))
+     elseif meanPerPerson_LocCompare(subj) <  (meanPerGroup_LocCompare - (3*stdLocCompare))
          disqualifyingFactor(1,subj) = 1;
      end
-     if meanPerPerson_ContCompare(subj) >  (meanPerGroup_ContCompare + (2*stdContCompare))
+     if meanPerPerson_ContCompare(subj) >  (meanPerGroup_ContCompare + (3*stdContCompare))
          disqualifyingFactor(2,subj) = 1;
-     elseif meanPerPerson_ContCompare(subj) <  (meanPerGroup_ContCompare - (2*stdContCompare))
+     elseif meanPerPerson_ContCompare(subj) <  (meanPerGroup_ContCompare - (3*stdContCompare))
          disqualifyingFactor(2,subj) = 1;
      end
-     
+%Comparison with all but target subject in the sample    
      % two tailed ttest for significance
      tempContWithoutSubj = meanPerPerson_ContCompare;
      tempContWithoutSubj(subj)= [];
      tempLocWithoutSubj = meanPerPerson_LocCompare;
      tempLocWithoutSubj(subj) = [];
-     hCont(subj) = ttest2(tempContWithoutSubj,meanPerPerson_ContCompare(subj));
-     hLoc(subj) = ttest2(tempLocWithoutSubj,meanPerPerson_LocCompare(subj));
+     hContAllbutsubj(subj) = ttest2(tempContWithoutSubj,meanPerPerson_ContCompare(subj));
+     hLocAllbutsubj(subj) = ttest2(tempLocWithoutSubj,meanPerPerson_LocCompare(subj));
      clear tempContWithoutsubj tempLocWithoutSubj
+
+%Comparison with all subjects in the sample (including target subject)
+hContAll(subj) = ttest2(meanPerPerson_ContCompare,meanPerPerson_ContCompare(subj));
+hLocAll(subj) = ttest2(meanPerPerson_LocCompare,meanPerPerson_LocCompare(subj));
  end
+ 
+ %Specific Outliers (trying to test for)
+ %Contrast outliers
+ subject10Cont =  meanPerPerson_ContCompare(10);
+ tempContWithoutBothsubjs = meanPerPerson_ContCompare;
+ tempContWithoutBothsubjs(10) = [];
+ subject8Cont =  meanPerPerson_ContCompare(8);
+ tempContWithoutBothsubjs(8) = [];
+ hCont_8_10(1) = ttest2(subject8Cont, tempContWithoutBothsubjs);
+ hCont_8_10(2) = ttest2(subject10Cont, tempContWithoutBothsubjs);
+ 
+ %contrast outliers
+ subject10Loc =  meanPerPerson_LocCompare(10);
+ tempLocWithoutBothsubjs = meanPerPerson_LocCompare;
+ tempLocWithoutBothsubjs(10) = [];
+ subject8Loc =  meanPerPerson_LocCompare(8);
+ tempLocWithoutBothsubjs(8) = [];
+ hLoc_8_10(1) = ttest2(subject8Loc, tempLocWithoutBothsubjs);
+ hLoc_8_10(2) = ttest2(subject10Loc, tempLocWithoutBothsubjs);
  
     
     
