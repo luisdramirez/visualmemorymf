@@ -41,12 +41,19 @@ if exist(['data_visualmemorymf_' p.experiment '_' p.subject '.mat'],'file') ~= 0
     subject_indx = find(strcmp(visualmemory_subjectsRan(1,:), p.subject)==1);
     if sum(strcmp(p.experiment,{'test', 'test_HC'})) == 1
         p.testCondition = 1; % fixed to perception condition for hard coded testing
+        
     elseif sum(strcmp(p.experiment,{'test', 'test_HC'})) == 0
+        if size(theData,2) < 4
+        reportOrder = visualmemory_subjectsRan{2,subject_indx};
         p.testCondition = theData(1).p.trialSchedule(p.runNumber);
+        elseif size(theData,2) >= 4
+        reportOrder = visualmemory_subjectsRan{3,subject_indx};
+        p.testCondition = theData(1).p.trialSchedule(p.runNumber-4);
+        end
     end
-    reportOrder = visualmemory_subjectsRan{2,subject_indx};
 else
     p.runNumber = 1;
+        
     if sum(strcmp(p.experiment,{'test','test_HC'})) == 0
         p.orderRow = length(visualmemory_subjectsRan)+1;
         if p.orderRow > length(visualmemory_condition_order)
