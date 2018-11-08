@@ -14,7 +14,7 @@ p.repetitions = 20; % set to 20 for ~40min; data will be saved if repetitions > 
 
 % Experiment & Subject Name
 p.experiment = 'exp'; % 'exp=5 contrasts, w/WM; 'test_HC'=1 contrast, no WM; 'test'=5 contrasts, no WM;
-p.subject = '009';
+p.subject = '010';
 
 % Set directories
 expDir = pwd; % set the experimental directory to the current directory 'pwd'
