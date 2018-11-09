@@ -20,6 +20,11 @@ cd(dataDir)
 load('visualmemory_condition_order')
 load('visualmemory_subjectsRan')  
 
+% removeSubjs = {'005'};
+% for nSubj = 1:numel(removeSubjs)
+%     visualmemory_subjectsRan{find(strcmp(visualmemory_subjectsRan{1,:}, removeSubjs{nSubj})),:} = [];
+% end
+
 [numFiles, ~] = size(files);
 possibleFileNames = cell(size(visualmemory_subjectsRan,2),1);
 %preallocate a cell that will load theData structures from each participant
