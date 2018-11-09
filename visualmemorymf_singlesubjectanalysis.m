@@ -10,13 +10,13 @@
 clear;
 close all;
 %expDir = '/Users/juliaschwartz/Desktop/visualmemorymf'; %Lab computer
-% expDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf'; %Laptop
+%expDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf'; %Laptop
 expDir = pwd;
 %dataDir = '/Users/juliaschwartz/Desktop/visualmemorymf/data_master'; %Lab computer
-% dataDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf/data_master'; %Laptop
+%dataDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf/data_master'; %Laptop
 dataDir = 'data_master';
 experiment = 'exp';
-subjectName = '010';
+subjectName = '009';
 whomst = subjectName;
 cd(dataDir)
 
@@ -35,6 +35,8 @@ else
     error('data file does not exist')
 end
 cd(expDir)
+
+
 %Plotting and Printing Settings
 plotVar = 1; %Set equal to 1 to display plots, equal to 0 to not display plots.
 printVar = 1; %Set equal to 0 to not print information, equal to 1 to print information.
@@ -75,7 +77,11 @@ subject.avgDiffLoc = nan(numRuns,theData(1).p.numContrasts,3);
         % 3 = BASELINE
         
 % Shortens the condition schedule to only go through trials already ran.
+if length(theData) <= 4
 runsCompleted = subjectCondSchedule(1:length(theData));
+else
+    runsCompleted = [subjectCondSchedule subjectCondSchedule(1:length(theData)-4)];
+end
  
 %% MAIN FOR LOOP: NUMBER OF TRIALS %%
 
@@ -506,7 +512,7 @@ runsCompleted = subjectCondSchedule(1:length(theData));
         figure('Color',[1 1 1])
         set(gcf,'Name','Location Bins') 
         for run = 1:numel(theData)
-            subplot(2,2,run)
+            subplot(2,round(run/2),run)
             for bin = 1:numBins
                 binMean = mean(LocCell{run,bin});
                 LocCell{run+4,bin} = binMean;
@@ -722,7 +728,7 @@ end
                 for i = 1:numpercep
                 figure(numRuns*2 + 4)
                 set(gcf, 'Name', sprintf('Perception: Estimated versus Center Contrast'));
-                subplot(1,2,i)
+                subplot(1,numpercep,i)
                 loglog(p.centerContrast,perceptionmat(i,:),'-o') % Perception
                 xlim([0 1]); ylim([0 1]);
                 hold on
