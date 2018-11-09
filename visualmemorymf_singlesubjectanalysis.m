@@ -10,13 +10,13 @@
 clear;
 close all;
 %expDir = '/Users/juliaschwartz/Desktop/visualmemorymf'; %Lab computer
-% expDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf'; %Laptop
+%expDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf'; %Laptop
 expDir = pwd;
 %dataDir = '/Users/juliaschwartz/Desktop/visualmemorymf/data_master'; %Lab computer
-% dataDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf/data_master'; %Laptop
+%dataDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf/data_master'; %Laptop
 dataDir = 'data_master';
 experiment = 'exp';
-subjectName = '008';
+subjectName = '009';
 whomst = subjectName;
 cd(dataDir)
 
@@ -35,6 +35,8 @@ else
     error('data file does not exist')
 end
 cd(expDir)
+
+
 %Plotting and Printing Settings
 plotVar = 1; %Set equal to 1 to display plots, equal to 0 to not display plots.
 printVar = 1; %Set equal to 0 to not print information, equal to 1 to print information.
@@ -75,7 +77,11 @@ subject.avgDiffLoc = nan(numRuns,theData(1).p.numContrasts,3);
         % 3 = BASELINE
         
 % Shortens the condition schedule to only go through trials already ran.
+if length(theData) <= 4
 runsCompleted = subjectCondSchedule(1:length(theData));
+else
+    runsCompleted = [subjectCondSchedule subjectCondSchedule(1:length(theData)-4)];
+end
  
 %% MAIN FOR LOOP: NUMBER OF TRIALS %%
 
@@ -344,9 +350,7 @@ runsCompleted = subjectCondSchedule(1:length(theData));
                   xMax(i) = max([max(baseline.contData(:,2,i)) max(workingmem.contData(:,2,i))]);
             end
             xLim = max(xMax);
-        end
-            
-            
+        end 
         
         % Histogram Plots for each contrast %
         for i = 1:p.numContrasts
@@ -506,7 +510,7 @@ runsCompleted = subjectCondSchedule(1:length(theData));
         figure('Color',[1 1 1])
         set(gcf,'Name','Location Bins') 
         for run = 1:numel(theData)
-            subplot(2,2,run)
+            subplot(2,round(run/2),run)
             for bin = 1:numBins
                 binMean = mean(LocCell{run,bin});
                 LocCell{run+4,bin} = binMean;
@@ -722,7 +726,7 @@ end
                 for i = 1:numpercep
                 figure(numRuns*2 + 4)
                 set(gcf, 'Name', sprintf('Perception: Estimated versus Center Contrast'));
-                subplot(1,2,i)
+                subplot(1,numpercep,i)
                 loglog(p.centerContrast,perceptionmat(i,:),'-o') % Perception
                 xlim([0 1]); ylim([0 1]);
                 hold on
@@ -843,6 +847,21 @@ if numRuns == 4
     [h_BLBL,p_BLBL,ci_BLBL,stats_BLBL] = ttest(baselinemat(find(runsCompleted==1),:),baselinemat(find(runsCompleted==2),:));
     % if h = 0 then ttest cannot reject the null hypothesis 
 end
+
+%want to see if there is a correlation between subjects error in contrast
+%estimation and error is subjects estimation of location.
+%find average error for location and contrast difference per each trial.
+%Then convert this to a 4*2 mat. then supply this to the multiple subject
+%analysis.
+subject.avgLocationContrastCompareDiff = zeros(2,4);
+for i = 1:size(theData,2)
+    subject.avgLocationContrastCompareDiff(1,i) = mean(theData(i).data.DifferenceLocation);
+    subject.avgLocationContrastCompareDiff(2,i) = mean(abs(theData(i).data.DifferenceContrast));
+end
+%import into multiplesubject analysis - want to find an average over
+%participants and standard deviation (for mean location difference, mean
+%contrast difference). Then run t tests on these to see if being bad at one
+%can correlate to being bad at the other.
 
 %% SAVE OUT AVERAGES (AVG OVER TRIALS RAN FOR A SINGLE SUBJECT) %%
 subject.meanEstContPerception = mean(perceptionmat,1);

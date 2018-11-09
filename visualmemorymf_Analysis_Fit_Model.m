@@ -11,7 +11,7 @@ addpath(p);
 dataDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf/data_master'; %Laptop
 cd(dataDir)
 indvFiguresOn = 1; %Display plots
-load('visualmemory_subjectsRan.mat')
+load('visualmemory_subjectsRan_All.mat')
 load('data_visualmemorymf_overallData.mat')
 experiments = {'Perception Condition','Visual Working Memory'};
 
@@ -46,6 +46,8 @@ Wi = 0;
 Wi_var = 0;
 b = 0;
 n = 2;
+% Fit individual data with Normalization model
+options = optimset('MaxFunEvals', 10^6, 'MaxIter', 10^6);
 
 %% EXPERIMENT LOOP %%
 for e = 1:numel(experiments)
@@ -75,9 +77,7 @@ for e = 1:numel(experiments)
             variableMat(subjCount,:) = overallData.workingmemmat(subjCount,:);
         end
           
-        % Fit individual data with Normalization model
-        options = optimset('MaxFunEvals', 10^4, 'MaxIter', 10^4);
-        
+
         % Use formula from Xing&Heeger 2001 to use baseline data to constrain alpha and n, and look for the inhibitory weight 
         % to explain the suppressive influence of the surround 
             % Wi: suppression weight
@@ -115,7 +115,7 @@ for e = 1:numel(experiments)
             ((est_params(e,subjCount,1).^est_params(e,subjCount,2)) + (C_fit.^est_params(e,subjCount,2)) + (est_params(e,subjCount,3)*(C_Surround.^est_params(e,subjCount,2)))); 
 
             %Display Fits 
-            subplot(2,round(numel(visualmemory_subjectsRan)/2), subjCount)
+            subplot(2,round(numel(visualmemory_subjectsRan)/2)/2, subjCount)
             hold all
             colormap lines
             if e == 1
@@ -167,11 +167,11 @@ figure('Color', [1 1 1]);
 set(gcf, 'Name', sprintf('Suppression Index: Perception vs. Working Memory'));
 hold all;
 errorbar(C_Test, nanmean(squeeze(TotalSuppressionIndexVariable(1,:,:))), ...
-        nanstd(squeeze(TotalSuppressionIndexVariable(1,:,:)))/sqrt(numel(visualmemory_subjectsRan)), 'ko-'); 
+        nanstd(squeeze(TotalSuppressionIndexVariable(1,:,:)))/sqrt(numel(visualmemory_subjectsRan)), 'k','LineWidth',3); 
 errorbar(C_Test, nanmean(squeeze(TotalSuppressionIndexVariable(2,:,:))), ...
-        nanstd(squeeze(TotalSuppressionIndexVariable(2,:,:)))/sqrt(numel(visualmemory_subjectsRan)), 'ro-');  
-plot(repmat(C_Test, [4 1]), (squeeze(TotalSuppressionIndexVariable(1,:,:))),'ko');
-plot(repmat(C_Test, [4 1]), (squeeze(TotalSuppressionIndexVariable(2,:,:))),'ro');
+        nanstd(squeeze(TotalSuppressionIndexVariable(2,:,:)))/sqrt(numel(visualmemory_subjectsRan)), 'r','LineWidth',3);  
+plot(repmat(C_Test, [length(subjects) 1]), (squeeze(TotalSuppressionIndexVariable(1,:,:))),'k.','MarkerSize',25);
+plot(repmat(C_Test, [length(subjects) 1]), (squeeze(TotalSuppressionIndexVariable(2,:,:))),'r.','MarkerSize',25);
 hold on
 plot([0.09 0.8],[0 0],':k')
 ylabel('Suppression Index (surround-nosurround)/(surround+nosurround)'); 
@@ -205,7 +205,7 @@ set(handles(1), 'FaceColor', [0.3 0.3 0.3], 'EdgeColor', 'none');
 xlim([0 3]); box off
 errorbar([1 2], [mean(squeeze(est_params(1,:,1))) mean(squeeze(est_params(2,:,1)))], ...
     [std(squeeze(est_params(1,:,1)))/sqrt(subjCount) std(squeeze(est_params(2,:,1)))/sqrt(subjCount)], 'k.')
-plot(repmat([1 2], [4 1]), (squeeze(est_params(:,:,1)))', 'ok')
+plot(repmat([1 2], [length(subjects) 1]), (squeeze(est_params(:,:,1)))', 'ok')
 set(gca, 'Xtick', [1 2], 'XtickLabel', {'Perc' 'vWM'})
 title('C50')
 
@@ -218,7 +218,7 @@ set(handles(1), 'FaceColor', [0.3 0.3 0.3], 'EdgeColor', 'none');
 xlim([0 3]); box off
 errorbar([1 2], [mean(squeeze(est_params(1,:,2))) mean(squeeze(est_params(2,:,2)))], ...
     [std(squeeze(est_params(1,:,2)))/sqrt(subjCount) std(squeeze(est_params(2,:,2)))/sqrt(subjCount)], 'k.')
-plot(repmat([1 2], [4 1]), (squeeze(est_params(:,:,2)))', 'ok')
+plot(repmat([1 2], [length(subjects) 1]), (squeeze(est_params(:,:,2)))', 'ok')
 set(gca, 'Xtick', [1 2], 'XtickLabel', {'Perc' 'vWM'})
 title('N')
 
@@ -229,7 +229,7 @@ hold all
 handles = get(gca, 'Children');
 set(handles(1), 'FaceColor', [0 0 1], 'EdgeColor', 'none'); 
 errorbar([0 1], mean(est_params(:,:,3),2)',std(est_params(:,:,3),[], 2)'/sqrt(subjCount), 'k.')
-plot(repmat([0 1.0], [4 1]), est_params(:,:,3)', 'ok');
+plot(repmat([0 1.0], [length(subjects) 1]), est_params(:,:,3)', 'ok');
 box off; xlim([-0.5 1.5]); set(gca, 'Xtick', [0 1], 'XtickLabel', {'Perc' 'vWM'})
 title(sprintf('Surround Induced Normalization\n Parameter'))
 
