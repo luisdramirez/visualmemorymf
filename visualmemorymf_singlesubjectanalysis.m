@@ -350,9 +350,7 @@ end
                   xMax(i) = max([max(baseline.contData(:,2,i)) max(workingmem.contData(:,2,i))]);
             end
             xLim = max(xMax);
-        end
-            
-            
+        end 
         
         % Histogram Plots for each contrast %
         for i = 1:p.numContrasts
