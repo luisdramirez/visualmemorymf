@@ -74,6 +74,18 @@ perceptionIndex = 1;
 workingmemIndex = 2;
 baselineIndex = 3;
 
+% Matrices 
 wmMat = nan(order1.p(1).numTrials/2,sum(runsCompleted==workingmemIndex));
+blforwmMat = nan(order1.p(1).numTrials/2,sum(runsCompleted==workingmemIndex));
+
 pcMat = nan(order1.p(1).numTrials/2,sum(runsCompleted==perceptionIndex));
+blforpcMat = nan(order1.p(1).numTrials/2,sum(runsCompleted==perceptionIndex));
+
+
+%Loop for either 0rder1 or order2 first
+for i = 1:numel(order1.p)
+    blforwm.order1.TE = order1.p(i).trialEvents((order1.p(i).trialEvents(:,1)==3),:);
+end
+
+
 
