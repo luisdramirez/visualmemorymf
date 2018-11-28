@@ -11,7 +11,7 @@ addpath(p);
 dataDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf/data_master'; %Laptop
 cd(dataDir)
 indvFiguresOn = 1; %Display plots
-load('visualmemory_subjectsRan_All.mat')
+load('visualmemory_subjectsRan.mat')
 load('data_visualmemorymf_overallData.mat')
 experiments = {'Perception Condition','Visual Working Memory'};
 
@@ -115,7 +115,7 @@ for e = 1:numel(experiments)
             ((est_params(e,subjCount,1).^est_params(e,subjCount,2)) + (C_fit.^est_params(e,subjCount,2)) + (est_params(e,subjCount,3)*(C_Surround.^est_params(e,subjCount,2)))); 
 
             %Display Fits 
-            subplot(2,round(numel(visualmemory_subjectsRan)/2)/2, subjCount)
+            subplot(2,round(size(visualmemory_subjectsRan,2)/2), subjCount)
             hold all
             colormap lines
             if e == 1
@@ -167,9 +167,9 @@ figure('Color', [1 1 1]);
 set(gcf, 'Name', sprintf('Suppression Index: Perception vs. Working Memory'));
 hold all;
 errorbar(C_Test, nanmean(squeeze(TotalSuppressionIndexVariable(1,:,:))), ...
-        nanstd(squeeze(TotalSuppressionIndexVariable(1,:,:)))/sqrt(numel(visualmemory_subjectsRan)), 'k','LineWidth',3); 
+        nanstd(squeeze(TotalSuppressionIndexVariable(1,:,:)))/sqrt(size(visualmemory_subjectsRan,2)), 'k','LineWidth',3); 
 errorbar(C_Test, nanmean(squeeze(TotalSuppressionIndexVariable(2,:,:))), ...
-        nanstd(squeeze(TotalSuppressionIndexVariable(2,:,:)))/sqrt(numel(visualmemory_subjectsRan)), 'r','LineWidth',3);  
+        nanstd(squeeze(TotalSuppressionIndexVariable(2,:,:)))/sqrt(size(visualmemory_subjectsRan,2)), 'r','LineWidth',3);  
 plot(repmat(C_Test, [length(subjects) 1]), (squeeze(TotalSuppressionIndexVariable(1,:,:))),'k.','MarkerSize',25);
 plot(repmat(C_Test, [length(subjects) 1]), (squeeze(TotalSuppressionIndexVariable(2,:,:))),'r.','MarkerSize',25);
 hold on

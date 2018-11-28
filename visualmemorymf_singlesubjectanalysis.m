@@ -16,7 +16,7 @@ expDir = pwd;
 %dataDir = '/Users/julia/Desktop/Ling Lab/Experiments/visualmemorymf/data_master'; %Laptop
 dataDir = 'data_master';
 experiment = 'exp';
-subjectName = '009';
+subjectName = '004';
 whomst = subjectName;
 cd(dataDir)
 
@@ -743,7 +743,7 @@ end
             if numwm == 1
                 figure(numRuns*2 + 5)
                 set(gcf, 'Name', sprintf('Working Memory: Estimated versus Center Contrast'));
-                subplot(1,2,1)
+                subplot(1,numwm,1)
                 loglog(p.centerContrast,workingmemmat(:),'-o') % Perception
                 hold on
                 loglog([0.1 0.8],[0.1 0.8],'k--') %log scale line
@@ -754,7 +754,7 @@ end
                 for i = 1:numwm
                 figure(numRuns*2 + 5)
                 set(gcf, 'Name', sprintf('Working Memory: Estimated versus Center Contrast'));
-                subplot(1,2,i)
+                subplot(1,numwm,i)
                 loglog(p.centerContrast,workingmemmat(i,:),'-o') % Perception
                 hold on
                 loglog([0.1 0.8],[0.1 0.8],'k--') %log scale line

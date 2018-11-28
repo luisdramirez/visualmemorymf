@@ -18,7 +18,7 @@ files = struct2cell(dir(dataDir))';
 
 cd(dataDir)
 load('visualmemory_condition_order')
-load('visualmemory_subjectsRan_All') 
+load('visualmemory_subjectsRan') 
 
 
 % removeSubjs = {'005'};

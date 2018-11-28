@@ -6,14 +6,14 @@ close all
 clear all
 
 % expDir = '/Users/ywatanabe/Dropbox/NormalizationVisualMemory/Experiment1';
-expDir = '/Users/juliaschwartz/Desktop/visualmemorymf';
+expDir = pwd;
 p = genpath(expDir);
 addpath(p);
-dataDir = '/Users/juliaschwartz/Desktop/visualmemorymf/data_master';
+dataDir = 'data_master';
 cd(dataDir)
 indvFiguresOn = 1;
 
-experiment = 'Exp 1';
+experiment = {'Exp 1'};
 load('visualmemory_subjectsRan.mat')
 load('data_visualmemorymf_overallData.mat')
 
@@ -58,9 +58,9 @@ for e = 1:numel(experiment)
         end
     end
 
-    meancoll = []; % Mean Collinear %
-    meanorth = []; % Mean Orthoganal %
-    meanbase = []; % Mean Baseline %
+%     meancoll = []; % Mean Collinear %
+%     meanorth = []; % Mean Orthoganal %
+%     meanbase = []; % Mean Baseline %
     trialDurations = [];
     runDurations = [];
         
@@ -71,10 +71,7 @@ for e = 1:numel(experiment)
             %orientation = theData(runs).p.TrialEvents(:,1); -- We dont
             %have orientation
             trialDurations = [trialDurations; theData(runs).data.ResponseTime_Contrast]; %Either response time contrast or response time location, both??
-            %runDurations = [runDurations; theData(runs).t.EndTime];
-%             collinear = orientation == 1;
-%             orthogonal = orientation == 2;
-%             base = orientation == 3;
+        end
             
             %number of elements in this array
             numContrasts = numel(theData(runs).p.numContrasts);
@@ -94,18 +91,12 @@ for e = 1:numel(experiment)
 %                 %finding accuracies with no surround and 5 different contrasts
 %                 basecontrasts(:,c) = (orientation == 3) & (contrast == TheData(runs).p.testContrasts(c));
 %                 baseaccuracies(:,c) = (accuracies(basecontrasts(:,c)));
-%                 
-%                 
-%             end
+                
+                
+                   
+     %   clear collaccuracies orthaccuracies baseaccuracies collcontrasts orthcontrasts basecontrasts
 %             
-            % collect all the responses over multiple runs
-%             meancoll = [meancoll; collaccuracies];
-%             %meanorth = [meanorth; orthaccuracies];
-%             meanbase = [meanbase; baseaccuracies];
-%             
-%             clear collaccuracies orthaccuracies baseaccuracies collcontrasts orthcontrasts basecontrasts
-%             
-        end
+     
         
         
         %responseDurations(e,subjCount) = mean(trialDurations);
@@ -124,7 +115,7 @@ for e = 1:numel(experiment)
           runsbasemean = overallData.baselineForWM;
           runscollmean = overallData.workingmemmat;
           runscollmean = overallData.perceptionmat;
-       for subjCount = 1:numel(visualmemory_subjectsRan) 
+       for subjCount = 1:size(visualmemory_subjectsRan,2) 
         % fit individual data with Normalization model
         options = optimset('MaxFunEvals', 10000, 'MaxIter', 10000);
         
@@ -203,7 +194,7 @@ end
 %     subjectsorthmean{e} = (runsorthmean);    
     
     %Suppression Index over subjects    
-    TotalSuppressionIndexColinear(e,1:numel(visualmemory_subjectsRan),:) = ((runscollmean) - (runsbasemean))./((runscollmean) + (runsbasemean));
+    TotalSuppressionIndexColinear(e,1:size(visualmemory_subjectsRan,2),:) = ((runscollmean) - (runsbasemean))./((runscollmean) + (runsbasemean));
 %     TotalSuppressionIndexOrthogonal(e,1:numel(visualmemory_subjectsRan),:) = ((runsorthmean) - (runsbasemean))./((runsorthmean) + (runsbasemean));
     
     clear runsbasemean runscollmean runsorthmean
@@ -217,13 +208,13 @@ figure('Color', [1 1 1]);
 hold all;
 
 errorbar(C_Test, nanmean(squeeze(TotalSuppressionIndexColinear(1,:,:))), ...
-    nanstd(squeeze(TotalSuppressionIndexColinear(1,:,:)))/sqrt(numel(visualmemory_subjectsRan)), 'ro-');
+    nanstd(squeeze(TotalSuppressionIndexColinear(1,:,:)))/sqrt(size(visualmemory_subjectsRan,2)), 'ro-');
 errorbar(C_Test, nanmean(squeeze(TotalSuppressionIndexColinear(2,:,:))), ...
-    nanstd(squeeze(TotalSuppressionIndexColinear(2,:,:)))/sqrt(numel(visualmemory_subjectsRan)), 'r:^');
+    nanstd(squeeze(TotalSuppressionIndexColinear(2,:,:)))/sqrt(size(visualmemory_subjectsRan,2)), 'r:^');
 errorbar(C_Test, nanmean(squeeze(TotalSuppressionIndexOrthogonal(1,:,:))), ...
-    nanstd(squeeze(TotalSuppressionIndexOrthogonal(1,:,:)))/sqrt(numel(visualmemory_subjectsRan)), 'bo-');
+    nanstd(squeeze(TotalSuppressionIndexOrthogonal(1,:,:)))/sqrt(size(visualmemory_subjectsRan,2)), 'bo-');
 errorbar(C_Test, nanmean(squeeze(TotalSuppressionIndexOrthogonal(2,:,:))), ...
-    nanstd(squeeze(TotalSuppressionIndexOrthogonal(2,:,:)))/sqrt(numel(visualmemory_subjectsRan)), 'b:^');
+    nanstd(squeeze(TotalSuppressionIndexOrthogonal(2,:,:)))/sqrt(size(visualmemory_subjectsRan,2)), 'b:^');
 % plot(repmat(TheData(runs).p.testContrasts, [12 1]), (squeeze(TotalSuppressionIndexColinear(1,:,:))), 'ro');
 % plot(repmat(TheData(runs).p.testContrasts, [12 1]), (squeeze(TotalSuppressionIndexColinear(2,:,:))), 'ro');
 % plot(repmat(TheData(runs).p.testContrasts, [12 1]), (squeeze(TotalSuppressionIndexOrthogonal(1,:,:))), 'bo');
