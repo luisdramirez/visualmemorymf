@@ -381,168 +381,153 @@ blLocError = std(baselineLocDiffMean)/sqrt(length(master_subjectData));
     %location.
  % we want to compare between the different reporting orders.
  for subj = 1:size(visualmemory_subjectsRan,2)
-     currentOrder = visualmemory_subjectsRan{2,subj};
+     firstOrder = visualmemory_subjectsRan{2,subj};
+     secondOrder = visualmemory_subjectsRan{3,subj}; %save first and second orders into their subject struct
+     master_subjectData{subj, 2}.firstOrder = firstOrder;
+     if master_subjectData{1, 2}.numRuns  > 4
+        master_subjectData{subj, 2}.secondOrder = secondOrder;
+     end
+     %THIS IS WHERE YOU WANT TO ADD THE OTHER ORDERS DATA TO THE MATRIX
      %if loop that will add specific subjects into a seperate master
      %subject dad matrix based off of their order number. then from there
      %you can split up the data.
-     if currentOrder == 'a'
+     if firstOrder == 'a'
          subjectDataA{subj,1} = master_subjectData(subj,1); %should be theData in column 1, subject in column 2.
          subjectDataA{subj,2} = master_subjectData(subj,2);
-     elseif currentOrder == 'b'
+     elseif firstOrder == 'b'
          subjectDataB{subj,1} = master_subjectData(subj,1); %should be theData in column 1, subject in column 2.
          subjectDataB{subj,2} = master_subjectData(subj,2);
      else
          error('subjects ran file doesnt contain order numbers')
      end
+     
+     if size(master_subjectData{subj,1},2) > 4
+         if secondOrder == 'a'
+             subjectDataA{subj,1} = master_subjectData(subj,1); % for SECOND order, should be theData in column 1, subject in column 2.
+             subjectDataA{subj,2} = master_subjectData(subj,2);
+         elseif secondOrder == 'b'
+             subjectDataB{subj,1} = master_subjectData(subj,1); % for SECOND order,should be theData in column 1, subject in column 2.
+             subjectDataB{subj,2} = master_subjectData(subj,2);
+         else
+             error('subjects ran file doesnt contain order numbers')
+         end
+     end
  end
      
-% Use these indexes to see wherein the cells actually have elements, use it
-% to loop through
-%from here make an array that has the index numbers for the rows equal to
-%one, then loop through that array
-indexA = cellfun(@isempty, subjectDataA) == 0;
-indexB = cellfun(@isempty, subjectDataB) == 0;
 
-arrayforA = zeros(1,size(indexA,1));
-for i = 1:size(indexA,2)
-    if indexA(i,1) == 1 || indexA(i,2) == 1
-        arrayforA(i) = i;
-    end
-end
-arrayforA(arrayforA==0) = [];
-
-arrayforB = zeros(1,size(indexB,1));
-for i = 1:size(indexB,2) 
-    if indexB(i,1) == 1 || indexA(i,2) == 1
-        arrayforB(i) = i;
-    end
-end
-arrayforB(arrayforB==0) = [];
-
-%%
+%% A & B order comparison
 
 for subj = 1:size(subjectDataA,1)
     if isempty(subjectDataA{subj,2}) == 0
         currentSubj = subjectDataA{subj,2};
-        %Perception - order A
-        if exist('meanContAPerception','var') == 0
-            meanContAPerception = currentSubj{1,1}.meanEstContPerception;
-        else
-            meanContAPerception = [meanContAPerception; currentSubj{1,1}.meanEstContPerception];
-        end
-        % Working Memory - order A
-        if exist('meanContAWM','var') == 0
-            meanContAWM = currentSubj{1,1}.meanEstContWorkingMemory;
-        else
-            meanContAWM = [meanContAWM; currentSubj{1,1}.meanEstContWorkingMemory];
-        end
-        % Baseline - order A
-        if exist('meanContABL','var') == 0
-            meanContABL = currentSubj{1,1}.meanEstContBaseline;
-        else
-            meanContABL = [meanContABL; currentSubj{1,1}.meanEstContBaseline];
-        end
-        
-        
+            if currentSubj{1,1}.firstOrder == 'a'
+                range = 1:4;
+            elseif currentSubj{1,1}.secondOrder == 'a'
+                range = 5:currentSubj{1, 1}.numRuns;
+            end
+        %Contrast Data
+        meanContAPerception(subj,:) = nanmean(currentSubj{1,1}.avgEstContrast(range,:,1),1); %first page of avg contrast
+        meanContAWM(subj,:) = nanmean(currentSubj{1,1}.avgEstContrast(range,:,2),1); %second page
+        meanContABL(subj,:) = nanmean(currentSubj{1,1}.avgEstContrast(range,:,3),1); % third page
+ 
         %Location Data
-        %Baseline
-        if exist('meanBLlocA','var') == 0
-            meanBLlocA = currentSubj{1,1}.baselineLocDiffMean;
-        else
-            meanBLlocA = [meanBLlocA; currentSubj{1,1}.baselineLocDiffMean];
-        end
-        %Perception
-         if exist('meanPlocA','var') == 0
-            meanPlocA = currentSubj{1,1}.perceptionLocDiffMean;
-        else
-            meanPlocA = [meanPlocA; currentSubj{1,1}.perceptionLocDiffMean];
-         end
-         %Working mem
-         if exist('meanWMlocA','var') == 0
-            meanWMlocA = currentSubj{1,1}.workingmemLocDiffMean;
-        else
-            meanWMlocA = [meanWMlocA; currentSubj{1,1}.workingmemLocDiffMean];
-         end
-        
-     
-       
+        meanLocDiffAPerception(subj,:) = nanmean(currentSubj{1,1}.avgDiffLoc(range,:,1),1); %first page of avg contrast
+        meanLocDiffAWM(subj,:) = nanmean(currentSubj{1,1}.avgDiffLoc(range,:,2),1); %second page
+        meanLocDiffABL(subj,:) = nanmean(currentSubj{1,1}.avgDiffLoc(range,:,3),1); % third page
     end
-end
-%Means of each response
-totalaverageContAPerception = mean(meanContAPerception);
-totalaverageContAWM = mean(meanContAWM);
-totalaverageContABL = mean(meanContABL);
-totalavgPlocA = mean(meanPlocA);
-totalavgBLlocA = mean(meanBLlocA);
-totalavgWMlocA = mean(meanWMlocA);
+ end
 
-% Subject B
 for subj = 1:size(subjectDataB,1)
     if isempty(subjectDataB{subj,2}) == 0
-        currentsubjectB = subjectDataB{subj,2};
-        %Perception - order B
-        if exist('meanContBPerception','var') == 0
-            meanContBPerception = currentsubjectB{1,1}.meanEstContPerception;
-        else
-            meanContBPerception = [meanContBPerception; currentsubjectB{1,1}.meanEstContPerception];
-        end
-        % Working Memory - order B
-        if exist('meanContBWM','var') == 0
-            meanContBWM = currentsubjectB{1,1}.meanEstContWorkingMemory;
-        else
-            meanContBWM = [meanContBWM; currentsubjectB{1,1}.meanEstContWorkingMemory];
-        end
-        % Baseline - order B
-        if exist('meanContBBL','var') == 0
-            meanContBBL = currentsubjectB{1,1}.meanEstContBaseline;
-        else
-            meanContBBL = [meanContBBL; currentsubjectB{1,1}.meanEstContBaseline];
-        end
-        
+        currentSubj = subjectDataB{subj,2};
+            if currentSubj{1,1}.firstOrder == 'b'
+                range = 1:4;
+            elseif currentSubj{1,1}.secondOrder == 'b'
+                range = 5:currentSubj{1, 1}.numRuns;
+            end
+        %Contrast Data
+        meanContBPerception(subj,:) = nanmean(currentSubj{1,1}.avgEstContrast(range,:,1),1); %first page of avg contrast
+        meanContBWM(subj,:) = nanmean(currentSubj{1,1}.avgEstContrast(range,:,2),1); %second page
+        meanContBBL(subj,:) = nanmean(currentSubj{1,1}.avgEstContrast(range,:,3),1); % third page
+ 
         %Location Data
-        %Baseline
-        if exist('meanBLlocB','var') == 0
-            meanBLlocB = currentsubjectB{1,1}.baselineLocDiffMean;
-        else
-            meanBLlocB = [meanBLlocB; currentsubjectB{1,1}.baselineLocDiffMean];
-        end
-        %Perception
-         if exist('meanPlocB','var') == 0
-            meanPlocB = currentsubjectB{1,1}.perceptionLocDiffMean;
-        else
-            meanPlocB = [meanPlocB; currentsubjectB{1,1}.perceptionLocDiffMean];
-         end
-         %Working mem
-         if exist('meanWMlocB','var') == 0
-            meanWMlocB = currentsubjectB{1,1}.workingmemLocDiffMean;
-        else
-            meanWMlocB = [meanWMlocB; currentsubjectB{1,1}.workingmemLocDiffMean];
-         end
+        meanLocDiffBPerception(subj,:) = nanmean(currentSubj{1,1}.avgDiffLoc(range,:,1),1); %first page of avg contrast
+        meanLocDiffBWM(subj,:) = nanmean(currentSubj{1,1}.avgDiffLoc(range,:,2),1); %second page
+        meanLocDiffBBL(subj,:) = nanmean(currentSubj{1,1}.avgDiffLoc(range,:,3),1); % third page
     end
 end
-       
-totalaverageContBPerception = mean(meanContBPerception);
-totalaverageContBWM = mean(meanContBWM);
-totalaverageContBBL = mean(meanContBBL); 
-totalavgPlocB = mean(meanPlocB);
-totalavgBLlocB = mean(meanBLlocB);
-totalavgWMlocB = mean(meanWMlocB);
+
+%Loop through an take 0s out of the matrices
+rowswith0 = any(meanContAPerception==0,2);
+meanContAPerception = meanContAPerception(~rowswith0, :);
+clear rowswith0
+rowswith0 = any(meanContAWM==0,2);
+meanContAWM = meanContAWM(~rowswith0, :);
+clear rowswith0
+rowswith0 = any(meanContABL==0,2);
+meanContABL = meanContABL(~rowswith0, :);
+clear rowswith0
+rowswith0 = any(meanLocDiffABL==0,2);
+meanLocDiffABL = meanLocDiffABL(~rowswith0, :);
+clear rowswith0
+rowswith0 = any(meanLocDiffAPerception==0,2);
+meanLocDiffAPerception = meanLocDiffAPerception(~rowswith0, :);
+clear rowswith0
+rowswith0 = any(meanLocDiffAWM==0,2);
+meanLocDiffAWM = meanLocDiffAWM(~rowswith0, :);
+clear rowswith0
+
+rowswith0 = any(meanContBPerception==0,2);
+meanContBPerception = meanContBPerception(~rowswith0, :);
+clear rowswith0
+rowswith0 = any(meanContBWM==0,2);
+meanContBWM = meanContBWM(~rowswith0, :);
+clear rowswith0
+rowswith0 = any(meanContBBL==0,2);
+meanContBBL = meanContBBL(~rowswith0, :);
+clear rowswith0
+rowswith0 = any(meanLocDiffBBL==0,2);
+meanLocDiffBBL = meanLocDiffBBL(~rowswith0, :);
+clear rowswith0
+rowswith0 = any(meanLocDiffBPerception==0,2);
+meanLocDiffBPerception = meanLocDiffBPerception(~rowswith0, :);
+clear rowswith0
+rowswith0 = any(meanLocDiffBWM==0,2);
+meanLocDiffBWM = meanLocDiffBWM(~rowswith0, :);
+clear rowswith0
+
+  
+%Means of each response
+totalaverageContAPerception = nanmean(meanContAPerception);
+totalaverageContAWM = nanmean(meanContAWM);
+totalaverageContABL = nanmean(meanContABL);
+totalavgPlocA = nanmean(meanLocDiffAPerception);
+totalavgBLlocA = nanmean(meanLocDiffABL);
+totalavgWMlocA = nanmean(meanLocDiffAWM);
+
+totalaverageContBPerception = nanmean(meanContBPerception);
+totalaverageContBWM = nanmean(meanContBWM);
+totalaverageContBBL = nanmean(meanContBBL); 
+totalavgPlocB = nanmean(meanLocDiffBPerception);
+totalavgBLlocB = nanmean(meanLocDiffBBL);
+totalavgWMlocB = nanmean(meanLocDiffBWM);
 
 
-stdAP = (std(meanContAPerception)/sqrt(size(meanContAPerception,1)));
-stdAWM = (std(meanContAWM)/sqrt(size(meanContAWM,1)));
-stdABL = (std(meanContABL)/sqrt(size(meanContABL,1)));
 
-stdBP = (std(meanContBPerception)/sqrt(size(meanContBPerception,1)));
-stdBWM = (std(meanContBWM)/sqrt(size(meanContBWM,1)));
-stdBBL = (std(meanContBBL)/sqrt(size(meanContBBL,1)));
+stdAP = (nanstd(meanContAPerception)/sqrt(size(meanLocDiffAPerception,1)));
+stdAWM = (nanstd(meanContAWM)/sqrt(size(meanLocDiffAWM,1)));
+stdABL = (nanstd(meanContABL)/sqrt(size(meanContABL,1)));
+
+stdBP = (nanstd(meanContBPerception)/sqrt(size(meanContBPerception,1)));
+stdBWM = (nanstd(meanContBWM)/sqrt(size(meanContBWM,1)));
+stdBBL = (nanstd(meanContBBL)/sqrt(size(meanContBBL,1)));
 
 
 % PLOT THE CENTER CONTRAST VERSUS ESTIMATED CONTRAST FOR BOTH ORDERING
 % CONDITIONS
 if plotVar ~= 0
     figure
-    subplot(1,2,1) %A (location then contrast)
+    subplot(1,2,1) %A (location thwn contrast)
     errorbar(centerContrast,totalaverageContAPerception,stdAP,'LineWidth',2)
     hold on
     errorbar(centerContrast,totalaverageContAWM,stdAWM,'LineWidth',2)
@@ -556,7 +541,7 @@ if plotVar ~= 0
     ylim([0 0.8])
     xlabel('Center Contrast')
     ylabel('Estimated Contrast')
-    title('Location then Contrast Trials')
+    title('Location then Contrast')
     legend('Perception','Working Memory','Baseline')
     
     subplot(1,2,2) %B, contrast then location
@@ -785,20 +770,20 @@ end
 % Statistical Difference between how well people did in reporting contrast,
 % versus how well people did in reporting location.
 
-% subjectContLocCompare 
-for subj = 1:size(visualmemory_subjectsRan,2)
-    if exist('subjectContCompare' ,'var') == 0
-        subjectContCompare = master_subjectData{subj,2}.avgLocationContrastCompareDiff(2,:);
-    else
-        subjectContCompare = [subjectContCompare; master_subjectData{subj,2}.avgLocationContrastCompareDiff(2,:)];
-    end
-    if exist('subjectLocCompare' ,'var') == 0
-        subjectLocCompare = master_subjectData{subj,2}.avgLocationContrastCompareDiff(1,:);
-    else
-        subjectLocCompare = [subjectLocCompare; master_subjectData{subj,2}.avgLocationContrastCompareDiff(1,:)];
-    end
-    meanPerPerson_LocComapre = mean(subjectLocCompare,2);
-    
+% % subjectContLocCompare 
+% for subj = 1:size(visualmemory_subjectsRan,2)
+%     if exist('subjectContCompare' ,'var') == 0
+%         subjectContCompare = master_subjectData{subj,2}.avgLocationContrastCompareDiff(2,:);
+%     else
+%         subjectContCompare = [subjectContCompare; master_subjectData{subj,2}.avgLocationContrastCompareDiff(2,:)];
+%     end
+%     if exist('subjectLocCompare' ,'var') == 0
+%         subjectLocCompare = master_subjectData{subj,2}.avgLocationContrastCompareDiff(1,:);
+%     else
+%         subjectLocCompare = [subjectLocCompare; master_subjectData{subj,2}.avgLocationContrastCompareDiff(1,:)];
+%     end
+%     meanPerPerson_LocComapre = mean(subjectLocCompare,2);
+%     
    %statistical significant 
     
     
@@ -810,19 +795,19 @@ for subj = 1:size(visualmemory_subjectsRan,2)
 %         comparisonScoreSystem = [subjectContCompare; master_subjectData{subj,2}.avgLocationContrastCompareDiff(2,:)];
 %     end
 %     
-end       
+% end       
 % come back to this point and seperate based on condition if necessary
 % in order to compare: convert each person to a certain score for both
 % contrast and location: 0 - 100 ?, and then add these scores together for
 % a superscore between the two to assess how well people did on the task.
-figure; set(gcf,'Name','Comparing Location and Contrast Error: How well did a subject do?')
-for subj = 1:size(visualmemory_subjectsRan,2)
-    subplot(2,round(size(visualmemory_subjectsRan,2)/2),subj)
-    plot(subjectContCompare(subj,:),subjectLocCompare(subj,:),'.r','MarkerSize',20)
-    hold all
-    xlabel('Contrast Diff.');ylabel('Location Diff.'); title(sprintf('Subject %i',subj))
-    xlim([0 0.3]); ylim([0 30]);
-end
+% figure; set(gcf,'Name','Comparing Location and Contrast Error: How well did a subject do?')
+% for subj = 1:size(visualmemory_subjectsRan,2)
+%     subplot(2,round(size(visualmemory_subjectsRan,2)/2),subj)
+%     plot(subjectContCompare(subj,:),subjectLocCompare(subj,:),'.r','MarkerSize',20)
+%     hold all
+%     xlabel('Contrast Diff.');ylabel('Location Diff.'); title(sprintf('Subject %i',subj))
+%     xlim([0 0.3]); ylim([0 30]);
+% end
 
 
 %% PRINTING %%
@@ -844,5 +829,15 @@ overallData.baselineForWMMean = mean(avgdBL_WM);
 overallData.baselineForPMean = mean(avgdBL_P);
 overallData.perceptionmean = mean(perceptionmat);
 overallData.workingmemmean = mean(workingmemmat);
+
+overallData.master_subjectData = master_subjectData;
+overallData.subjectDataA = subjectDataA;
+overallData.meanContAPerception = meanContAPerception;
+overallData.meanContAWM = meanContAWM;
+overallData.meanContABL = meanContABL;
+overallData.subjectDataB = subjectDataB;
+overallData.meanContBPerception = meanContBPerception;
+overallData.meanContBWM = meanContBWM;
+overallData.meanContBBL = meanContBBL;
 save(['data_visualmemorymf_overallData.mat'], 'overallData')
 cd(expDir)
