@@ -1,0 +1,208 @@
+%%  SINGLE SUBJECT ANALYSIS %%
+clear;
+close all;
+expDir = pwd;
+dataDir = 'data_master';
+experiment = 'exp';
+subjectName = '001';
+whomst = subjectName;
+cd(dataDir)
+
+%% Load all subject data (both a & b trials)
+% put all information into a master type structure that is seperated by trial number
+load('visualmemory_condition_order')
+load('visualmemory_subjectsRan')   
+
+%Load run data
+if exist(['data_visualmemorymf_' experiment '_' subjectName '.mat'],'file') ~= 0
+    load(['data_visualmemorymf_' experiment '_' subjectName '.mat']);
+    load('visualmemory_subjectsRan'); load('visualmemory_condition_order');
+    visualmemory_condition_order = visualmemory_condition_order_real;
+    runNumbers = 1:length(theData);
+    [fields, numRuns] = size(theData);
+else
+    error('data file does not exist')
+end
+subjectCondSchedule = theData(1).p.trialSchedule;
+
+%% Split trials
+% Index into the condition order structure to find the persons data, and
+% what their beginnning order is. 
+% Trials 1-4 of the master structure can be indexed out into either a
+% "structureA" or "structureB" depending on the beginning condition order
+% Following this, the remaining trials (5-8) would be put into the opposite
+% order matrix
+
+if length(theData) <= 4
+    runsCompleted = subjectCondSchedule(1:length(theData));
+else
+    runsCompleted = [subjectCondSchedule subjectCondSchedule(1:length(theData)-4)];
+end
+
+for currentRun = 1:numel(theData)
+    if numel(theData) <= 4
+        order1.order = visualmemory_subjectsRan{2,str2double(subjectName)};
+        order1.p(currentRun) = theData(currentRun).p;
+        order1.t(currentRun) = theData(currentRun).t;
+        order1.EstimatedLocation(currentRun,:) = theData(currentRun).data.EstimatedLocation;
+        order1.DifferenceLocation(currentRun,:) = theData(currentRun).data.DifferenceLocation;
+        order1.ResponseTime_location(currentRun,:) = theData(currentRun).data.ResponseTime_location;
+        order1.EstimatedContrast(currentRun,:) = theData(currentRun).data.EstimatedContrast;
+        order1.DifferenceContrast(currentRun,:) = theData(currentRun).data.DifferenceContrast;
+        order1.ResponseTime_Contrast(currentRun,:) = theData(currentRun).data.ResponseTime_Contrast;
+        order1.responseTime(currentRun,:) = theData(currentRun).data.responseTime;
+    elseif numel(theData) > 4
+        if sum(currentRun == 1:4) == 1
+            order1.order = visualmemory_subjectsRan{2,str2double(subjectName)};
+            order1.p(currentRun) = theData(currentRun).p;
+            order1.t(currentRun) = theData(currentRun).t;
+            order1.EstimatedLocation(currentRun,:) = theData(currentRun).data.EstimatedLocation;
+            order1.DifferenceLocation(currentRun,:) = theData(currentRun).data.DifferenceLocation;
+            order1.ResponseTime_location(currentRun,:) = theData(currentRun).data.ResponseTime_location;
+            order1.EstimatedContrast(currentRun,:) = theData(currentRun).data.EstimatedContrast;
+            order1.DifferenceContrast(currentRun,:) = theData(currentRun).data.DifferenceContrast;
+            order1.ResponseTime_Contrast(currentRun,:) = theData(currentRun).data.ResponseTime_Contrast;
+            order1.responseTime(currentRun,:) = theData(currentRun).data.responseTime;
+        elseif sum(currentRun == 5:8) == 1
+            order2.order = visualmemory_subjectsRan{3,str2double(subjectName)};
+            order2.p(currentRun-4) = theData(currentRun).p;
+            order2.t(currentRun-4) = theData(currentRun).t;
+            order2.EstimatedLocation(currentRun-4,:) = theData(currentRun).data.EstimatedLocation;
+            order2.DifferenceLocation(currentRun-4,:) = theData(currentRun).data.DifferenceLocation;
+            order2.ResponseTime_location(currentRun-4,:) = theData(currentRun).data.ResponseTime_location;
+            order2.EstimatedContrast(currentRun-4,:) = theData(currentRun).data.EstimatedContrast;
+            order2.DifferenceContrast(currentRun-4,:) = theData(currentRun).data.DifferenceContrast;
+            order2.ResponseTime_Contrast(currentRun-4,:) = theData(currentRun).data.ResponseTime_Contrast;
+            order2.responseTime(currentRun-4,:) = theData(currentRun).data.responseTime;
+        end
+    end
+end
+    
+%% Loop through the matrices / or display split figures (condition A and condition B)
+% This would display graphs we wished to keep, and seperate each by
+% the order conditon
+
+perceptionIndex = 1;
+workingmemIndex = 2;
+baselineIndex = 3;
+
+%% Order 1; organize trial events by condition
+
+% Adds tag onto TE of number to be able to match trial events with data
+% collected, done in sixth row
+
+% Then, organize the trial events by center contrast shown (smallest to
+% largest), so we can then determine averages across each contrast level in
+% the data. (Shown with the sortrows function, based off of third column in
+% trial events matrix)
+
+for i = 1:numel(order1.p)
+     order1.p(i).trialEvents(:,6) = (1:order1.p(i).numTrials)';
+     order1.trialEventsIndex(i).perceptionIndex = ...
+         sortrows(order1.p(i).trialEvents((order1.p(i).trialEvents(:,1)==perceptionIndex),:),3);
+     order1.trialEventsIndex(i).workingmemIndex = ...
+         sortrows(order1.p(i).trialEvents((order1.p(i).trialEvents(:,1)==workingmemIndex),:),3);
+     order1.trialEventsIndex(i).baselineIndex = ...
+         sortrows(order1.p(i).trialEvents((order1.p(i).trialEvents(:,1)==baselineIndex),:),3);
+end
+
+for i = 1:numel(order2.p)
+     order2.p(i).trialEvents(:,6) = (1:order2.p(i).numTrials)';
+     order2.trialEventsIndex(i).perceptionIndex = ...
+         sortrows(order2.p(i).trialEvents((order2.p(i).trialEvents(:,1)==perceptionIndex),:),3);
+     order2.trialEventsIndex(i).workingmemIndex = ...
+         sortrows(order2.p(i).trialEvents((order2.p(i).trialEvents(:,1)==workingmemIndex),:),3);
+     order2.trialEventsIndex(i).baselineIndex = ...
+         sortrows(order2.p(i).trialEvents((order2.p(i).trialEvents(:,1)==baselineIndex),:),3);
+end
+
+% Organize data under perception, working memory, and baseline.
+
+for i = 1:numel(order1.p)
+    if isempty(order1.trialEventsIndex(i).perceptionIndex) == 0
+         for ind = 1:length(order1.trialEventsIndex(i).perceptionIndex(:,6))
+             order1.Perception.EstimatedContrast(ind,i) = order1.EstimatedContrast(i,order1.trialEventsIndex(i).perceptionIndex(ind,6));
+         end
+    elseif isempty(order1.trialEventsIndex(i).perceptionIndex) == 1
+         for ind = 1:length(order1.trialEventsIndex(i).workingmemIndex(:,6))
+             order1.WorkingMem.EstimatedContrast(ind,i) = order1.EstimatedContrast(i,order1.trialEventsIndex(i).workingmemIndex(ind,6));
+         end
+    end
+    for ind = 1:length(order1.trialEventsIndex(i).baselineIndex(:,6))
+             order1.Baseline.EstimatedContrast(ind,i) = order1.EstimatedContrast(i,order1.trialEventsIndex(i).baselineIndex(ind,6));
+    end
+end
+
+for i = 1:numel(order2.p)
+    if isempty(order2.trialEventsIndex(i).perceptionIndex) == 0
+         for ind = 1:length(order2.trialEventsIndex(i).perceptionIndex(:,6))
+             order2.Perception.EstimatedContrast(ind,i) = order2.EstimatedContrast(i,order2.trialEventsIndex(i).perceptionIndex(ind,6));
+         end
+    elseif isempty(order2.trialEventsIndex(i).perceptionIndex) == 1
+         for ind = 1:length(order2.trialEventsIndex(i).workingmemIndex(:,6))
+             order2.WorkingMem.EstimatedContrast(ind,i) = order2.EstimatedContrast(i,order2.trialEventsIndex(i).workingmemIndex(ind,6));
+         end
+    end
+    for ind = 1:length(order2.trialEventsIndex(i).baselineIndex(:,6))
+             order2.Baseline.EstimatedContrast(ind,i) = order2.EstimatedContrast(i,order2.trialEventsIndex(i).baselineIndex(ind,6));
+    end
+end
+
+
+%% Contrast Graph
+
+%Take averages on estimated contrast for each contrast level
+stepSizes = (theData(1).p(1).numTrials/2) / theData(1).p(1).numContrasts; %number of data points/run for each contrast
+%attainContEstAvgs gives the mean contrast estimation for each contrast
+%level. Then assigns to a parameter under respective condition.
+
+for i = 1:numel(order1.p)
+    order1.Baseline.AvgContrastEst{i} = mean(reshape(order1.Baseline.EstimatedContrast(:,i),stepSizes,theData(1).p(1).numContrasts));
+    if isempty(order1.trialEventsIndex(i).perceptionIndex) == 0 %if i is a perception condition run
+        order1.Perception.AvgContrastEst{i} = mean(reshape(order1.Perception.EstimatedContrast(:,i),stepSizes,theData(1).p(1).numContrasts));
+    elseif isempty(order1.trialEventsIndex(i).perceptionIndex) == 1 %if i is a working memory condition run
+        order1.WorkingMem.AvgContrastEst{i} = mean(reshape(order1.WorkingMem.EstimatedContrast(:,i),stepSizes,theData(1).p(1).numContrasts));
+    end
+end
+
+for i = 1:numel(order2.p)
+    order2.Baseline.AvgContrastEst{i} = mean(reshape(order2.Baseline.EstimatedContrast(:,i),stepSizes,theData(1).p(1).numContrasts));
+    if isempty(order2.trialEventsIndex(i).perceptionIndex) == 0 %if i is a perception condition run
+        order2.Perception.AvgContrastEst{i} = mean(reshape(order2.Perception.EstimatedContrast(:,i),stepSizes,theData(1).p(1).numContrasts));
+    elseif isempty(order2.trialEventsIndex(i).perceptionIndex) == 1 %if i is a working memory condition run
+        order2.WorkingMem.AvgContrastEst{i} = mean(reshape(order2.WorkingMem.EstimatedContrast(:,i),stepSizes,theData(1).p(1).numContrasts));
+    end
+end
+
+
+%% do the if numel = 4 or 2
+if numel(order1.Perception.AvgContrastEst) = 4
+    order1.Perception.averagePercContEst = mean([order1.Perception.AvgContrastEst{1}; order1.Perception.AvgContrastEst{2}; order1.Perception.AvgContrastEst{3}; ... 
+        order1.Perception.AvgContrastEst{4}]);
+else
+    order1.Perception.averagePercContEst = mean([order1.Perception.AvgContrastEst{1}; order1.Perception.AvgContrastEst{2}]);
+end
+
+
+order1.WorkingMem.averageWMContEst = mean([order1.WorkingMem.AvgContrastEst{1}; order1.WorkingMem.AvgContrastEst{2}; order1.WorkingMem.AvgContrastEst{3}; ... 
+        order1.WorkingMem.AvgContrastEst{4}]);
+    
+order1.Baseline.averagePercContEst = mean([order1.Baseline.AvgContrastEst{1}; order1.Baseline.AvgContrastEst{2}; order1.Baseline.AvgContrastEst{3}; ... 
+        order1.Baseline.AvgContrastEst{4}]);
+
+
+
+
+%Go through each of perception, working mem, and baseline conditions and
+%take averages on the estimated contrasts for each column in the reference
+%Matrix.
+
+
+%NO go through and reshape each array like i did to this one.
+
+
+
+
+
+
+
