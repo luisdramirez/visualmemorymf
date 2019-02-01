@@ -23,47 +23,95 @@ analysisLVL='subject'; % choose level of analysis ('subject'/'group'/'super')
 % Load in relevant subject data
 cd(dataDir)
 load('visualmemory_subjectsRan')
+subjectProfiles=struct('SubjectName',[] , 'Order', [], 'Condition', [], 'TheData',[]); % subjProfiles = {subjectName, reportOrder, runSchedule, theData}
 subjects={visualmemory_subjectsRan{1,:}};
-subjectProfiles=cell(numel(subjects),4); % subjProfiles = {subjectName, reportOrder, runSchedule, theData}
-for nSubj=1:numel(subjects)
-    if exist(['data_vmmf_' subjects{nSubj} '.mat'],'file') ~= 0
-        load(['data_vmmf_' subjects{nSubj}]);
+subjectProfiles.SubjectName = cellfun(@str2double,subjects);
+
+subjectProfiles.Order = nan(1,10);
+subjectProfiles.TheData = cell(1,10);
+for currSubj=1:numel(subjects)
+    if exist(['data_vmmf_' subjects{currSubj} '.mat'],'file') ~= 0
+        load(['data_vmmf_' subjects{currSubj}]);
     end
-    subjectProfiles{nSubj,1} = subjects{nSubj}; %subject name
-    subjectProfiles{nSubj,2} = {visualmemory_subjectsRan{2:3,nSubj}}; % report order
-    subjectProfiles{nSubj,3} = theData(1).p.trialSchedule; %subject condition schedule
-    subjectProfiles{nSubj,4} = theData; %subject data
+    subjectProfiles.Order(currSubj) = strcmp(visualmemory_subjectsRan(2,currSubj),'a'); % report order
+    subjectProfiles.Condition(:,currSubj) = theData(1).p.trialSchedule; %subject condition schedule
+    subjectProfiles.TheData{currSubj} = theData; %subject data
 end
 cd(expDir)
+%% Data Organization
 
-%% Organize & analyze data 
-
-pIndx=1; wmIndx=2; blIndx=3;
+perceptionIndx=1; wmIndx=2; baselineIndx=3;
 centerContrasts = unique(subjectProfiles{1,4}(1).p.trialEvents(:,3));
-conditions = 1:3;
+conditions = unique(subjectProfiles{1,4}(1).p.testCondition);
 
-% analysis matrix [perceived contrasts avg., " " STE, location difference
-% avg., " " STE, contrast difference avg., " " STE]
-for nSubj = 1:numel(subjects)
-    for nRun = 1:numel(subjectProfiles{nSubj,4})
-        currOrder = (ceil(nRun/4)); %subjectProfiles{nSubj,2}(ceil(nRun/4));
-        currCond = subjectProfiles{nSubj,4}(nRun).p.testCondition;
-        currRunData = subjectProfiles{nSubj,4}(nRun).data;
-        currRunEvents = subjectProfiles{nSubj,4}(nRun).p.trialEvents;
-        for currCond = 1:numel(conditions)
-            for currContrast = 1:numel(centerContrasts)
-                relevantTrials = subjectProfiles{nSubj,4}(nRun).p.trialEvents(:,1) == currCond & subjectProfiles{nSubj,4}(nRun).p.trialEvents(:,3) == centerContrasts(currContrast);
-                
+% setup super subject profile
+superProfile = cell(sum(numRuns),numel(centerContrasts),numel(conditions),2); % [numRuns, contrasts, conditions, orders
+superRunCount = 0;
+
+for currSubj = 1:numel(subjects)
+    condTrials = nan(4,5,7,2); %hard coded for now [runs, contrasts, data fields, orders]
+    baselineTrials = nan(4,5,7,2);
+    condCount = [0 0]; %counter for how many times the condition has been pulled
+    for currRun = 1:numel(subjectProfiles{currSubj,4})
+        superRunCount = superRunCount + 1; %keep track of run number for super subject
+        % keep track of the run number within the order
+        if currRun > 4
+            trueRunNum = currRun - 4;
+        else
+            trueRunNum = currRun;
+        end
+        % Check which order to index
+        orderIndx = (ceil(currRun/4))+1;
+        if strcmp(visualmemory_subjectsRan{orderIndx,currSubj},'a')
+            currOrder = 1;
+        elseif strcmp(visualmemory_subjectsRan{orderIndx,currSubj},'b')
+            currOrder = 2;
+        end
+        % Keep track of condition counter, #of times condition has appeared
+        % in the order
+        if sum(condCount == 2) >= 1
+            condCount(condCount == 2) = 0;
+        end
+        currCond = subjectProfiles{currSubj,4}(currRun).p.testCondition;
+        condCount(currCond) = condCount(currCond)+1; %counter for how many times the condition has been pulled
+        currRunData = subjectProfiles{currSubj,4}(currRun).data;
+        currRunEvents = subjectProfiles{currSubj,4}(currRun).p.trialEvents;
+        dataFields = fieldnames(subjectProfiles{currSubj,4}(currRun).data);
+        for currContrast = 1:numel(centerContrasts)
+            condTrialsIndx = subjectProfiles{currSubj,4}(currRun).p.trialEvents(:,1) == currCond & subjectProfiles{currSubj,4}(currRun).p.trialEvents(:,3) == centerContrasts(currContrast);
+            baselineTrialsIndx = subjectProfiles{currSubj,4}(currRun).p.trialEvents(:,1) == baselineIndx & subjectProfiles{currSubj,4}(currRun).p.trialEvents(:,3) == centerContrasts(currContrast);
+            for currField=1:numel(dataFields)
+                currDataField = subjectProfiles{currSubj,4}(currRun).data.(dataFields{currField});
+                condTrials(trueRunNum,currContrast,currField,currOrder) = currDataField(condTrialsIndx);
+                baselineTrials(trueRunNum,currContrast,currField,currOrder) = currDataField(baselineTrialsIndx);
             end
         end
     end
+    
+    % Data Analysis
+    analysis.cond_avgs = nan(2,5,7,2); % hard-coded for now [runs per cond, contrasts, fields, orders]
+    analysis.cond_error = nan(2,5,7,2);
+    analysis.base_avgs = nan(2,5,7,2); % hard-coded for now [runs per cond, contrasts, fields, orders]
+    analysis.base_error = nan(2,5,7,2);
+    
+    currTrialSchedule = subjectProfiles{currSubj,3};
+%     for currOrder = 1:2
+%         for currRun = 1:numel(currTrialSchedule)
+%             currIndx = [currRun,currContrast,currField,currOrder];
+%             currCond = currTrialSchedule(currCond);
+%             for currContrast = 1:numel(centerContrasts)
+%                 for currField = 1:numel(dataFields)
+%                     currData = condTrials{currRun,currContrast,currField,currOrder};
+%                     %                 analysis.cond_avgs(currIndx) = mean(condTrials{});
+%                     %                 analysis.cond_error(currIndx) = std()/sqrt(numel(subjectProfiles{currSubj,4}));
+%                     %
+%                     %                 analysis.base_avgs(currIndx) = mean();
+%                     %                 analysis.base_error(currIndx) = std()/sqrt(numel(subjectProfiles{currSubj,4}));
+%                 end
+%             end
+%         end
+%     end
 end
 
-%%
-switch analysisLVL
-    case 'subject'
-        
-    case 'group'
-        
-    case 'super'
-end
+%% Data Analysis
+
