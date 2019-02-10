@@ -3,7 +3,7 @@
 clear all; close all; clc;
 
 subjPlots = 0;
-groupPlots = 0;
+groupPlots = 1;
 superPlots = 0;
 
 expDir=pwd;
@@ -144,6 +144,22 @@ offsets = offsets(:);
 
 % Calculate the mean and error for contrast estimates of each order
 
+
+
+% Supression Index %
+
+% Perception: first page.
+suppressionIndex(1:size(visualmemory_subjectsRan,2),:,1) = ((subjectProfile.ContrastEstimate(:,:,1)) - (subjectProfile.ContrastEstimate(:,:,3))) ...
+    ./((subjectProfile.ContrastEstimate(:,:,1)) + (subjectProfile.ContrastEstimate(:,:,3)));
+
+%Working Memory: second page.
+suppressionIndex(1:size(visualmemory_subjectsRan,2),:,2) = ((subjectProfile.ContrastEstimate(:,:,2)) - (subjectProfile.ContrastEstimate(:,:,3))) ...
+    ./((subjectProfile.ContrastEstimate(:,:,2)) + (subjectProfile.ContrastEstimate(:,:,3)));
+
+
+
+
+
 %% Plots
 
 % Super Subject Plots
@@ -183,8 +199,11 @@ if superPlots
     xlabel('Probe Offset'); ylabel('Location Error');
 end
 
+
+
+
 % %Group Plots
-% if groupPlots
+ if groupPlots
 %     % Total Contrast Estimates
 %     plotContrasts = 100*round(centerContrast,2);
 %     figure
@@ -239,4 +258,28 @@ end
 %     legend('Perception','Working Memory','Baseline','Location','NorthWest')
 %     title(['Center vs. Perceived Contrast Order 2'])
 %     hold off
-% end
+
+hold off
+figure('Color', [1 1 1]);
+set(gcf, 'Name', sprintf('Suppression Index: Perception vs. Working Memory'));
+hold all;
+%Perception
+errorbar(centerContrast', mean(suppressionIndex(:,:,1),1), std(suppressionIndex(:,:,1),1)...
+    /sqrt(size(visualmemory_subjectsRan,2)), 'r','LineWidth',3);
+%Working Memory
+errorbar(centerContrast', mean(suppressionIndex(:,:,2),1), std(suppressionIndex(:,:,2),1)...
+    /sqrt(size(visualmemory_subjectsRan,2)), 'b','LineWidth',3);
+plot(repmat(centerContrast', [size(visualmemory_subjectsRan,2) 1]), (suppressionIndex(:,:,1)),'r.','MarkerSize',10);
+plot(repmat(centerContrast', [size(visualmemory_subjectsRan,2) 1]), (suppressionIndex(:,:,2)),'b.','MarkerSize',10);
+hold on
+plot([0.09 0.8],[0 0],':k')
+ylabel('Suppression Index (surround-nosurround)/(surround+nosurround)'); 
+xlabel('Contrast (%)');
+xlim([0.09 0.8]);
+ylim([-0.3 0.3]);
+axis square;
+legend({'Perception Condition','Working Memory Condition'})
+
+
+
+ end
