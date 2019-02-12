@@ -95,8 +95,13 @@ for currSubj = 1:numel(subjectProfile.SubjectName)
     for currField = 1:numel(dataFields)
         for currContrast = 1:numel(centerContrast)
             subjectProfile.ContrastEstimate(currSubj,currContrast,currField) = nanmean(ContrastData(currContrast).(dataFields{currField})(:,1),1);
+            subjectProfile.ContrastEstimateOrder0(currSubj,currContrast,currField) = nanmean(ContrastData(currContrast).(dataFields{currField})...
+                (ContrastData(currContrast).(dataFields{currField})(:,2) == 0),1); %Takes the average contrast of order 0 trials
+            subjectProfile.ContrastEstimateOrder1(currSubj,currContrast,currField) = nanmean(ContrastData(currContrast).(dataFields{currField})...
+                (ContrastData(currContrast).(dataFields{currField})(:,2) == 1),1); %Takes the average contrast of order 1 trials
         end
     end
+
  
     
     % Generate Location Data Matrix
@@ -148,14 +153,21 @@ offsets = offsets(:);
 
 
 % Supression Index %
-
 % Perception: first page.
-suppressionIndex(1:size(visualmemory_subjectsRan,2),:,1) = ((subjectProfile.ContrastEstimate(:,:,1)) - (subjectProfile.ContrastEstimate(:,:,3))) ...
+suppressionIndex.Collapsed(1:size(visualmemory_subjectsRan,2),:,1) = ((subjectProfile.ContrastEstimate(:,:,1)) - (subjectProfile.ContrastEstimate(:,:,3))) ...
     ./((subjectProfile.ContrastEstimate(:,:,1)) + (subjectProfile.ContrastEstimate(:,:,3)));
-
+suppressionIndex.Order0(1:size(visualmemory_subjectsRan,2),:,1) = ((subjectProfile.ContrastEstimateOrder0(:,:,1)) - (subjectProfile.ContrastEstimateOrder0(:,:,3))) ...
+    ./((subjectProfile.ContrastEstimateOrder0(:,:,1)) + (subjectProfile.ContrastEstimateOrder0(:,:,3)));
+suppressionIndex.Order1(1:size(visualmemory_subjectsRan,2),:,1) = ((subjectProfile.ContrastEstimateOrder1(:,:,1)) - (subjectProfile.ContrastEstimateOrder1(:,:,3))) ...
+    ./((subjectProfile.ContrastEstimateOrder1(:,:,1)) + (subjectProfile.ContrastEstimateOrder1(:,:,3)));
 %Working Memory: second page.
-suppressionIndex(1:size(visualmemory_subjectsRan,2),:,2) = ((subjectProfile.ContrastEstimate(:,:,2)) - (subjectProfile.ContrastEstimate(:,:,3))) ...
+suppressionIndex.Collapsed(1:size(visualmemory_subjectsRan,2),:,2) = ((subjectProfile.ContrastEstimate(:,:,2)) - (subjectProfile.ContrastEstimate(:,:,3))) ...
     ./((subjectProfile.ContrastEstimate(:,:,2)) + (subjectProfile.ContrastEstimate(:,:,3)));
+suppressionIndex.Order0(1:size(visualmemory_subjectsRan,2),:,2) = ((subjectProfile.ContrastEstimateOrder0(:,:,2)) - (subjectProfile.ContrastEstimateOrder0(:,:,3))) ...
+    ./((subjectProfile.ContrastEstimateOrder0(:,:,2)) + (subjectProfile.ContrastEstimateOrder0(:,:,3)));
+suppressionIndex.Order1(1:size(visualmemory_subjectsRan,2),:,2) = ((subjectProfile.ContrastEstimateOrder1(:,:,2)) - (subjectProfile.ContrastEstimateOrder1(:,:,3))) ...
+    ./((subjectProfile.ContrastEstimateOrder1(:,:,2)) + (subjectProfile.ContrastEstimateOrder1(:,:,3)));
+
 
 
 
@@ -260,18 +272,20 @@ end
 %     title(['Center vs. Perceived Contrast Order 2'])
 %     hold off
 
+%Suppression Index%
+%Collapsed over both orders
 hold off
 figure('Color', [1 1 1]);
 set(gcf, 'Name', sprintf('Suppression Index: Perception vs. Working Memory'));
 hold all;
 %Perception
-errorbar(centerContrast', mean(suppressionIndex(:,:,1),1), std(suppressionIndex(:,:,1),1)...
+errorbar(centerContrast', mean(suppressionIndex.Collapsed(:,:,1),1), std(suppressionIndex.Collapsed(:,:,1),1)...
     /sqrt(size(visualmemory_subjectsRan,2)), 'r','LineWidth',3);
 %Working Memory
-errorbar(centerContrast', mean(suppressionIndex(:,:,2),1), std(suppressionIndex(:,:,2),1)...
+errorbar(centerContrast', mean(suppressionIndex.Collapsed(:,:,2),1), std(suppressionIndex.Collapsed(:,:,2),1)...
     /sqrt(size(visualmemory_subjectsRan,2)), 'b','LineWidth',3);
-plot(repmat(centerContrast', [size(visualmemory_subjectsRan,2) 1]), (suppressionIndex(:,:,1)),'r.','MarkerSize',10);
-plot(repmat(centerContrast', [size(visualmemory_subjectsRan,2) 1]), (suppressionIndex(:,:,2)),'b.','MarkerSize',10);
+plot(repmat(centerContrast', [size(visualmemory_subjectsRan,2) 1]), (suppressionIndex.Collapsed(:,:,1)),'r.','MarkerSize',10);
+plot(repmat(centerContrast', [size(visualmemory_subjectsRan,2) 1]), (suppressionIndex.Collapsed(:,:,2)),'b.','MarkerSize',10);
 hold on
 plot([0.09 0.8],[0 0],':k')
 ylabel('Suppression Index (surround-nosurround)/(surround+nosurround)'); 
@@ -280,6 +294,51 @@ xlim([0.09 0.8]);
 ylim([-0.3 0.3]);
 axis square;
 legend({'Perception Condition','Working Memory Condition'})
+
+% Split between orders%
+figure('Color', [1 1 1]);
+
+subplot(1,2,1)
+set(gcf, 'Name', sprintf('Suppression Index: Perception vs. Working Memory'));
+hold all;
+%Perception
+errorbar(centerContrast', nanmean(suppressionIndex.Order0(:,:,1),1), nanstd(suppressionIndex.Order0(:,:,1),1)...
+    /sqrt(size(visualmemory_subjectsRan,2)), 'r','LineWidth',3)
+%Working Memory
+errorbar(centerContrast', nanmean(suppressionIndex.Order0(:,:,2),1), nanstd(suppressionIndex.Order0(:,:,2),1)...
+    /sqrt(size(visualmemory_subjectsRan,2)), 'b','LineWidth',3); hold all;
+plot(repmat(centerContrast', [size(visualmemory_subjectsRan,2) 1]), (suppressionIndex.Order0(:,:,1)),'r.','MarkerSize',10);
+plot(repmat(centerContrast', [size(visualmemory_subjectsRan,2) 1]), (suppressionIndex.Order0(:,:,2)),'b.','MarkerSize',10);
+hold all
+plot([0.09 0.8],[0 0],':k')
+ylabel('Suppression Index (surround-nosurround)/(surround+nosurround)'); 
+xlabel('Contrast (%)');
+xlim([0.09 0.8]);
+ylim([-0.3 0.3]);
+title('Order 0: Contrast, then Location');
+axis square;
+legend({'Perception Condition','Working Memory Condition'})
+
+subplot(1,2,2)
+hold all;
+%Perception
+errorbar(centerContrast', mean(suppressionIndex.Order1(:,:,1),1), std(suppressionIndex.Order1(:,:,1),1)...
+    /sqrt(size(visualmemory_subjectsRan,2)), 'r','LineWidth',3);
+%Working Memory
+errorbar(centerContrast', mean(suppressionIndex.Order1(:,:,2),1), std(suppressionIndex.Order1(:,:,2),1)...
+    /sqrt(size(visualmemory_subjectsRan,2)), 'b','LineWidth',3);
+plot(repmat(centerContrast', [size(visualmemory_subjectsRan,2) 1]), (suppressionIndex.Order1(:,:,1)),'r.','MarkerSize',10);
+plot(repmat(centerContrast', [size(visualmemory_subjectsRan,2) 1]), (suppressionIndex.Order1(:,:,2)),'b.','MarkerSize',10);
+hold all
+plot([0.09 0.8],[0 0],':k')
+ylabel('Suppression Index (surround-nosurround)/(surround+nosurround)'); 
+xlabel('Contrast (%)');
+xlim([0.09 0.8]);
+ylim([-0.3 0.3]);
+title('Order 1: Location, then Contrast');
+axis square;
+legend({'Perception Condition','Working Memory Condition'})
+
 
 
 
