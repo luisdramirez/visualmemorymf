@@ -97,6 +97,7 @@ for currSubj = 1:numel(subjectProfile.SubjectName)
             subjectProfile.ContrastEstimate(currSubj,currContrast,currField) = nanmean(ContrastData(currContrast).(dataFields{currField})(:,1),1);
         end
     end
+ 
     
     % Generate Location Data Matrix
     allLocationError= [allLocationError; locationErrorMat(:)];
