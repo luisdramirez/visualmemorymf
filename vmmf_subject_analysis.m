@@ -4,25 +4,25 @@ clear all; close all; clc;
 
 subjPlots = 0;
 groupPlots = 0;
-superPlots = 0;
+superPlots = 1;
 
 expDir=pwd;
 dataDir='data_master';
-
+subjects = 1:9;
 % Load in data
 cd(dataDir)
 load('visualmemory_subjectsRan')
 subjectProfile=struct('SubjectName',[] ,'Order', [], 'Condition', [], 'TheData',[],'OrganizedData',[],'LocationError', [],'ContrastEstimate',[]);
 
-subjectProfile.SubjectName = cell(1,10); % initialize subject names
-subjectProfile.Order = nan(1,10); % initialize order
-subjectProfile.TheData = cell(1,10); % intialize theData holders
-subjectProfile.OrganizedData = cell(1,10); % initialized organize data
-subjectProfile.LocationError = nan(1,10); % initialize location error (Average location error for each subject)
-subjectProfile.ContrastEstimate = nan(10,5,3); % initialize contrast estimate (Average contrast estimate for each condition)
+subjectProfile.SubjectName = nan(1,length(subjects)); % initialize subject names
+subjectProfile.SubjectName = subjects;
+subjectProfile.Order = nan(1,length(subjects)); % initialize order
+subjectProfile.TheData = cell(1,length(subjects)); % intialize theData holders
+subjectProfile.OrganizedData = cell(1,length(subjects)); % initialized organize data
+subjectProfile.LocationError = nan(1,length(subjects)); % initialize location error (Average location error for each subject)
+subjectProfile.ContrastEstimate = nan(length(subjects),5,3); % initialize contrast estimate (Average contrast estimate for each condition)
 
 % Load in theData
-subjectProfile.SubjectName = cellfun(@str2double,{visualmemory_subjectsRan{1,:}});
 totalNumTrials = 0;
 for currSubj=1:numel(subjectProfile.SubjectName)
     if exist(['data_vmmf_' num2str(subjectProfile.SubjectName(currSubj)) '.mat'],'file') ~= 0
@@ -40,8 +40,10 @@ centerContrast = unique(subjectProfile.TheData{1}(1).p.trialEvents(:,3));
 allLocationError = [];
 Conditions = [];
 Orders = [];
+Contrasts = [];
 probeOffset = [];
 contrastError = [];
+contrastEstimates = [];
 
 % Organize Contrast and Location  Estimates
 for currSubj = 1:numel(subjectProfile.SubjectName)
@@ -70,6 +72,7 @@ for currSubj = 1:numel(subjectProfile.SubjectName)
                 relevantTrials = subjectProfile.TheData{currSubj}(currRun).p.trialEvents(:,1) == currField & subjectProfile.TheData{currSubj}(currRun).p.trialEvents(:,3) == centerContrast(currContrast);
                 ContrastData(currContrast).(dataFields{currField})(currRun,1) = mean(subjectProfile.TheData{currSubj}(currRun).data.EstimatedContrast(relevantTrials)); %Contrast Estimate
                 ContrastData(currContrast).(dataFields{currField})(currRun,2) = currOrder; % order of current run
+                
             end
         end
         
@@ -85,6 +88,9 @@ for currSubj = 1:numel(subjectProfile.SubjectName)
         
         % Store contrast error
         contrastError = [contrastError; subjectProfile.TheData{currSubj}(currRun).data.DifferenceContrast(:)];
+        Orders = [Orders; repmat(currOrder,numel(relevantTrials),1)];
+        Contrasts = [Contrasts; subjectProfile.TheData{currSubj}(currRun).p.trialEvents(:,3)];
+        contrastEstimates = [contrastEstimates; subjectProfile.TheData{currSubj}(currRun).data.EstimatedContrast(:)];
     end
     
     % Save out organized data structure
@@ -101,7 +107,6 @@ for currSubj = 1:numel(subjectProfile.SubjectName)
     % Generate Location Data Matrix
     allLocationError= [allLocationError; locationErrorMat(:)];
     Conditions = [Conditions; conditionMat(:)];
-    Orders = [Orders; repmat(currOrder,numel(locationErrorMat),1)];
     
     % Individual Subject Plots
     if subjPlots
@@ -142,45 +147,78 @@ LocationMat = [allLocationError, contrastError, probeOffset];
 offsets = -180:180;
 offsets = offsets(:);
 
+% mean contrast and location error for each probeOffset
+
+
 % Calculate the mean and error for contrast estimates of each order
 
 %% Plots
+%%% Fit a gaussian to each plot
+% Y=Amplitude*exp(-0.5*((X-Mean)/SD)^2)
+%fminsearch(function,initial parameters, options, xdata, ydata)
 
 % Super Subject Plots
 if superPlots
     nbins = 100;
-    % Total Location Error for baseline condition
-    figure
-    histogram(allLocationError,nbins)
-    title(" 'Super Subject' Location Error")
-    xlabel('Location Error'); ylabel('Frequency')
+    %     % Total Location Error for baseline condition
+    %     figure
+    %     histfit(allLocationError(Conditions == 3),nbins,'normal')
+    %     hold on
+    %
+    %     title(" 'Super Subject' Location Error")
+    %     xlabel('Location Error'); ylabel('Frequency')
+    %
+    %     %Location Error split up by order, for baseline condition
+    %     figure
+    %     histfit(allLocationError(Conditions == 3 & Orders == 1),nbins)
+    %     hold on
+    %     histfit(allLocationError(Conditions == 3 & Orders == 0),nbins)
+    %     title("'Super Subject' Location Error by Order")
+    %     legend({'Loc-Con','Con-Loc'})
+    %     xlabel('Location Error'); ylabel('Frequency')
     
-    %Location Error split up by order, for baseline condition
-    figure
-    histogram(order1LocationData,nbins)
-    hold on
-    histogram(order2LocationData,nbins)
-    title("'Super Subject' Location Error by Order")
-    legend({'Loc-Con','Con-Loc'})
-    xlabel('Location Error'); ylabel('Frequency')
+    % Contrast estimate for baseline condition
+    for currContrast = 1:numel(centerContrast)
+        currInd = Conditions == 3 & Contrasts == centerContrast(currContrast);
+        currData = contrastEstimates(currInd);
+        currMean = mean(currData);
+        currSD = std(currData);
+        currGauss = exp(-0.5*((currData-currMean)/currSD).^2);
+        
+        figure
+        histogram(currData,nbins);
+        title([" 'Super Subject' Contrast Error (" num2str(centerContrast(currContrast)) "% Contrast)"])
+        xlabel('Contrast Estimate'); ylabel('Frequency')
+        figure; plot(currGauss,'k')
+        
+        
+        %Contrast Error split up by order, for baseline condition
+        %     figure
+        %     h2 = histfit(log(currData),nbins);
+        % %     h2(1).FaceColor = [0, 0.4470, 0.7410];
+        %     h2(2).Color = [0, 0, 0];
+        %     hold on
+        %     h3 = histfit(log(currData),nbins);
+        % %     h3(1).FaceColor = [0.6350, 0.0780, 0.1840];
+        % %     h3(2).Color = [1 0 0];
+        %     title(["'Super Subject' Contrast Error Order (" num2str(centerContrast(currContrast)) "% Contrast)"])
+        %     legend({'Loc-Con','Loc-Con Fit','Con-Loc','Con-Loc Fit'})
+        %     xlabel('Contrast Estimate'); ylabel('Frequency')
+    end
     
-    % Contrast Error as a function of probe offset, for baseline
-    condition
-    figure
-    bar(offsets, contrastError.Mean);
-    hold on
-    plot(offsets,repmat(mean(contrastError.Mean),length(offsets),1),'k','LineWidth',2)
-    title('Probe Offset vs. Contrast Error')
-    xlabel('Probe Offset'); ylabel('Contrast Error');
-    
-    % Location Error as a function of probe offset, for baseline
-    condition
-    figure
-    bar(offsets, locationError.Mean);
-    hold on
-    plot(offsets,repmat(mean(locationError.Mean),length(offsets),1),'k','LineWidth',2)
-    title('Probe Offset vs. Location Error')
-    xlabel('Probe Offset'); ylabel('Location Error');
+    %     % Contrast Error as a function of probe offset, for baseline
+    %     condition
+    %     figure
+    %     bar(offsets, );
+    %     title('Probe Offset vs. Contrast Error')
+    %     xlabel('Probe Offset'); ylabel('Contrast Error');
+    %
+    %     % Location Error as a function of probe offset, for baseline
+    %     condition
+    %     figure
+    %     bar(offsets,);
+    %     title('Probe Offset vs. Location Error')
+    %     xlabel('Probe Offset'); ylabel('Location Error');
 end
 
 % %Group Plots
@@ -203,7 +241,7 @@ end
 %     legend('Perception','Working Memory','Baseline','Location','NorthWest')
 %     title(['Center vs. Perceived Contrast'])
 %     hold off
-%     
+%
 %     % Order 1 Contrast Estimates
 %     figure
 %     cvp_order1 = loglog(plotContrasts, 100.*());
@@ -221,7 +259,7 @@ end
 %     legend('Perception','Working Memory','Baseline','Location','NorthWest')
 %     title(['Center vs. Perceived Contrast Order 1'])
 %     hold off
-%     
+%
 %     % Order 2 Contrast Estimates
 %     figure
 %     cvp_order2 = loglog(plotContrasts, 100.*());
