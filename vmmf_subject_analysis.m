@@ -178,6 +178,8 @@ suppressionIndex.Order0(1:numel(subjectProfile.SubjectName),:,1) = ((subjectProf
     ./((subjectProfile.ContrastEstimateOrder0(:,:,1)) + (subjectProfile.ContrastEstimateOrder0(:,:,3)));
 suppressionIndex.Order1(1:numel(subjectProfile.SubjectName),:,1) = ((subjectProfile.ContrastEstimateOrder1(:,:,1)) - (subjectProfile.ContrastEstimateOrder1(:,:,3))) ...
     ./((subjectProfile.ContrastEstimateOrder1(:,:,1)) + (subjectProfile.ContrastEstimateOrder1(:,:,3)));
+suppressionIndex.Collapsed_PS(1:numel(subjectProfile.SubjectName),:,1) = ((ContrastEstimate_PS(:,:,1)) - (ContrastEstimate_PS(:,:,3))) ...
+    ./((ContrastEstimate_PS(:,:,1)) + (ContrastEstimate_PS(:,:,3)));
 %Working Memory: second page.
 suppressionIndex.Collapsed(1:numel(subjectProfile.SubjectName),:,2) = ((subjectProfile.ContrastEstimate(:,:,2)) - (subjectProfile.ContrastEstimate(:,:,3))) ...
     ./((subjectProfile.ContrastEstimate(:,:,2)) + (subjectProfile.ContrastEstimate(:,:,3)));
@@ -185,6 +187,10 @@ suppressionIndex.Order0(1:numel(subjectProfile.SubjectName),:,2) = ((subjectProf
     ./((subjectProfile.ContrastEstimateOrder0(:,:,2)) + (subjectProfile.ContrastEstimateOrder0(:,:,3)));
 suppressionIndex.Order1(1:numel(subjectProfile.SubjectName),:,2) = ((subjectProfile.ContrastEstimateOrder1(:,:,2)) - (subjectProfile.ContrastEstimateOrder1(:,:,3))) ...
     ./((subjectProfile.ContrastEstimateOrder1(:,:,2)) + (subjectProfile.ContrastEstimateOrder1(:,:,3)));
+suppressionIndex.Collapsed_PS(1:numel(subjectProfile.SubjectName),:,2) = ((ContrastEstimate_PS(:,:,2)) - (ContrastEstimate_PS(:,:,3))) ...
+    ./((ContrastEstimate_PS(:,:,2)) + (ContrastEstimate_PS(:,:,3)));
+
+
 
 
 
@@ -373,7 +379,7 @@ errorbar(centerContrast', nanmean(suppressionIndex.Order0(:,:,1),1), nanstd(supp
     /sqrt(numel(subjectProfile.SubjectName)), 'r','LineWidth',3)
 %Working Memory
 errorbar(centerContrast', nanmean(suppressionIndex.Order0(:,:,2),1), nanstd(suppressionIndex.Order0(:,:,2),1)...
-    /sqrt(size(numel(subjectProfile.SubjectName)), 'b','LineWidth',3)); hold all;
+    /sqrt(numel(subjectProfile.SubjectName)), 'b','LineWidth',3); hold all;
 plot(repmat(centerContrast', [numel(subjectProfile.SubjectName) 1]), (suppressionIndex.Order0(:,:,1)),'r.','MarkerSize',10);
 plot(repmat(centerContrast', [numel(subjectProfile.SubjectName) 1]), (suppressionIndex.Order0(:,:,2)),'b.','MarkerSize',10);
 hold all
@@ -406,6 +412,28 @@ title('Order 1: Location, then Contrast');
 axis square;
 legend({'Perception Condition','Working Memory Condition'})
 
+% Suppression index: excluding trials with 0.1 or 0.75 contrasts %
+
+hold off
+figure('Color', [1 1 1]);
+set(gcf, 'Name', sprintf('Suppression Index: Perception vs. Working Memory, without 0.1 or 0.75 contrast probes'));
+hold all;
+%Perception
+errorbar(centerContrast', mean(suppressionIndex.Collapsed_PS(:,:,1),1), std(suppressionIndex.Collapsed_PS(:,:,1),1)...
+    /sqrt(size(visualmemory_subjectsRan,2)), 'r','LineWidth',3);
+%Working Memory
+errorbar(centerContrast', mean(suppressionIndex.Collapsed_PS(:,:,2),1), std(suppressionIndex.Collapsed_PS(:,:,2),1)...
+    /sqrt(size(visualmemory_subjectsRan,2)), 'b','LineWidth',3);
+plot(repmat(centerContrast', [numel(subjectProfile.SubjectName) 1]), (suppressionIndex.Collapsed_PS(:,:,1)),'r.','MarkerSize',10);
+plot(repmat(centerContrast', [numel(subjectProfile.SubjectName) 1]), (suppressionIndex.Collapsed_PS(:,:,2)),'b.','MarkerSize',10);
+hold on
+plot([0.09 0.8],[0 0],':k')
+ylabel('Suppression Index (surround-nosurround)/(surround+nosurround)'); 
+xlabel('Contrast (%)');
+xlim([0.09 0.8]);
+ylim([-0.3 0.3]);
+axis square;
+legend({'Perception Condition','Working Memory Condition'})
 
 
 
