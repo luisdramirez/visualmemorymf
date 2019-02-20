@@ -6,10 +6,15 @@ scrsz = get(groot,'ScreenSize');
 subjPlots = 0;
 groupPlots = 1;
 superPlots = 1;
+normalizationModelPlots = 1;
+
+perceptionIndex = 1;
+workingMemoryIndex = 2;
+baselineIndex = 3;
 
 expDir=pwd;
 dataDir='data_master';
-subjects = 1:10;
+subjects = 1:9;
 % Load in data
 cd(dataDir)
 load('visualmemory_subjectsRan')
@@ -328,6 +333,91 @@ for nCondition = 1:numel(dataFields)
     end
 end
 
+% %% Contrast Model Fitting 
+% experiments = {'Perception Condition','Visual Working Memory'};
+% %Model Fit Setup
+% surroundContrast = theData(1).p.surroundContrast; %Surround grating has 100% contrast level, =1
+% C50 = .6;
+% Wi = 0;
+% Wi_var = 0;
+% b = 0;
+% n = 2;
+% for e = 1:numel(experiments)
+%     for subjCount = 1:numel(subjectProfile.SubjectName)
+%         % Baselines are NOT currently separated. These are the baseline
+%         % estimates for working memory and perception combined.
+%         baselineMat(subjCount,:) = subjectProfile.ContrastEstimate(subjCount,:,baselineIndex);
+%         if e == 1 %Perception Experiment %
+%             variableMat(subjCount,:) = subjectProfile.ContrastEstimate(subjCount,:,perceptionIndex); 
+%         elseif e == 2  % Working Memory Experiment %
+%             variableMat(subjCount,:) = subjectProfile.ContrastEstimate(subjCount,:,workingMemoryIndex); 
+%         end
+% 
+%         % Fit individual data with Normalization model
+%         options = optimset('MaxFunEvals', 10^6, 'MaxIter', 10^6);
+%         % Use formula from Xing&Heeger 2001 to use baseline data to constrain alpha and n, and look for the inhibitory weight 
+%                 % to explain the suppressive influence of the surround 
+%                     % Wi: suppression weight
+%                     % C50: inflection point
+%                     % n: nonlinear transducer, determining steepness
+% 
+%             indv_r2 = zeros(2,numel(subjectProfile.SubjectName),2);
+%             startValuesModelFitting = [C50 n Wi_var];
+%             Data = {centerContrast, baselineMat(subjCount,:), variableMat(subjCount,:), surroundContrast};
+%             [est_params(e,subjCount,:), r2(e,subjCount)] = fminsearch('fitNormalizationModel_contrastMatch', startValues, options, Data);
+% 
+% 
+%             % Fit Y data based off of estimated parameters
+%             Y_base = (centerContrast.^est_params(e,subjCount,2)) ./ ... 
+%                 ((est_params(e,subjCount,1).^est_params(e,subjCount,2)) + (centerContrast.^est_params(e,subjCount,2)));
+% 
+%             Y_var = (centerContrast.^est_params(e,subjCount,2)) ./ ... 
+%                 ((est_params(e,subjCount,1).^est_params(e,subjCount,2)) + (centerContrast.^est_params(e,subjCount,2)) + (est_params(e,subjCount,3))*(surroundContrast.^est_params(e,subjCount,2)));
+% 
+%             % R^2 values for baseline and variable condition
+%             r2_BL = 1 - (sum((baselineMat(subjCount,:) - Y_base).^2) / sum((baselineMat(subjCount,:) - mean(baselineMat(subjCount,:))).^2));
+%             r2_V = 1 - (sum((variableMat(subjCount,:) - Y_var).^2) / sum((variableMat(subjCount,:) - mean(variableMat(subjCount,:))).^2));
+%             indvR2(e,subjCount,:) = [r2_BL r2_V];
+%             
+%             if normalizationModelPlots
+%                  %Difference in perceived contrast compared to center contrast
+%         
+%                 C_fit = 0.1:0.01:0.8;
+%                 Y_var = (C_fit.^est_params(e,subjCount,2)) ./ ... 
+%                 ((est_params(e,subjCount,1).^est_params(e,subjCount,2)) + (C_fit.^est_params(e,subjCount,2)) + (est_params(e,subjCount,3)*(surroundContrast.^est_params(e,subjCount,2)))); 
+% 
+%                 %Display Fits 
+%                 figure;
+%                 subplot(2,(numel(subjectProfile.SubjectName)/2), subjCount)
+%                 hold all
+%                 colormap lines
+%                 if e == 1
+%                     loglog(centerContrast,variableMat(subjCount,:),'Linewidth',1.25)
+%                     loglog(centerContrast,baselineMat(subjCount,:),'Linewidth',1.25)
+%                 elseif e == 2
+%                     loglog(centerContrast,variableMat(subjCount,:),'Linewidth',1.25)
+%                     loglog(centerContrast,baselineMat(subjCount,:),'Linewidth',1.25)
+%                 end
+%                 loglog(C_Test,Y_base,'Linewidth',2)
+%                 loglog(C_fit, Y_var,'Linewidth',2)
+%                 hold all;
+%                 xlim([0.1 0.8]), ylim([0.1 0.8]); box off
+%                 ylabel('Perceived Contrast')
+%                 xlabel('Center Contrast');
+%                 plot([0.09 0.8], [0.09, 0.8], 'k:');
+%                 if e == 1
+%                     legend({'Perception Est.','Baseline Est.','Baseline Fit','Perception Fit'},'Location','northwest')
+%                 elseif e == 2
+%                     legend({'Working Memory Est.','Baseline Est.','Baseline Fit','Working Mem Fit'},'Location','northwest')
+%                 end
+%                 title(['Subject ' num2str(subjCount)]);
+%                 axis square;
+%                 hold all;
+%                 set(gca,'YScale','log','XScale','log')
+%             end
+%     end
+% end
+
 %% Supression Index
 % Perception: first page.
 suppressionIndex.Collapsed(1:numel(subjectProfile.SubjectName),:,1) = ((subjectProfile.ContrastEstimate(:,:,1)) - (subjectProfile.ContrastEstimate(:,:,3))) ...
@@ -353,24 +443,24 @@ suppressionIndex.Collapsed_PS(1:numel(subjectProfile.SubjectName),:,2) = ((Contr
 
 % Super Subject Plots
 if superPlots
-    % Total Location Error for baseline condition
-    for nCondition = 1:numel(dataFields)
-        figure('Position',[50 50 scrsz(3) scrsz(3)/2], 'color', [1 1 1], 'name', [dataFields{nCondition} ' Location Error'])
-        for nContrast = 1:numel(centerContrast)
-            currInd = Conditions == nCondition & Contrasts == centerContrast(nContrast);
-            edges_loc = -180:180;
-            [N_bl_loc(nContrast,:),x_loc] = histcounts(allLocationError(currInd),edges_loc);
-            N_bl_loc(nContrast,:) = N_bl_loc(nContrast,:)./max(N_bl_loc(nContrast,:));
-            xvalues_loc = (x_loc(1:end-1)+x_loc(2:end))/2;
-            
-            subplot(1,5,nContrast)
-            bar(xvalues_loc, N_bl_loc(nContrast,:));
-            hold on
-            title([num2str(round(100*centerContrast(nContrast))) '%'])
-            xlabel('Location Error'); ylabel('Frequency')
-        end
-    end
-    
+%     % Total Location Error for baseline condition
+%     for nCondition = 1:numel(dataFields)
+%         figure('Position',[50 50 scrsz(3) scrsz(3)/2], 'color', [1 1 1], 'name', [dataFields{nCondition} ' Location Error'])
+%         for nContrast = 1:numel(centerContrast)
+%             currInd = Conditions == nCondition & Contrasts == centerContrast(nContrast);
+%             edges_loc = -180:180;
+%             [N_bl_loc(nContrast,:),x_loc] = histcounts(allLocationError(currInd),edges_loc);
+%             N_bl_loc(nContrast,:) = N_bl_loc(nContrast,:)./max(N_bl_loc(nContrast,:));
+%             xvalues_loc = (x_loc(1:end-1)+x_loc(2:end))/2;
+%             
+%             subplot(1,5,nContrast)
+%             bar(xvalues_loc, N_bl_loc(nContrast,:));
+%             hold on
+%             title([num2str(round(100*centerContrast(nContrast))) '%'])
+%             xlabel('Location Error'); ylabel('Frequency')
+%         end
+%     end
+%     
     %     %Location Error split up by order, for baseline condition
     %     figure
     %     histfit(allLocationError(Conditions == 3 & Orders == 1),nbins)
