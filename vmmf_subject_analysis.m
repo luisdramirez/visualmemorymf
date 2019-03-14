@@ -4,9 +4,9 @@ clear all; close all; clc;
 scrsz = get(groot,'ScreenSize');
 
 subjPlots = 0;
-groupPlots = 1;
+groupPlots = 0;
 superPlots = 1;
-normalizationModelPlots = 1;
+normalizationModelPlots = 0;
 
 perceptionIndex = 1;
 workingMemoryIndex = 2;
@@ -170,7 +170,7 @@ end
 probeMat = [allLocationError, contrastError, probeOffset];
 offsets = -180:180;
 offsets = offsets(:);
-offsetRange  = 16;
+offsetRange  = 20;
 oppOffsetRange = 180-offsetRange;
 
 if superPlots
@@ -213,6 +213,7 @@ if superPlots
                 xvalues_loc = (x_loc(1:end-1)+x_loc(2:end))/2;
                 
                 edges_con = 0:0.05:1;
+                
                 [N_bl_con_probe_in(nContrast,:),x_con_probe] = histcounts(currContrastEstimates_inside,edges_con);
                 [N_bl_con_probe_out(nContrast,:),x_con_probe] = histcounts(currContrastEstimates_outside,edges_con);
                 
