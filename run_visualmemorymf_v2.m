@@ -7,7 +7,7 @@ test_env = 0;
 
 %% Initial Setup
 
-p.repetitions = 1;
+p.repetitions = 60;
 p.subject = 'test';
 
 if strcmp(p.subject,'test')
@@ -462,14 +462,14 @@ for nTrial = 1:size(p.trialEvents,1)
                 correctedAngle = mod(initialAngle, 360);
                 
                 estimatedLocation(nTrial) = correctedAngle;
-
+                
                 % make sure difference is in the -180 to 180 range
                 difference = p.trialEvents(nTrial,2) - estimatedLocation(nTrial);
                 
                 if difference > 180
                     difference = difference-360;
                 elseif difference < -180
-                        difference = difference + 360;
+                    difference = difference + 360;
                 end
                 
                 differenceLocation(nTrial) = difference;
@@ -522,20 +522,20 @@ for nTrial = 1:size(p.trialEvents,1)
     end
 end
 %% SAVE OUT THE DATA FILE
-data.EstimatedLocation = estimatedLocation;
-data.DifferenceLocation = differenceLocation;
-data.ResponseTime_location = responseTime_location;
-data.EstimatedContrast = estimatedContrast;
-data.DifferenceContrast = differenceContrast;
-data.ResponseTime_Contrast = responseTime_Contrast;
-data.responseTime = responseTime;
 
 if p.repetitions > 5 && ~test_env
+    data.EstimatedLocation = estimatedLocation;
+    data.DifferenceLocation = differenceLocation;
+    data.ResponseTime_location = responseTime_location;
+    data.EstimatedContrast = estimatedContrast;
+    data.DifferenceContrast = differenceContrast;
+    data.ResponseTime_Contrast = responseTime_Contrast;
+    data.responseTime = responseTime;
+    
     cd(dataDir);
     theData(p.runNumber).t = t;
     theData(p.runNumber).p = p;
     theData(p.runNumber).data = data;
     save(['data_vmmf_v2_' p.subject '.mat'], 'theData')
-    save('visualmemory_subjectsRan.mat', 'visualmemory_subjectsRan')
     cd(expDir);
 end
