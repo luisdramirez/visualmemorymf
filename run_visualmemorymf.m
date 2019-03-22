@@ -2,7 +2,7 @@
 % Written by JS and LR June 2018
 close all; clear all; clc;
 commandwindow;
-Screen('Preference', 'SkipSyncTests', 1);
+Screen('Preference', 'SkipSyncTests', 0);
 commandwindow;
 test_env = 0;
 
@@ -14,7 +14,7 @@ p.repetitions = 20; % set to 20 for ~40min; data will be saved if repetitions > 
 
 % Experiment & Subject Name
 p.experiment = 'exp'; % 'exp=5 contrasts, w/WM; 'test_HC'=1 contrast, no WM; 'test'=5 contrasts, no WM;
-p.subject = '010';
+p.subject = '002';
 
 % Set directories
 expDir = pwd; % set the experimental directory to the current directory 'pwd'
@@ -37,6 +37,7 @@ end
 if exist(['data_visualmemorymf_' p.experiment '_' p.subject '.mat'],'file') ~= 0
     load(['data_visualmemorymf_' p.experiment '_' p.subject '.mat']);
     p = theData(1).p;
+    
     p.runNumber = length(theData)+1;
     subject_indx = find(strcmp(visualmemory_subjectsRan(1,:), p.subject)==1);
     if sum(strcmp(p.experiment,{'test', 'test_HC'})) == 1
@@ -897,7 +898,7 @@ if p.repetitions > 5 && ~test_env
     theData(p.runNumber).t = t;
     theData(p.runNumber).p = p;
     theData(p.runNumber).data = data;
-    save(['data_visualmemorymf_' p.experiment '_' p.subject '.mat'], 'theData')
+    save(['data_vmmf_' p.subject '.mat'], 'theData')
     save('visualmemory_subjectsRan.mat', 'visualmemory_subjectsRan')
     cd(expDir);
 end
