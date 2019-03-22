@@ -4,11 +4,11 @@ clc; clear all; close all;
 commandwindow;
 Screen('Preference', 'SkipSyncTests', 1);
 test_env = 0;
-
 %% Initial Setup
 
-p.repetitions = 60;
+p.repetitions = 1;
 p.subject = 'test';
+fileName = ['data_vmmf_v2_' p.subject '.mat'];
 
 if strcmp(p.subject,'test')
     test_env = 1;
@@ -21,13 +21,15 @@ t.mySeed = sum(100*clock);
 rng(t.mySeed); % start with a random seed
 t.theDate = datestr(now, 'yymmdd'); %collect todays date
 t.timeStamp = datestr(now,'HHMM'); %collect timestamp
+cd(dataDir);
 
-if exist(['data_vmmf_v2_' p.subject '.mat'],'file') ~= 0
-    load(['data_vmmf_v2_' p.subject '.mat'])
+if exist(fileName,'file') ~= 0
+    load(fileName)
     p.runNumber = length(theData)+1;
 else
     p.runNumber = 1;
 end
+cd(expDir);
 
 if test_env
     disp('!ENTERING TEST ENVIRONMENT!')
@@ -76,7 +78,6 @@ elseif test_env
 end
 
 %% Screen Setup
-
 screens=Screen('Screens');
 useScreen = 0;
 p.screenWidthPixels = Screen('Rect', useScreen);
@@ -153,16 +154,22 @@ col1 = repmat(p.centerContrasts',p.numBlocks,1); % center grating contrast
 %--------------------%
 %              Location            %
 %--------------------%
+p.locSpacing = 10; p.locJit = 3;
 
 %location is random every trial
-col2 = randi(360,length(col1),1); % center grating location
-col4 = randi(360,length(col1),1); % probe grating location
+col2 = randsample(0:p.locSpacing:359,length(col1),true)'; % center grating location
+col2 = col2+randsample(-p.locJit:1:p.locJit,length(col1),true)';
+
+probeOffset = randsample(-180:p.locSpacing:180,length(col1),true)'; % probe grating location
+col4 = col2+probeOffset;
+col4(col4>360) = col4(col4>360) - 360;
+col4(col4<0) = col4(col4<0) + 360;
 
 %--------------------%
 %              Contrast           %
 %--------------------%
 
-col3 = randsample(0.05:0.01:1, length(col1),true)'; % probe grating contrast
+col3 = randsample(p.minContrast:0.01:p.maxContrast, length(col1),true)'; % probe grating contrast
 
 % Integrating trial events
 
@@ -177,6 +184,7 @@ else
     GetClicks;
 end
 
+p.trialEvents
 %% TIMING PARAMETERS
 % timing is in seconds
 t.stimOn1 = 2; % stimulus 1 duration
@@ -456,11 +464,10 @@ for nTrial = 1:size(p.trialEvents,1)
                 
                 startangle = angle;
             end
-            if pmbutton == 1;
+            if pmbutton == 1
                 locationTime = GetSecs;
                 % make sure angle stays in 0-360 range
                 correctedAngle = mod(initialAngle, 360);
-                
                 estimatedLocation(nTrial) = correctedAngle;
                 
                 % make sure difference is in the -180 to 180 range
@@ -469,7 +476,7 @@ for nTrial = 1:size(p.trialEvents,1)
                 if difference > 180
                     difference = difference-360;
                 elseif difference < -180
-                    difference = difference + 360;
+                    difference = 360-difference;
                 end
                 
                 differenceLocation(nTrial) = difference;
@@ -536,6 +543,9 @@ if p.repetitions > 5 && ~test_env
     theData(p.runNumber).t = t;
     theData(p.runNumber).p = p;
     theData(p.runNumber).data = data;
-    save(['data_vmmf_v2_' p.subject '.mat'], 'theData')
+    save(fileName, 'theData')
     cd(expDir);
 end
+
+sca;
+ShowCursor;
