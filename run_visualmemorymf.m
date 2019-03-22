@@ -34,8 +34,8 @@ if sum(strcmp(p.experiment,{'test','test_HC'})) == 0
     load('visualmemory_subjectsRan.mat')
 end
 
-if exist(['data_visualmemorymf_' p.experiment '_' p.subject '.mat'],'file') ~= 0
-    load(['data_visualmemorymf_' p.experiment '_' p.subject '.mat']);
+if exist(['data_vmmf_' p.experiment '_' p.subject '.mat'],'file') ~= 0
+    load(['data_vmmf_' p.experiment '_' p.subject '.mat']);
     p = theData(1).p;
     
     p.runNumber = length(theData)+1;
@@ -258,7 +258,7 @@ col2 = randi(360,length(col1),1); % center grating location
 col4 = randi(360,length(col1),1); % probe grating location
 
 %--------------------%
-%               Contrast            %
+%               Contrast           %
 %--------------------%
 col3 = nan(size(col1));
 col3(1:p.numContrasts) = Shuffle(p.centerContrast');
