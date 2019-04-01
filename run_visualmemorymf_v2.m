@@ -6,7 +6,6 @@ Screen('Preference', 'SkipSyncTests', 1);
 test_env = 0;
 %% Initial Setup
 
-p.repetitions = 4;
 p.subject = 'test';
 fileName = ['data_vmmf_v2_' p.subject '.mat'];
 
@@ -97,7 +96,9 @@ p.minContrast = 0.1;
 p.maxContrast = 0.75;
 p.numContrasts = 5;
 
+% look at old data to choose which contrast to knock out (2 contrasts)
 p.centerContrasts = [10.^linspace(log10(p.minContrast),log10(p.maxContrast),p.numContrasts)];
+p.centerContrasts(1:2) = []; 
 
 % Grating Size
 p.centerSize = round(2*p.pixPerDeg);
@@ -136,34 +137,38 @@ p.surroundPhase = p.centerPhase;
 
 % p.trialEvents = [centerContrast, centerLocation, probeContrast,
 % probeLocation];
+p.numOffsetLoc = 5; % 5 unique offsets to choose from including 0
 
-p.stimConfigurations = 1:length(p.centerContrasts);
+p.repetitions = 20; % 8-9 repeats for each combination, ideally
+
+p.stimConfigurations = 1:length(p.centerContrasts)*p.numOffsetLoc; %incorporate locations
 [combs] = BalanceFactors(p.repetitions,0,p.stimConfigurations);
 
-p.numTrialsPerBlock = p.numContrasts;
-p.numBlocksPerSet = 4;
-p.numTrialsPerSet = p.numTrialsPerBlock*p.numBlocksPerSet;
-p.numBlocksPerSet = p.numTrialsPerSet/p.numTrialsPerBlock;
-
-p.numTrials = p.numContrasts*p.repetitions;
+p.numTrials = length(combs);
+p.numTrialsPerBlock = length(p.stimConfigurations);
 p.numBlocks = p.numTrials/p.numTrialsPerBlock;
-p.numSets = round(p.numTrials/p.numTrialsPerSet);
 
-col1 = repmat(p.centerContrasts',p.numBlocks,1); % center grating contrast
+col1 = repmat(p.centerContrasts',p.numOffsetLoc,1); % center grating contrast
+col1 = repmat(col1,p.repetitions,1);
 
 %--------------------%
 %              Location            %
 %--------------------%
 p.locSpacing = 10; p.locJit = 3;
-p.probeLocWidth = 22.5;
+p.probeLocWidth = 45;
 
 %location is random every trial
 col2 = randsample(0:p.locSpacing:359,length(col1),true)'; % center grating location
 col2 = col2+randsample(-p.locJit:1:p.locJit,length(col1),true)';
-col2 = round(col2);
+col2 = round(col2); % make sure this is between 0-359
 
-probeOffset = 10.^linspace(0,log10(p.probeLocWidth),p.numTrialsPerSet)'; % probe grating location
-probeOffset = probeOffset.*randsample([-1 1],p.numTrialsPerSet,true)';
+col2(col2>360) = col2(col2>360) - 360;
+col2(col2<0) = col2(col2<0) +360;
+
+probeOffset = [0 round(10.^linspace(0,log10(p.probeLocWidth),p.numOffsetLoc-1))]'; % probe grating location
+probeOffset = repmat(probeOffset,length(p.centerContrasts),1);
+probeOffset = repmat(probeOffset,p.repetitions,1);
+probeOffset = probeOffset.*randsample([-1 1],length(probeOffset),true)';
 col4 = col2+probeOffset;
 col4(col4>360) = col4(col4>360) - 360;
 col4(col4<0) = col4(col4<0) + 360;
@@ -435,7 +440,6 @@ for nTrial = 1:size(p.trialEvents,1)
                 contrastTime = GetSecs;
                 estimatedContrast(nTrial) = probeContrast;
                 differenceContrast(nTrial) = p.trialEvents(nTrial,3) - estimatedContrast(nTrial);
-                responseTime_Contrast(nTrial) = (contrastTime - startResponseTime);
                 pmbutton_contrast = 0;
                 break
             end
@@ -486,12 +490,8 @@ end
 %% SAVE OUT THE DATA FILE
 
 if p.repetitions > 5 && ~test_env
-    data.EstimatedLocation = estimatedLocation;
-    data.DifferenceLocation = differenceLocation;
-    data.ResponseTime_location = responseTime_location;
     data.EstimatedContrast = estimatedContrast;
     data.DifferenceContrast = differenceContrast;
-    data.ResponseTime_Contrast = responseTime_Contrast;
     data.responseTime = responseTime;
     
     cd(dataDir);

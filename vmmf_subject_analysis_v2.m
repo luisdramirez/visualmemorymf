@@ -8,7 +8,7 @@ dataDir='data_master';
 subjects = 1;
 
 data = struct('TheData',[],'ContrastEstimates',[],'ProbeOffset',[]);
-data.ContrastEstimate = nan(length(subjects),5); % initialize average contrast estimates
+data.ContrastEstimates = nan(length(subjects),5); % initialize average contrast estimates
 
 % Load in data
 cd(dataDir)
