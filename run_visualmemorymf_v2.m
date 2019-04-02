@@ -6,8 +6,8 @@ Screen('Preference', 'SkipSyncTests', 1);
 test_env = 0;
 %% Initial Setup
 
-p.repetitions = 1;
-p.subject = 'test';
+p.repetitions = 50;
+p.subject = '001';
 fileName = ['data_vmmf_v2_' p.subject '.mat'];
 
 if strcmp(p.subject,'test')
@@ -39,9 +39,9 @@ end
 deviceNumber = 0;
 [keyBoardIndices, ProductNames] = GetKeyboardIndices;
 
-% deviceString = 'Lenovo Traditional USB Keyboard'; %rm208
+deviceString = 'Lenovo Traditional USB Keyboard'; %rm208
 % deviceString = 'Apple Internal Keyboard / Trackpad';
-deviceString = 'USB-HID Keyboard'; % luis' desk keyboard
+% deviceString = 'USB-HID Keyboard'; % luis' desk keyboard
 % deviceString = 'Wired USB Keyboard';
 % deviceString = 'Apple Keyboard';
 % deviceString = 'USB Keyboard';
@@ -143,7 +143,6 @@ p.stimConfigurations = 1:length(p.centerContrasts);
 p.numTrialsPerBlock = p.numContrasts;
 p.numBlocksPerSet = 4;
 p.numTrialsPerSet = p.numTrialsPerBlock*p.numBlocksPerSet;
-p.numBlocksPerSet = p.numTrialsPerSet/p.numTrialsPerBlock;
 
 p.numTrials = p.numContrasts*p.repetitions;
 p.numBlocks = p.numTrials/p.numTrialsPerBlock;
@@ -184,7 +183,6 @@ else
     GetClicks;
 end
 
-p.trialEvents
 %% TIMING PARAMETERS
 % timing is in seconds
 t.stimOn1 = 2; % stimulus 1 duration
@@ -195,7 +193,7 @@ t.responseTime = []; t.responseTime_est = 5;
 t.flickerTime = 0.4;
 t.flicker = 0.04;
 
-t.trialDur = sum(t.stimOn1 + t.flickerTime + t.stimOn1 + t.flickerTime + t.responseTime_est + t.iti); % (s)
+t.trialDur = sum(t.stimOn1 + 2*t.flickerTime + t.responseTime_est + t.iti); % (s)
 t.runDur = t.trialDur*size(p.trialEvents,1) + t.startTime*p.numBlocks; % (s)
 if t.runDur/60 >= 1
     disp(['Total run duration: ' num2str(t.runDur/60) ' min(s).'])
@@ -367,6 +365,22 @@ for nTrial = 1:size(p.trialEvents,1)
     WaitSecs(2*t.retention);
     
     %--------------------%
+    %               Mask 2             %
+    %--------------------%
+    indx = Shuffle(1:round(t.flickerTime/t.flicker));
+    StartMask = GetSecs;
+    for a = indx
+        if GetSecs > StartMask + t.flickerTime - t.flicker
+            break
+        end
+        Screen('DrawTexture', window, Mask(a,:), [],CenterRectOnPoint([0 0 size(surroundGrating,1) size(surroundGrating,1)], CenterX, CenterY));
+        Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation]);
+        Screen('FillOval', window, colors.green, [CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation]);
+        Screen('Flip', window);
+        WaitSecs(t.flicker);
+    end
+    
+    %--------------------%
     %               Probe               %
     %--------------------%
     
@@ -453,8 +467,8 @@ for nTrial = 1:size(p.trialEvents,1)
                 
                 angles = ((startangle-angle)*3.8298);
                 changeposition = (angles/(2*pi));
-                initialAngle = initialAngle + changeposition; % update the location relative to last dial position
-                ProbeXY = round([CenterX + p.eccentricity*(cos(initialAngle*(pi/180)))' CenterY - p.eccentricity*(sin(initialAngle*(pi/180)))']);
+                probeLocation = probeLocation + changeposition; % update the location relative to last dial position
+                ProbeXY = round([CenterX + p.eccentricity*(cos(probeLocation*(pi/180)))' CenterY - p.eccentricity*(sin(probeLocation*(pi/180)))']);
                 
                 Target = Screen('MakeTexture', window, squeeze(centerGrating)* (probeContrast*colors.grey) + colors.grey);
                 Screen('DrawTexture', window, Target, [], CenterRectOnPoint([0 0 size(centerTexture,1) size(centerTexture,1)], ProbeXY(1), ProbeXY(2)), p.stimorientation)
@@ -467,7 +481,7 @@ for nTrial = 1:size(p.trialEvents,1)
             if pmbutton == 1
                 locationTime = GetSecs;
                 % make sure angle stays in 0-360 range
-                correctedAngle = mod(initialAngle, 360);
+                correctedAngle = mod(probeLocation, 360);
                 estimatedLocation(nTrial) = correctedAngle;
                 
                 % make sure difference is in the -180 to 180 range
@@ -516,16 +530,14 @@ for nTrial = 1:size(p.trialEvents,1)
         t.restTime(nSet) = (GetSecs-rest)/60;
         nSet = nSet + 1;
         
-        
-        if nSet <= p.numSets
-            % ITI
-            Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
-            Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation]);
-            Screen('FillOval' , window, colors.green, [CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation]);
-            Screen('Flip',window);
-            WaitSecs(t.iti);
-        end
-        
+    end
+    if nSet <= p.numSets
+        % ITI
+        Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
+        Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation]);
+        Screen('FillOval' , window, colors.green, [CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation]);
+        Screen('Flip',window);
+        WaitSecs(t.iti);
     end
 end
 %% SAVE OUT THE DATA FILE
