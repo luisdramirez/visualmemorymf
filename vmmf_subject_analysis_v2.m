@@ -29,6 +29,11 @@ cd(expDir)
 
 targetContrasts = data.TheData{1}.p.centerContrasts;
 
+% Declare a cell array that holds in each spot, a matrix of trial by run
+% per participant, while the cell itself is organized as
+% (Probe Offset, Contrast, Subject)
+organizedData = cell(data.TheData{1, 1}.p.numOffsetLoc, length(data.TheData{1, 1}.p.centerContrasts), subjects);
+
 for nSubj = subjects
     for nCon = 1:length(targetContrasts) 
         conindx = data.TheData{nSubj}.p.trialEvents(:,1) == targetContrasts(nCon);
@@ -44,21 +49,19 @@ for nSubj = subjects
             xlabel('Contrast');
             ylabel('Instances');
         end
-        
+        estContrast(:,nCon,nSubj) = data.TheData{nSubj}.data.EstimatedContrast(conindx);
         probeOffsetTemp = data.TheData{nSubj}.p.trialEvents(find(conindx == 1),4) - data.TheData{nSubj}.p.trialEvents(find(conindx == 1),2);
         probeOffsetTemp(probeOffsetTemp > 180) = probeOffsetTemp(probeOffsetTemp > 180)-360;
         probeOffsetTemp(probeOffsetTemp < -180) = 360+probeOffsetTemp(probeOffsetTemp < -180);
         probeOffset(:,nCon,nSubj) = probeOffsetTemp;
-       
-        
-        %probeOffset(:,nCon,nSubj) = data.TheData{nSubj}.p.trialEvents(:,4) - data.TheData{nSubj}.p.trialEvents(:,2);
-        %probeOffset(:,nCon,nSubj) = probeOffset(find(probeOffset(:,nCon,nSubj) > 180)) - 360;
-        
-        %probeOffset(probeOffset > 180) = probeOffset(probeOffset(:,nCon,nSubj) > 180)-360;
-        %probeOffset(probeOffset < -180) = 360-probeOffset(probeOffset(:,nCon,nSubj) < -180); 
-
-        if subjPlots
-        end
-            
+   
     end
+    
+    offsetLevels = unique(abs(probeOffset));
+    for level = 1:length(offsetLevels)
+         offset = offsetLevels(level);
+         %data.TheData{nSubj}.data.EstimatedContrast(conindx)
+    end
+    
+    
 end
