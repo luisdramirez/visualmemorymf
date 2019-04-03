@@ -33,15 +33,32 @@ for nSubj = subjects
     for nCon = 1:length(targetContrasts) 
         conindx = data.TheData{nSubj}.p.trialEvents(:,1) == targetContrasts(nCon);
         if subjPlots 
-            figure(nSubj*nCon);
+            %Plots that graph a distribution for each contrast (Not
+            %considering probe offset)
+            figure(nSubj);
+            set(gcf,'Name',' Subject %i')
+            subplot(length(targetContrasts),1,nCon)
             hist(data.TheData{nSubj}.data.EstimatedContrast(conindx),20);
-            title(sprintf('Contrast Level: %.2f , Subject %i',targetContrasts(nCon),nSubj))
+            title(sprintf('Contrast Level: %.2f',targetContrasts(nCon)))
             data.ContrastEstimates(nSubj,nCon) = mean(data.TheData{nSubj}.data.EstimatedContrast(conindx));
             xlabel('Contrast');
             ylabel('Instances');
         end
-%         probeOffset(:,nCon,nSubj) = data.TheData{nSubj}.p.trialEvents(:,4) - data.TheData{nSubj}.p.trialEvents(:,2);
-%         probeOffset(probeOffset > 180) = probeOffset(probeOffset(:,nCon,nSubj) > 180)-360;
-%         probeOffset(probeOffset < -180) = 360-probeOffset(probeOffset(:,nCon,nSubj) < -180); 
+        
+        probeOffsetTemp = data.TheData{nSubj}.p.trialEvents(find(conindx == 1),4) - data.TheData{nSubj}.p.trialEvents(find(conindx == 1),2);
+        probeOffsetTemp(probeOffsetTemp > 180) = probeOffsetTemp(probeOffsetTemp > 180)-360;
+        probeOffsetTemp(probeOffsetTemp < -180) = 360+probeOffsetTemp(probeOffsetTemp < -180);
+        probeOffset(:,nCon,nSubj) = probeOffsetTemp;
+       
+        
+        %probeOffset(:,nCon,nSubj) = data.TheData{nSubj}.p.trialEvents(:,4) - data.TheData{nSubj}.p.trialEvents(:,2);
+        %probeOffset(:,nCon,nSubj) = probeOffset(find(probeOffset(:,nCon,nSubj) > 180)) - 360;
+        
+        %probeOffset(probeOffset > 180) = probeOffset(probeOffset(:,nCon,nSubj) > 180)-360;
+        %probeOffset(probeOffset < -180) = 360-probeOffset(probeOffset(:,nCon,nSubj) < -180); 
+
+        if subjPlots
+        end
+            
     end
 end
