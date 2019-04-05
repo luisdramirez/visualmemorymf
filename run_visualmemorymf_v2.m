@@ -7,7 +7,8 @@ test_env = 0;
 %% Initial Setup
 
 p.repetitions = 50;
-p.subject = '001';
+p.subject = '1';
+
 fileName = ['data_vmmf_v2_' p.subject '.mat'];
 
 if strcmp(p.subject,'test')
@@ -97,7 +98,9 @@ p.minContrast = 0.1;
 p.maxContrast = 0.75;
 p.numContrasts = 5;
 
+% look at old data to choose which contrast to knock out (2 contrasts)
 p.centerContrasts = [10.^linspace(log10(p.minContrast),log10(p.maxContrast),p.numContrasts)];
+p.centerContrasts(1:2) = []; 
 
 % Grating Size
 p.centerSize = round(2*p.pixPerDeg);
@@ -136,33 +139,42 @@ p.surroundPhase = p.centerPhase;
 
 % p.trialEvents = [centerContrast, centerLocation, probeContrast,
 % probeLocation];
+p.numOffsetLoc = 5; % 5 unique offsets to choose from including 0
 
-p.stimConfigurations = 1:length(p.centerContrasts);
+p.repetitions = 20; % 8-9 repeats for each combination, ideally
+
+p.stimConfigurations = 1:length(p.centerContrasts)*p.numOffsetLoc; %incorporate locations
 [combs] = BalanceFactors(p.repetitions,0,p.stimConfigurations);
 
-p.numTrialsPerBlock = p.numContrasts;
-p.numBlocksPerSet = 4;
-p.numTrialsPerSet = p.numTrialsPerBlock*p.numBlocksPerSet;
-
-p.numTrials = p.numContrasts*p.repetitions;
+p.numTrials = length(combs);
+p.numTrialsPerBlock = length(p.stimConfigurations);
 p.numBlocks = p.numTrials/p.numTrialsPerBlock;
-p.numSets = round(p.numTrials/p.numTrialsPerSet);
 
-col1 = repmat(p.centerContrasts',p.numBlocks,1); % center grating contrast
+col1 = repmat(p.centerContrasts',p.numOffsetLoc,1); % center grating contrast
+col1 = repmat(col1,p.repetitions,1);
 
 %--------------------%
 %              Location            %
 %--------------------%
 p.locSpacing = 10; p.locJit = 3;
+p.probeLocWidth = 45;
 
 %location is random every trial
 col2 = randsample(0:p.locSpacing:359,length(col1),true)'; % center grating location
 col2 = col2+randsample(-p.locJit:1:p.locJit,length(col1),true)';
+col2 = round(col2); % make sure this is between 0-359
 
-probeOffset = randsample(-180:p.locSpacing:180,length(col1),true)'; % probe grating location
+col2(col2>360) = col2(col2>360) - 360;
+col2(col2<0) = col2(col2<0) +360;
+
+probeOffset = [0 round(10.^linspace(0,log10(p.probeLocWidth),p.numOffsetLoc-1))]'; % probe grating location
+probeOffset = repmat(probeOffset,length(p.centerContrasts),1);
+probeOffset = repmat(probeOffset,p.repetitions,1);
+probeOffset = probeOffset.*randsample([-1 1],length(probeOffset),true)';
 col4 = col2+probeOffset;
 col4(col4>360) = col4(col4>360) - 360;
 col4(col4<0) = col4(col4<0) + 360;
+col4 = round(col4);
 
 %--------------------%
 %              Contrast           %
@@ -182,6 +194,7 @@ else
     disp('Trials have not been shuffled. Continue?')
     GetClicks;
 end
+
 
 %% TIMING PARAMETERS
 % timing is in seconds
@@ -284,6 +297,7 @@ center = [CenterX CenterY];
 Screen('TextStyle', window, 1);
 Screen('TextSize', window, 16);
 t.ifi = Screen('GetFlipInterval',window); % grab screen refresh rate
+
 %% EXPERIMENT LOOP
 HideCursor;
 % Esc to quit
@@ -305,7 +319,7 @@ Screen('Flip',window);
 WaitSecs(t.startTime);
 
 
-nSet = 1; % #sets completed tracker
+nBlock = 1; % #sets completed tracker
 for nTrial = 1:size(p.trialEvents,1)
     %--------------------%
     %         Trial Settings        %
@@ -417,14 +431,14 @@ for nTrial = 1:size(p.trialEvents,1)
             [pmbutton_contrast, angle2] = PsychPowerMate('Get', powermate);
             % % 1st button is the "or" of the 1st mouse button and the actual PowerMate button
             if contrastangle ~= angle2
-                %
+
                 % % Convert turn of dial first to degrees and then to contrast:
                 angles = (angle2 * 3.8298)/360;
                 angles = ((contrastangle-angle2)*3.8298);
                 changecontrast = angles/360;
                 probeContrast = probeContrast - changecontrast; % update the contrast relative to last dial position
                 % % Make sure we stay in range
-                %
+
                 if probeContrast > 1
                     probeContrast = 1;
                 elseif probeContrast < 0
@@ -444,69 +458,27 @@ for nTrial = 1:size(p.trialEvents,1)
                 contrastTime = GetSecs;
                 estimatedContrast(nTrial) = probeContrast;
                 differenceContrast(nTrial) = p.trialEvents(nTrial,3) - estimatedContrast(nTrial);
-                responseTime_Contrast(nTrial) = (contrastTime - startResponseTime);
                 pmbutton_contrast = 0;
                 break
             end
         end
-        
-        % % PowerMate is sampled at 10msec intervals, therefore have a short
-        % % break to make sure it doesn't skip the contrast task
-        WaitSecs(1);
-        
-        %%% LOCATION REPORT %%%
-        % Allow for dial rotation for location update
-        [~, startangle] = PsychPowerMate('Get',powermate);
-        while 1 %start inf loop
-            % Query PowerMate button state and rotation angle in "clicks"
-            [pmbutton, angle] = PsychPowerMate('Get', powermate);
-            % 1st button is the "or" of the 1st mouse button and the actual PowerMate button
-            if startangle ~= angle
-                % Convert turn of dial first to degrees and then to contrast:
-                Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
-                
-                angles = ((startangle-angle)*3.8298);
-                changeposition = (angles/(2*pi));
-                probeLocation = probeLocation + changeposition; % update the location relative to last dial position
-                ProbeXY = round([CenterX + p.eccentricity*(cos(probeLocation*(pi/180)))' CenterY - p.eccentricity*(sin(probeLocation*(pi/180)))']);
-                
-                Target = Screen('MakeTexture', window, squeeze(centerGrating)* (probeContrast*colors.grey) + colors.grey);
-                Screen('DrawTexture', window, Target, [], CenterRectOnPoint([0 0 size(centerTexture,1) size(centerTexture,1)], ProbeXY(1), ProbeXY(2)), p.stimorientation)
-                Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation]);
-                Screen('FillOval', window, colors.green, [CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation])
-                Screen('Flip', window);
-                
-                startangle = angle;
-            end
-            if pmbutton == 1
-                locationTime = GetSecs;
-                % make sure angle stays in 0-360 range
-                correctedAngle = mod(probeLocation, 360);
-                estimatedLocation(nTrial) = correctedAngle;
-                
-                % make sure difference is in the -180 to 180 range
-                difference = p.trialEvents(nTrial,2) - estimatedLocation(nTrial);
-                
-                if difference > 180
-                    difference = difference-360;
-                elseif difference < -180
-                    difference = 360-difference;
-                end
-                
-                differenceLocation(nTrial) = difference;
-                
-                responseTime_location(nTrial) = (locationTime - startResponseTime);
-                pmbutton = 0;
-                break
-            end
-        end
-        responseTime(nTrial) = (GetSecs-startResponseTime);
+       
     end
+    
+    responseTime(nTrial) = (GetSecs-startResponseTime);
+    
+    % ITI
+    Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
+    Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation]);
+    Screen('FillOval' , window, colors.green, [CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation]);
+    Screen('Flip',window);
+    WaitSecs(t.iti);
+    
     
     %--------------------%
     %               Break               %
     %--------------------%
-    if mod(nTrial,p.numTrialsPerSet) == 0 && nTrial == p.numTrialsPerSet*nSet && nSet < p.numSets
+    if mod(nTrial,p.numTrialsPerBlock) == 0
         rest = GetSecs;
         Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
         Screen('TextStyle', window, 1);
@@ -516,39 +488,28 @@ for nTrial = 1:size(p.trialEvents,1)
         Screen('Flip', window);
         restText = ['You can take a short break now, ' '' '\n' ...
             'or press the dial to continue' '\n' '\n' ...
-            num2str(nSet) '/' num2str(p.numSets) ' completed.' ];
+            num2str(nBlock) '/' num2str(p.numBlocks) ' completed.' ];
         DrawFormattedText(window, restText, 'center', 'center', colors.white);
         Screen('Flip', window);
         pmbuttonbreak = 0;
-        WaitSecs(1 );
+        WaitSecs(1);
         while 1
             [pmbuttonbreak, a] = PsychPowerMate('Get', powermate);
             if pmbuttonbreak == 1
                 break;
             end
         end
-        t.restTime(nSet) = (GetSecs-rest)/60;
-        nSet = nSet + 1;
-        
+        t.restTime(nBlock) = (GetSecs-rest)/60;
+        nBlock = nBlock + 1;     
     end
-    if nSet <= p.numSets
-        % ITI
-        Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
-        Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation]);
-        Screen('FillOval' , window, colors.green, [CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation]);
-        Screen('Flip',window);
-        WaitSecs(t.iti);
-    end
+
 end
+
 %% SAVE OUT THE DATA FILE
 
 if p.repetitions > 5 && ~test_env
-    data.EstimatedLocation = estimatedLocation;
-    data.DifferenceLocation = differenceLocation;
-    data.ResponseTime_location = responseTime_location;
     data.EstimatedContrast = estimatedContrast;
     data.DifferenceContrast = differenceContrast;
-    data.ResponseTime_Contrast = responseTime_Contrast;
     data.responseTime = responseTime;
     
     cd(dataDir);

@@ -34,8 +34,9 @@ if sum(strcmp(p.experiment,{'test','test_HC'})) == 0
     load('visualmemory_subjectsRan.mat')
 end
 
-if exist(['data_vmmf_' p.experiment '_' p.subject '.mat'],'file') ~= 0
-    load(['data_vmmf_' p.experiment '_' p.subject '.mat']);
+fileName = ['data_vmmf_' p.subject '.mat'];
+if exist(fileName,'file') ~= 0
+    load(fileName);
     p = theData(1).p;
     
     p.runNumber = length(theData)+1;
@@ -898,7 +899,7 @@ if p.repetitions > 5 && ~test_env
     theData(p.runNumber).t = t;
     theData(p.runNumber).p = p;
     theData(p.runNumber).data = data;
-    save(['data_vmmf_' p.subject '.mat'], 'theData')
+    save(fileName, 'theData')
     save('visualmemory_subjectsRan.mat', 'visualmemory_subjectsRan')
     cd(expDir);
 end
