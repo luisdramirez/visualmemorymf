@@ -3,7 +3,7 @@
 clc; clear all; close all;
 commandwindow;
 Screen('Preference', 'SkipSyncTests', 1);
-test_env = 0;
+test_env = 1;
 %% Initial Setup
 
 p.subject = 'test';
@@ -98,7 +98,7 @@ p.numContrasts = 5;
 
 % look at old data to choose which contrast to knock out (2 contrasts)
 p.centerContrasts = [10.^linspace(log10(p.minContrast),log10(p.maxContrast),p.numContrasts)];
-p.centerContrasts(1:2) = []; 
+p.centerContrasts(1) = [];
 
 % Grating Size
 p.centerSize = round(2*p.pixPerDeg);
@@ -139,7 +139,7 @@ p.surroundPhase = p.centerPhase;
 % probeLocation];
 p.numOffsetLoc = 5; % 5 unique offsets to choose from including 0
 
-p.repetitions = 20; % 8-9 repeats for each combination, ideally
+p.repetitions = 13; % 8-9 repeats for each combination, ideally
 
 p.stimConfigurations = 1:length(p.centerContrasts)*p.numOffsetLoc; %incorporate locations
 [combs] = BalanceFactors(p.repetitions,0,p.stimConfigurations);
@@ -207,9 +207,9 @@ t.flicker = 0.04;
 t.trialDur = sum(t.stimOn1 + t.flickerTime + t.stimOn1 + t.flickerTime + t.responseTime_est + t.iti); % (s)
 t.runDur = t.trialDur*size(p.trialEvents,1) + t.startTime*p.numBlocks; % (s)
 if t.runDur/60 >= 1
-    disp(['Total run duration: ' num2str(t.runDur/60) ' min(s).'])
+    disp(['Total run duration: ' num2str(round(t.runDur/60)) ' min(s).'])
 else
-    disp(['Total run duration: ' num2str(t.runDur) ' s.'])
+    disp(['Total run duration: ' num2str(round(t.runDur)) ' s.'])
 end
 
 %% CREATE STIMULI
@@ -309,6 +309,30 @@ for m = 1:round(t.flickerTime/t.flicker)
     Mask(m,:) = Screen('MakeTexture', window, squeeze(maskGrating(m,:,:))* colors.grey + colors.grey);
 end
 
+if ~test_env
+    % Welcome Screen
+    Screen('TextStyle', window, 1);
+    Screen('TextSize', window, 14);
+    welcomeText = ['On each trial, you will see a center grating presented at a random location in the periphery.' '\n'...
+        'At the end of a trial, a probe grating will appear at a random location.' '\n'...
+        'You will then manipulate this probe grating to reconstruct the contrast of the target grating you perceived.' '\n'...
+        'Rotating the powermate will manipulate the contrast of this probe.' '\n'... 
+        'Clicking the powermate will lock in your contrast estimate and the next trial will begin after your response.' '\n'...
+        'Remember to keep your eyes at fixation throughout the entirety of a trial!' '\n'...
+        'Additionally, breaks will be provided throughout the session.' '\n'...
+        'Click the powermate to start experiment.'];
+    DrawFormattedText(window, welcomeText, 'center', 'center', 255);
+    Screen('Flip', window);
+end
+
+
+% Check powermate works by forcing a click
+while 1
+    [pmbutton, ~] = PsychPowerMate('Get', powermate);
+    if pmbutton == 1
+        break;
+    end
+end
 % Starting Screen
 Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
 Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation]);
@@ -413,14 +437,14 @@ for nTrial = 1:size(p.trialEvents,1)
             [pmbutton_contrast, angle2] = PsychPowerMate('Get', powermate);
             % % 1st button is the "or" of the 1st mouse button and the actual PowerMate button
             if contrastangle ~= angle2
-
+                
                 % % Convert turn of dial first to degrees and then to contrast:
                 angles = (angle2 * 3.8298)/360;
                 angles = ((contrastangle-angle2)*3.8298);
                 changecontrast = angles/360;
                 probeContrast = probeContrast - changecontrast; % update the contrast relative to last dial position
                 % % Make sure we stay in range
-
+                
                 if probeContrast > 1
                     probeContrast = 1;
                 elseif probeContrast < 0
@@ -484,7 +508,7 @@ for nTrial = 1:size(p.trialEvents,1)
         t.restTime(nSet) = (GetSecs-rest)/60;
         nSet = nSet + 1;
     end
-
+    
 end
 
 %% SAVE OUT THE DATA FILE
