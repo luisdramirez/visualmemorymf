@@ -3,10 +3,10 @@
 clc; clear all; close all;
 commandwindow;
 Screen('Preference', 'SkipSyncTests', 1);
-test_env = 1;
+test_env = 0;
 %% Initial Setup
 
-p.repetitions = 50;
+p.repetitions = 15;
 p.subject = '1';
 
 fileName = ['data_vmmf_v2_' p.subject '.mat'];
@@ -140,8 +140,6 @@ p.surroundPhase = p.centerPhase;
 % p.trialEvents = [centerContrast, centerLocation, probeContrast,
 % probeLocation];
 p.numOffsetLoc = 5; % 5 unique offsets to choose from including 0
-
-p.repetitions = 13; % 8-9 repeats for each combination, ideally
 
 p.stimConfigurations = 1:length(p.centerContrasts)*p.numOffsetLoc; %incorporate locations
 [combs] = BalanceFactors(p.repetitions,0,p.stimConfigurations);
