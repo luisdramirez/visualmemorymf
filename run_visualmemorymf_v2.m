@@ -6,7 +6,9 @@ Screen('Preference', 'SkipSyncTests', 1);
 test_env = 0;
 %% Initial Setup
 
-p.subject = 'test';
+p.repetitions = 15;
+p.subject = '1';
+
 fileName = ['data_vmmf_v2_' p.subject '.mat'];
 
 if strcmp(p.subject,'test')
@@ -38,8 +40,8 @@ end
 deviceNumber = 0;
 [keyBoardIndices, ProductNames] = GetKeyboardIndices;
 
-% deviceString = 'Lenovo Traditional USB Keyboard'; %rm208
-deviceString = 'Apple Internal Keyboard / Trackpad';
+deviceString = 'Lenovo Traditional USB Keyboard'; %rm208
+% deviceString = 'Apple Internal Keyboard / Trackpad';
 % deviceString = 'USB-HID Keyboard'; % luis' desk keyboard
 % deviceString = 'Wired USB Keyboard';
 % deviceString = 'Apple Keyboard';
@@ -139,8 +141,6 @@ p.surroundPhase = p.centerPhase;
 % probeLocation];
 p.numOffsetLoc = 5; % 5 unique offsets to choose from including 0
 
-p.repetitions = 15; % 8-9 repeats for each combination, ideally
-
 p.stimConfigurations = 1:length(p.centerContrasts)*p.numOffsetLoc; %incorporate locations
 [combs] = BalanceFactors(p.repetitions,0,p.stimConfigurations);
 
@@ -192,7 +192,7 @@ else
     disp('Trials have not been shuffled. Continue?')
     GetClicks;
 end
-p.trialEvents
+
 
 %% TIMING PARAMETERS
 % timing is in seconds
@@ -341,7 +341,7 @@ Screen('Flip',window);
 WaitSecs(t.startTime);
 
 
-nSet = 1; % #sets completed tracker
+nBlock = 1; % #sets completed tracker
 for nTrial = 1:size(p.trialEvents,1)
     %--------------------%
     %         Trial Settings        %
@@ -399,6 +399,22 @@ for nTrial = 1:size(p.trialEvents,1)
     Screen('FillOval', window,colors.green,[CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation]);
     Screen('Flip',window);
     WaitSecs(2*t.retention);
+    
+    %--------------------%
+    %               Mask 2             %
+    %--------------------%
+    indx = Shuffle(1:round(t.flickerTime/t.flicker));
+    StartMask = GetSecs;
+    for a = indx
+        if GetSecs > StartMask + t.flickerTime - t.flicker
+            break
+        end
+        Screen('DrawTexture', window, Mask(a,:), [],CenterRectOnPoint([0 0 size(surroundGrating,1) size(surroundGrating,1)], CenterX, CenterY));
+        Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation]);
+        Screen('FillOval', window, colors.green, [CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation]);
+        Screen('Flip', window);
+        WaitSecs(t.flicker);
+    end
     
     %--------------------%
     %               Probe               %
@@ -468,23 +484,23 @@ for nTrial = 1:size(p.trialEvents,1)
                 break
             end
         end
-        
+       
     end
     
     responseTime(nTrial) = (GetSecs-startResponseTime);
-    if nSet <= p.numSets
-        % ITI
-        Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
-        Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation]);
-        Screen('FillOval' , window, colors.green, [CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation]);
-        Screen('Flip',window);
-        WaitSecs(t.iti);
-    end
+    
+    % ITI
+    Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
+    Screen('FillOval', window, colors.black, [CenterX-p.outerFixation CenterY-p.outerFixation CenterX+p.outerFixation CenterY+p.outerFixation]);
+    Screen('FillOval' , window, colors.green, [CenterX-p.innerFixation CenterY-p.innerFixation CenterX+p.innerFixation CenterY+p.innerFixation]);
+    Screen('Flip',window);
+    WaitSecs(t.iti);
+    
     
     %--------------------%
     %               Break               %
     %--------------------%
-    if mod(nTrial,p.numTrialsPerSet) == 0 && nTrial == p.numTrialsPerSet*nSet && nSet < p.numSets
+    if mod(nTrial,p.numTrialsPerBlock) == 0
         rest = GetSecs;
         Screen('FillOval', window, colors.grey, [CenterX-p.backgroundRadius CenterY-p.backgroundRadius CenterX+p.backgroundRadius CenterY+p.backgroundRadius]);
         Screen('TextStyle', window, 1);
@@ -494,7 +510,7 @@ for nTrial = 1:size(p.trialEvents,1)
         Screen('Flip', window);
         restText = ['You can take a short break now, ' '' '\n' ...
             'or press the dial to continue' '\n' '\n' ...
-            num2str(nSet) '/' num2str(p.numSets) ' completed.' ];
+            num2str(nBlock) '/' num2str(p.numBlocks) ' completed.' ];
         DrawFormattedText(window, restText, 'center', 'center', colors.white);
         Screen('Flip', window);
         pmbuttonbreak = 0;
@@ -505,8 +521,8 @@ for nTrial = 1:size(p.trialEvents,1)
                 break;
             end
         end
-        t.restTime(nSet) = (GetSecs-rest)/60;
-        nSet = nSet + 1;
+        t.restTime(nBlock) = (GetSecs-rest)/60;
+        nBlock = nBlock + 1;     
     end
     
 end
