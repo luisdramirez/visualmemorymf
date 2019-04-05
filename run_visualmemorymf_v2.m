@@ -3,7 +3,7 @@
 clc; clear all; close all;
 commandwindow;
 Screen('Preference', 'SkipSyncTests', 1);
-test_env = 1;
+test_env = 0;
 %% Initial Setup
 
 p.subject = 'test';
@@ -139,7 +139,7 @@ p.surroundPhase = p.centerPhase;
 % probeLocation];
 p.numOffsetLoc = 5; % 5 unique offsets to choose from including 0
 
-p.repetitions = 13; % 8-9 repeats for each combination, ideally
+p.repetitions = 15; % 8-9 repeats for each combination, ideally
 
 p.stimConfigurations = 1:length(p.centerContrasts)*p.numOffsetLoc; %incorporate locations
 [combs] = BalanceFactors(p.repetitions,0,p.stimConfigurations);
@@ -204,7 +204,7 @@ t.responseTime = []; t.responseTime_est = 5;
 t.flickerTime = 0.4;
 t.flicker = 0.04;
 
-t.trialDur = sum(t.stimOn1 + t.flickerTime + t.stimOn1 + t.flickerTime + t.responseTime_est + t.iti); % (s)
+t.trialDur = sum(t.stimOn1 + 2*t.flickerTime + t.responseTime_est + t.iti); % (s)
 t.runDur = t.trialDur*size(p.trialEvents,1) + t.startTime*p.numBlocks; % (s)
 if t.runDur/60 >= 1
     disp(['Total run duration: ' num2str(round(t.runDur/60)) ' min(s).'])
