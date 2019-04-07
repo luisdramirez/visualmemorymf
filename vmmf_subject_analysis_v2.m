@@ -26,23 +26,23 @@ cd(expDir)
 targetContrasts = allData{1}.p.centerContrasts;
 
 for nSubj = subjects
-    for nRun = 1:length(allData.TheData{nSubj}.data) % Number of runs
+    %for nRun = 1:length(allData.TheData{nSubj}.data) % Number of runs
         for nCon = 1:length(targetContrasts) 
             conindx = allData{nSubj}.p.trialEvents(:,1) == targetContrasts(nCon);
-            if subjPlots 
-                %Plots that graph a distribution for each contrast (Not
-                %considering probe offset)
-                figure(nSubj);
-                set(gcf,'Name',' Subject %i')
-                subplot(length(targetContrasts),1,nCon)
-                hist(allData{nSubj}.data.EstimatedContrast(conindx),20);
-                title(sprintf('Contrast Level: %.2f',targetContrasts(nCon)))
-                allData.ContrastEstimates(nSubj,nCon) = mean(allData{nSubj}.data.EstimatedContrast(conindx));
-                xlabel('Contrast');
-                ylabel('Instances');
-            end
+            
+            %Plots that graph a distribution for each contrast (Not
+            %considering probe offset)
+            figure(nSubj);
+            set(gcf,'Name',' Subject %i')
+            subplot(length(targetContrasts),1,nCon)
+            hist(allData{nSubj}.data.EstimatedContrast(conindx),20);
+            title(sprintf('Contrast Level: %.2f',targetContrasts(nCon)))
+            allData{nSubj}.ContrastEstimates(nSubj,nCon) = mean(allData{nSubj}.data.EstimatedContrast(conindx));
+            xlabel('Contrast');
+            ylabel('Instances');
+
             estContrast(:,nCon,nSubj) = allData{nSubj}.data.EstimatedContrast(conindx);
-            probeOffsetTemp = allData.TheData{nSubj}.p.trialEvents(find(conindx == 1),4) - allData{nSubj}.p.trialEvents(find(conindx == 1),2);
+            probeOffsetTemp = allData{1,nSubj}.p.trialEvents(find(conindx == 1),4) - allData{1,nSubj}.p.trialEvents(find(conindx == 1),2);
             probeOffsetTemp(probeOffsetTemp > 180) = probeOffsetTemp(probeOffsetTemp > 180)-360;
             probeOffsetTemp(probeOffsetTemp < -180) = 360+probeOffsetTemp(probeOffsetTemp < -180);
             probeOffset(:,nCon,nSubj) = probeOffsetTemp;
@@ -56,15 +56,12 @@ for nSubj = subjects
              for nCon = 1:length(targetContrasts)
                  indxOffsetLvl = find(abs(probeOffset(:,nCon)) == offset);
                  estConProbe = estContrast(indxOffsetLvl);
-                 %store this in two seperate places now - the subject loop and
-                 %the main matrix
-                 totalSubjectData.(['Subject_' num2str(subjects(1),'%d')]) = [];
+                 
+                 %store the entirety of the data in totalSubjectData
+                 %totalSubjectData.(['Subject_' num2str(subjects(nSubj))]).(['Probe_' num2str(level)]).(['Contrast_' num2str(nCon)]) = [];
+                 totalSubjectData.(['Subject_' num2str(subjects(nSubj))]).(['Probe_' num2str(level)]).(['Contrast_' num2str(nCon)]) = estConProbe;
 
-
-             end
-                 %data.TheData{nSubj}.data.EstimatedContrast(conindx)
-                 %probe ABs, find(probeAbs == 1) , estContrast(find)
+             end   
         end
-    end
-    
+    %end
 end
