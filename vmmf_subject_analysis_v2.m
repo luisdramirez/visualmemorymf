@@ -50,12 +50,19 @@ for nSubj = subjects
         end
 
         offsetLevels = unique(abs(probeOffset));
+        figure;
+        set(gcf,'Name',['Subject_' num2str(subjects(nSubj))])
         for level = 1:length(offsetLevels)
              offset = offsetLevels(level);
              %loop through contrasts
              for nCon = 1:length(targetContrasts)
                  indxOffsetLvl = find(abs(probeOffset(:,nCon)) == offset);
                  estConProbe = estContrast(indxOffsetLvl);
+              
+                 subplot(level,nCon,nCon*level)
+                 histogram(estConProbe,20)
+                 title(['Contrast ' num2str(nCon) ', Probe Offset ' num2str(offset)])
+                 hold all
                  
                  %store the entirety of the data in totalSubjectData
                  %totalSubjectData.(['Subject_' num2str(subjects(nSubj))]).(['Probe_' num2str(level)]).(['Contrast_' num2str(nCon)]) = [];
