@@ -43,11 +43,11 @@ for nSubj = subjects
             xlabel('Contrast');
             ylabel('Instances');
 
-            estContrast(:,nCon,nSubj) = allData{nSubj}(nRun).data.EstimatedContrast(conindx);
+            estContrast(:,nCon,nRun,nSubj) = allData{nSubj}(nRun).data.EstimatedContrast(conindx);
             probeOffsetTemp = allData{nSubj}(nRun).p.trialEvents(find(conindx == 1),4) - allData{nSubj}(nRun).p.trialEvents(find(conindx == 1),2);
             probeOffsetTemp(probeOffsetTemp > 180) = probeOffsetTemp(probeOffsetTemp > 180)-360;
             probeOffsetTemp(probeOffsetTemp < -180) = 360+probeOffsetTemp(probeOffsetTemp < -180);
-            probeOffset(:,nCon,nSubj) = probeOffsetTemp;
+            probeOffset(:,nCon,nRun,nSubj) = probeOffsetTemp;
 
         end
 
@@ -61,7 +61,7 @@ for nSubj = subjects
              %loop through contrasts
              for nCon = 1:length(targetContrasts)
                  indxOffsetLvl = find(abs(probeOffset(:,nCon)) == offset);
-                 estConProbe = estContrast(indxOffsetLvl);
+                 estConProbe = estContrast(indxOffsetLvl,nCon);
                     
                  subplot(1,length(targetContrasts),nCon)
                  histogram(estConProbe,20)
@@ -75,8 +75,8 @@ for nSubj = subjects
                  totalSubjectData.(['Subject_' num2str(subjects(nSubj))]).(['Probe_' num2str(level)]).(['Contrast_' num2str(nCon)]) = estConProbe;
                     
                  %store means in separate part
-                 meanAllSubjs(level,nCon,nSubj) = mean(estConProbe);
-                 semAllSubjs(level,nCon,nSubj) = std(estConProbe)/sqrt(numel(estConProbe));
+                 meanAllSubjs(level,nCon,nRun,nSubj) = mean(estConProbe);
+                 semAllSubjs(level,nCon,nRun,nSubj) = std(estConProbe)/sqrt(numel(estConProbe));
              end   
         end
     end
