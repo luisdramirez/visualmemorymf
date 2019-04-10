@@ -176,8 +176,8 @@ oppOffsetRange = 180-offsetRange;
 if superPlots
     for nOrder = 0:1
         for nCondition = 1:numel(dataFields)
-%             offsetLocationEffect = figure('Position',[50 50 scrsz(3) scrsz(3)/2],'name',[dataFields{nCondition} 'Probe Offset Location Effect Order ' num2str(nOrder)]);
-%             offsetContrastEffect = figure('Position',[50 50 scrsz(3) scrsz(3)/2],'name',[dataFields{nCondition} 'Probe Offset Contrast Effect Order ' num2str(nOrder)]);
+            %             offsetLocationEffect = figure('Position',[50 50 scrsz(3) scrsz(3)/2],'name',[dataFields{nCondition} 'Probe Offset Location Effect Order ' num2str(nOrder)]);
+            %             offsetContrastEffect = figure('Position',[50 50 scrsz(3) scrsz(3)/2],'name',[dataFields{nCondition} 'Probe Offset Contrast Effect Order ' num2str(nOrder)]);
             offsetMeanEstimates = figure('Position',[50 50 scrsz(3) scrsz(3)/2],'name',[dataFields{nCondition} 'Probe Offset Mean Estimates Order ' num2str(nOrder)]);
             offsetWidthEstimates = figure('Position',[50 50 scrsz(3) scrsz(3)/2],'name',[dataFields{nCondition} 'Probe Offset Width Estimates Order ' num2str(nOrder)]);
             for nContrast = 1:numel(centerContrast)
@@ -198,7 +198,7 @@ if superPlots
                 
                 trialsInside(nContrast) = sum(inside);
                 trialsOutside(nContrast) = sum(outside);
-
+                
                 currLocationError_inside = tmpLocationError(inside);
                 currLocationError_outside = tmpLocationError(outside);
                 
@@ -236,9 +236,9 @@ if superPlots
             [est_params_tmp_out, r2_blcon_probe_out] = fminsearch('mygauss_allContrasts', startValues, options, N_bl_con_probe_out, xvalues_con);
             tmp_out = reshape(est_params_tmp_out, [5 2])';
             est_params_bl_con_probe_out = [tmp_out(1,:); ones(1,5); tmp_out(2,:)];
-              
+            
             x_fit = 0.01:0.01:1;
-
+            
             for nContrast = 1:numel(centerContrast)
                 % Location Error as a function of Probe Offset
                 %             figure(offsetLocationEffect)
@@ -253,17 +253,17 @@ if superPlots
                 y_est_bl_con_probe_in = est_params_bl_con_probe_in(2,nContrast)*exp(-(x_fit-est_params_bl_con_probe_in(1,nContrast)).^2/(2*(est_params_bl_con_probe_in(3,nContrast)^2)));
                 y_est_bl_con_probe_out = est_params_bl_con_probe_out(2,nContrast)*exp(-(x_fit-est_params_bl_con_probe_out(1,nContrast)).^2/(2*(est_params_bl_con_probe_out(3,nContrast)^2)));
                 
-%                 figure(offsetContrastEffect)
-%                 subplot(1,5,nContrast)
-%                 bar(xvalues_con,N_bl_con_probe_in(nContrast,:),'FaceAlpha',.5);
-%                 hold on
-%                 bar(xvalues_con,N_bl_con_probe_out(nContrast,:),'FaceAlpha',.5);
-%                 hold on
-%                 insideFit = plot(x_fit, y_est_bl_con_probe_in, 'b', 'LineWidth', 2);
-%                 outsideFit = plot(x_fit, y_est_bl_con_probe_out, 'r', 'LineWidth', 2);
-%                 title([{[num2str(round(100*centerContrast(nContrast))) '%']}; {['#trials in=' num2str(trialsInside(nContrast)) ',#trials out=' num2str(trialsOutside(nContrast))]}])
-%                 xlabel('Contrast Estimate'); ylabel('Frequency')
-%                 insideFit.Color(4)=0.5;outsideFit.Color(4)=0.5;
+                %                 figure(offsetContrastEffect)
+                %                 subplot(1,5,nContrast)
+                %                 bar(xvalues_con,N_bl_con_probe_in(nContrast,:),'FaceAlpha',.5);
+                %                 hold on
+                %                 bar(xvalues_con,N_bl_con_probe_out(nContrast,:),'FaceAlpha',.5);
+                %                 hold on
+                %                 insideFit = plot(x_fit, y_est_bl_con_probe_in, 'b', 'LineWidth', 2);
+                %                 outsideFit = plot(x_fit, y_est_bl_con_probe_out, 'r', 'LineWidth', 2);
+                %                 title([{[num2str(round(100*centerContrast(nContrast))) '%']}; {['#trials in=' num2str(trialsInside(nContrast)) ',#trials out=' num2str(trialsOutside(nContrast))]}])
+                %                 xlabel('Contrast Estimate'); ylabel('Frequency')
+                %                 insideFit.Color(4)=0.5;outsideFit.Color(4)=0.5;
                 
                 % plot mu estimates
                 figure(offsetMeanEstimates)
@@ -284,7 +284,7 @@ if superPlots
                 hold on
                 bar(2,est_params_tmp_out(nContrast+numel(centerContrast)),'FaceAlpha',.5)
                 set(gca, 'XTick', [1 2])
-                set(gca, 'XTickLabel', {'Inside' 'Outside'})                
+                set(gca, 'XTickLabel', {'Inside' 'Outside'})
                 title([{'Width Estimates'}; {[num2str(round(100*centerContrast(nContrast))) '%']}; {['#trials in=' num2str(trialsInside(nContrast)) ',#trials out=' num2str(trialsOutside(nContrast))]}])
                 ylim([0 1])
                 ylabel('Contrast Estimate')
@@ -296,7 +296,6 @@ end
 %% Distribution Analysis
 % Fit Gaussian distribution to all participant data
 % Y=Amplitude*exp(-0.5*((X-Mean)/SD)^2)
-
 
 for nCondition = 1:numel(dataFields)
     for nContrast = 1:numel(centerContrast)
@@ -334,7 +333,7 @@ for nCondition = 1:numel(dataFields)
     end
 end
 
-% %% Contrast Model Fitting 
+% %% Contrast Model Fitting
 % experiments = {'Perception Condition','Visual Working Memory'};
 % %Model Fit Setup
 % surroundContrast = theData(1).p.surroundContrast; %Surround grating has 100% contrast level, =1
@@ -349,45 +348,45 @@ end
 %         % estimates for working memory and perception combined.
 %         baselineMat(subjCount,:) = subjectProfile.ContrastEstimate(subjCount,:,baselineIndex);
 %         if e == 1 %Perception Experiment %
-%             variableMat(subjCount,:) = subjectProfile.ContrastEstimate(subjCount,:,perceptionIndex); 
+%             variableMat(subjCount,:) = subjectProfile.ContrastEstimate(subjCount,:,perceptionIndex);
 %         elseif e == 2  % Working Memory Experiment %
-%             variableMat(subjCount,:) = subjectProfile.ContrastEstimate(subjCount,:,workingMemoryIndex); 
+%             variableMat(subjCount,:) = subjectProfile.ContrastEstimate(subjCount,:,workingMemoryIndex);
 %         end
-% 
+%
 %         % Fit individual data with Normalization model
 %         options = optimset('MaxFunEvals', 10^6, 'MaxIter', 10^6);
-%         % Use formula from Xing&Heeger 2001 to use baseline data to constrain alpha and n, and look for the inhibitory weight 
-%                 % to explain the suppressive influence of the surround 
+%         % Use formula from Xing&Heeger 2001 to use baseline data to constrain alpha and n, and look for the inhibitory weight
+%                 % to explain the suppressive influence of the surround
 %                     % Wi: suppression weight
 %                     % C50: inflection point
 %                     % n: nonlinear transducer, determining steepness
-% 
+%
 %             indv_r2 = zeros(2,numel(subjectProfile.SubjectName),2);
 %             startValuesModelFitting = [C50 n Wi_var];
 %             Data = {centerContrast, baselineMat(subjCount,:), variableMat(subjCount,:), surroundContrast};
 %             [est_params(e,subjCount,:), r2(e,subjCount)] = fminsearch('fitNormalizationModel_contrastMatch', startValues, options, Data);
-% 
-% 
+%
+%
 %             % Fit Y data based off of estimated parameters
-%             Y_base = (centerContrast.^est_params(e,subjCount,2)) ./ ... 
+%             Y_base = (centerContrast.^est_params(e,subjCount,2)) ./ ...
 %                 ((est_params(e,subjCount,1).^est_params(e,subjCount,2)) + (centerContrast.^est_params(e,subjCount,2)));
-% 
-%             Y_var = (centerContrast.^est_params(e,subjCount,2)) ./ ... 
+%
+%             Y_var = (centerContrast.^est_params(e,subjCount,2)) ./ ...
 %                 ((est_params(e,subjCount,1).^est_params(e,subjCount,2)) + (centerContrast.^est_params(e,subjCount,2)) + (est_params(e,subjCount,3))*(surroundContrast.^est_params(e,subjCount,2)));
-% 
+%
 %             % R^2 values for baseline and variable condition
 %             r2_BL = 1 - (sum((baselineMat(subjCount,:) - Y_base).^2) / sum((baselineMat(subjCount,:) - mean(baselineMat(subjCount,:))).^2));
 %             r2_V = 1 - (sum((variableMat(subjCount,:) - Y_var).^2) / sum((variableMat(subjCount,:) - mean(variableMat(subjCount,:))).^2));
 %             indvR2(e,subjCount,:) = [r2_BL r2_V];
-%             
+%
 %             if normalizationModelPlots
 %                  %Difference in perceived contrast compared to center contrast
-%         
+%
 %                 C_fit = 0.1:0.01:0.8;
-%                 Y_var = (C_fit.^est_params(e,subjCount,2)) ./ ... 
-%                 ((est_params(e,subjCount,1).^est_params(e,subjCount,2)) + (C_fit.^est_params(e,subjCount,2)) + (est_params(e,subjCount,3)*(surroundContrast.^est_params(e,subjCount,2)))); 
-% 
-%                 %Display Fits 
+%                 Y_var = (C_fit.^est_params(e,subjCount,2)) ./ ...
+%                 ((est_params(e,subjCount,1).^est_params(e,subjCount,2)) + (C_fit.^est_params(e,subjCount,2)) + (est_params(e,subjCount,3)*(surroundContrast.^est_params(e,subjCount,2))));
+%
+%                 %Display Fits
 %                 figure;
 %                 subplot(2,(numel(subjectProfile.SubjectName)/2), subjCount)
 %                 hold all
@@ -444,24 +443,24 @@ suppressionIndex.Collapsed_PS(1:numel(subjectProfile.SubjectName),:,2) = ((Contr
 
 % Super Subject Plots
 if superPlots
-%     % Total Location Error for baseline condition
-%     for nCondition = 1:numel(dataFields)
-%         figure('Position',[50 50 scrsz(3) scrsz(3)/2], 'color', [1 1 1], 'name', [dataFields{nCondition} ' Location Error'])
-%         for nContrast = 1:numel(centerContrast)
-%             currInd = Conditions == nCondition & Contrasts == centerContrast(nContrast);
-%             edges_loc = -180:180;
-%             [N_bl_loc(nContrast,:),x_loc] = histcounts(allLocationError(currInd),edges_loc);
-%             N_bl_loc(nContrast,:) = N_bl_loc(nContrast,:)./max(N_bl_loc(nContrast,:));
-%             xvalues_loc = (x_loc(1:end-1)+x_loc(2:end))/2;
-%             
-%             subplot(1,5,nContrast)
-%             bar(xvalues_loc, N_bl_loc(nContrast,:));
-%             hold on
-%             title([num2str(round(100*centerContrast(nContrast))) '%'])
-%             xlabel('Location Error'); ylabel('Frequency')
-%         end
-%     end
-%     
+    %     % Total Location Error for baseline condition
+    %     for nCondition = 1:numel(dataFields)
+    %         figure('Position',[50 50 scrsz(3) scrsz(3)/2], 'color', [1 1 1], 'name', [dataFields{nCondition} ' Location Error'])
+    %         for nContrast = 1:numel(centerContrast)
+    %             currInd = Conditions == nCondition & Contrasts == centerContrast(nContrast);
+    %             edges_loc = -180:180;
+    %             [N_bl_loc(nContrast,:),x_loc] = histcounts(allLocationError(currInd),edges_loc);
+    %             N_bl_loc(nContrast,:) = N_bl_loc(nContrast,:)./max(N_bl_loc(nContrast,:));
+    %             xvalues_loc = (x_loc(1:end-1)+x_loc(2:end))/2;
+    %
+    %             subplot(1,5,nContrast)
+    %             bar(xvalues_loc, N_bl_loc(nContrast,:));
+    %             hold on
+    %             title([num2str(round(100*centerContrast(nContrast))) '%'])
+    %             xlabel('Location Error'); ylabel('Frequency')
+    %         end
+    %     end
+    %
     %     %Location Error split up by order, for baseline condition
     %     figure
     %     histfit(allLocationError(Conditions == 3 & Orders == 1),nbins)

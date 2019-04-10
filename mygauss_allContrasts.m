@@ -2,7 +2,7 @@
 
 function r2 = mygauss_allContrasts(params, y_data, x)
 
-numContrasts = 5;
+global numContrasts
 
 % only allow mean to vary
 if length(params) == numContrasts
