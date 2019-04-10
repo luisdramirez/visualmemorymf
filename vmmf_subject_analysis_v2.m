@@ -50,24 +50,31 @@ for nSubj = subjects
         end
 
         offsetLevels = unique(abs(probeOffset));
-        figure;
-        set(gcf,'Name',['Subject_' num2str(subjects(nSubj))])
+%         figure;
+%         set(gcf,'Name',['Subject_' num2str(subjects(nSubj))])
         for level = 1:length(offsetLevels)
              offset = offsetLevels(level);
+             figure;
+             set(gcf,'Name',['Subject ' num2str(subjects(nSubj)) ', Offset ' num2str(offset)])
              %loop through contrasts
              for nCon = 1:length(targetContrasts)
                  indxOffsetLvl = find(abs(probeOffset(:,nCon)) == offset);
                  estConProbe = estContrast(indxOffsetLvl);
-              
-                 subplot(level,nCon,nCon*level)
+                    
+                 subplot(1,length(targetContrasts),nCon)
                  histogram(estConProbe,20)
-                 title(['Contrast ' num2str(nCon) ', Probe Offset ' num2str(offset)])
+                 title(['Contrast ' num2str(targetContrasts(nCon))])
                  hold all
+                 xlim([0.1 0.75])
+                 ylim([0 7])
                  
                  %store the entirety of the data in totalSubjectData
                  %totalSubjectData.(['Subject_' num2str(subjects(nSubj))]).(['Probe_' num2str(level)]).(['Contrast_' num2str(nCon)]) = [];
                  totalSubjectData.(['Subject_' num2str(subjects(nSubj))]).(['Probe_' num2str(level)]).(['Contrast_' num2str(nCon)]) = estConProbe;
-
+                    
+                 %store means in separate part
+                 meanAllSubjs(level,nCon,nSubj) = mean(estConProbe);
+                 semAllSubjs(level,nCon,nSubj) = std(estConProbe)/sqrt(numel(estConProbe));
              end   
         end
     %end
