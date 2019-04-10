@@ -26,58 +26,59 @@ cd(expDir)
 targetContrasts = allData{1}(1).p.centerContrasts;
 probeOffsets =  [0 round(10.^linspace(0,log10(allData{1}(1).p.probeLocWidth),allData{1}(1).p.numOffsetLoc-1))]';
 
-
 for nSubj = subjects
     for nRun = 1:length(allData{nSubj}) % Number of runs
-        for nCon = 1:length(targetContrasts) 
-            conindx = allData{nSubj}(nRun).p.trialEvents(:,1) == targetContrasts(nCon);
-            
-            %Plots that graph a distribution for each contrast (Not
-            %considering probe offset)
-            figure(nSubj); nbins = 20;
-            set(gcf,'Name',sprintf('Subject %i', nSubj))
-            subplot(length(targetContrasts),1,nCon)
-            hist(allData{nSubj}(nRun).data.EstimatedContrast(conindx),nbins);
-            title(sprintf('Contrast Level: %.2f',targetContrasts(nCon)))
-            allData{nSubj}(nRun).ContrastEstimates(nSubj,nCon) = mean(allData{nSubj}(nRun).data.EstimatedContrast(conindx));
-            xlabel('Contrast');
-            ylabel('Instances');
+        probeOffsetTemp = allData{nSubj}(nRun).p.trialEvents(:,4) - allData{nSubj}(nRun).p.trialEvents(:,2);
+        probeOffsetTemp(probeOffsetTemp > 180) = probeOffsetTemp(probeOffsetTemp > 180)-360;
+        probeOffsetTemp(probeOffsetTemp < -180) = 360+probeOffsetTemp(probeOffsetTemp < -180);
+        probeOffsetTemp = abs(probeOffsetTemp);
+        
+        for nCon = 1:length(targetContrasts)
+            for nOffset = 1:length(probeOffsets)
 
-            estContrast(:,nCon,nRun,nSubj) = allData{nSubj}(nRun).data.EstimatedContrast(conindx);
-            probeOffsetTemp = allData{nSubj}(nRun).p.trialEvents(find(conindx == 1),4) - allData{nSubj}(nRun).p.trialEvents(find(conindx == 1),2);
-            probeOffsetTemp(probeOffsetTemp > 180) = probeOffsetTemp(probeOffsetTemp > 180)-360;
-            probeOffsetTemp(probeOffsetTemp < -180) = 360+probeOffsetTemp(probeOffsetTemp < -180);
-            probeOffset(:,nCon,nRun,nSubj) = probeOffsetTemp;
+                currIndx = allData{nSubj}(nRun).p.trialEvents(:,1) == targetContrasts(nCon) & probeOffsetTemp == probeOffsets(nOffset);
+                estContrasts(:,nOffset,nCon,nRun,nSubj) = allData{nSubj}(nRun).data.EstimatedContrast(currIndx);
+                subjectData.(['Subject_' num2str(subjects(nSubj))]).(['Offset_' num2str(nOffset)]).(['Contrast_' num2str(nCon)])(:,nRun)= estContrasts(:,nOffset,nCon,nRun,nSubj);
+                
+%                 %store means in separate part
+%                 meanAllSubjs(nOffset,nCon,nRun,nSubj) = mean(estConProbe);
+%                 semAllSubjs(nOffset,nCon,nRun,nSubj) = std(estConProbe)/sqrt(numel(estConProbe));
+ %                 %Plots that graph a distribution for each contrast (Not
+%                 %considering probe offset)
+%                 figure(nSubj); nbins = 20;
+%                 set(gcf,'Name',sprintf('Subject %i', nSubj))
+%                 subplot(length(targetContrasts),1,nCon)
+%                 hist(allData{nSubj}(nRun).data.EstimatedContrast(conindx),nbins);
+%                 title(sprintf('Contrast Level: %.2f',targetContrasts(nCon)))
+%                 allData{nSubj}(nRun).ContrastEstimates(nSubj,nCon) = mean(allData{nSubj}(nRun).data.EstimatedContrast(conindx));
+%                 xlabel('Contrast');
+%                 ylabel('Instances');               
+            end
 
-        end
-
-        offsetLevels = unique(abs(probeOffset));
-%         figure;
-%         set(gcf,'Name',['Subject_' num2str(subjects(nSubj))])
-        for level = 1:length(offsetLevels)
-             offset = offsetLevels(level);
-             figure;
-             set(gcf,'Name',['Subject ' num2str(subjects(nSubj)) ', Offset ' num2str(offset)])
-             %loop through contrasts
-             for nCon = 1:length(targetContrasts)
-                 indxOffsetLvl = find(abs(probeOffset(:,nCon)) == offset);
-                 estConProbe = estContrast(indxOffsetLvl,nCon);
-                    
-                 subplot(1,length(targetContrasts),nCon)
-                 histogram(estConProbe,20)
-                 title(['Contrast ' num2str(targetContrasts(nCon))])
-                 hold all
-                 xlim([0.1 0.75])
-                 ylim([0 7])
-                 
-                 %store the entirety of the data in totalSubjectData
-                 %totalSubjectData.(['Subject_' num2str(subjects(nSubj))]).(['Probe_' num2str(level)]).(['Contrast_' num2str(nCon)]) = [];
-                 totalSubjectData.(['Subject_' num2str(subjects(nSubj))]).(['Probe_' num2str(level)]).(['Contrast_' num2str(nCon)]) = estConProbe;
-                    
-                 %store means in separate part
-                 meanAllSubjs(level,nCon,nRun,nSubj) = mean(estConProbe);
-                 semAllSubjs(level,nCon,nRun,nSubj) = std(estConProbe)/sqrt(numel(estConProbe));
-             end   
         end
     end
 end
+
+%% fitting
+
+% for level = 1:length(offsetLevels)
+%     
+%     figure;
+%     set(gcf,'Name',['Subject ' num2str(subjects(nSubj)) ', Offset ' num2str(currOffset)])
+%     %loop through contrasts
+%     for nCon = 1:length(targetContrasts)
+% 
+%         
+%         subplot(1,length(targetContrasts),nCon)
+%         histogram(estConProbe,20)
+%         title(['Contrast ' num2str(targetContrasts(nCon))])
+%         hold all
+%         xlim([0.1 0.75])
+%         ylim([0 7])
+%         
+% 
+%     end
+% end
+
+%% plotting
+
