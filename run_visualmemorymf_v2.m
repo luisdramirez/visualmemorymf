@@ -165,11 +165,11 @@ col2 = round(col2); % make sure this is between 0-359
 col2(col2>360) = col2(col2>360) - 360;
 col2(col2<0) = col2(col2<0) +360;
 
-probeOffset = [0 round(10.^linspace(0,log10(p.probeLocWidth),p.numOffsetLoc-1))]'; % probe grating location
-probeOffset = repmat(probeOffset,length(p.centerContrasts),1);
-probeOffset = repmat(probeOffset,p.repetitions,1);
-probeOffset = probeOffset.*randsample([-1 1],length(probeOffset),true)';
-col4 = col2+probeOffset;
+p.probeOffset = [0 round(10.^linspace(0,log10(p.probeLocWidth),p.numOffsetLoc-1))]'; % probe grating location
+p.probeOffset = repmat(p.probeOffset,length(p.centerContrasts),1);
+p.probeOffset = repmat(p.probeOffset,p.repetitions,1);
+p.probeOffset = p.probeOffset.*randsample([-1 1],length(p.probeOffset),true)';
+col4 = col2+p.probeOffset;
 col4(col4>360) = col4(col4>360) - 360;
 col4(col4<0) = col4(col4<0) + 360;
 col4 = round(col4);
