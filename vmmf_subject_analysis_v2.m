@@ -41,7 +41,6 @@ for nSubj = 1:numel(subjects)
                 estContrasts(:,nOffset,nCon,nRun,nSubj) = allData{nSubj}(nRun).data.EstimatedContrast(currIndx);
                 subjectData.(['Subject_' num2str(subjects(nSubj))]).(['Offset_' num2str(nOffset)]).(['Contrast_' num2str(nCon)])(:,nRun)= estContrasts(:,nOffset,nCon,nRun,nSubj);
                 
-                %                 %store means in separate part
                 %                 meanAllSubjs(nOffset,nCon,nRun,nSubj) = mean(estConProbe);
                 %                 semAllSubjs(nOffset,nCon,nRun,nSubj) = std(estConProbe)/sqrt(numel(estConProbe));
                 %                 %Plots that graph a distribution for each contrast (Not
@@ -111,8 +110,9 @@ plotLabels.offsets = {num2str(probeOffsets(1)) num2str(probeOffsets(2)) num2str(
     num2str(probeOffsets(4)) num2str(probeOffsets(5))};
 
 figure, bar(100.*mean(estMeans,3)), title('Mean Contrast Estimates'), xlabel('% Contrast Level'), ylabel('% Contrast'),
-legend(plotLabels.offsets),
+legend(plotLabels.offsets,'Location','northwest'),
 xticklabels(plotLabels.contrasts),
 
 figure, bar(100.*mean(estWidths,3)), title('Width Contrast Estimates'), xlabel('% Contrast Level'), ylabel('% Contrast'),
 xticklabels(plotLabels.contrasts)
+legend(plotLabels.offsets,'Location','northwest')
