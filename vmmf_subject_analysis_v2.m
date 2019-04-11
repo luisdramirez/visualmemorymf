@@ -40,28 +40,17 @@ for nSubj = 1:numel(subjects)
                 currIndx = allData{nSubj}(nRun).p.trialEvents(:,1) == targetContrasts(nCon) & probeOffsetTemp == probeOffsets(nOffset);
                 estContrasts(:,nOffset,nCon,nRun,nSubj) = allData{nSubj}(nRun).data.EstimatedContrast(currIndx);
                 subjectData.(['Subject_' num2str(subjects(nSubj))]).(['Offset_' num2str(nOffset)]).(['Contrast_' num2str(nCon)])(:,nRun)= estContrasts(:,nOffset,nCon,nRun,nSubj);
-                
-                %                 %store means in separate part
-                %                 meanAllSubjs(nOffset,nCon,nRun,nSubj) = mean(estConProbe);
-                %                 semAllSubjs(nOffset,nCon,nRun,nSubj) = std(estConProbe)/sqrt(numel(estConProbe));
-                %                 %Plots that graph a distribution for each contrast (Not
-                %                 %considering probe offset)
-                %                 figure(nSubj); nbins = 20;
-                %                 set(gcf,'Name',sprintf('Subject %i', nSubj))
-                %                 subplot(length(targetContrasts),1,nCon)
-                %                 hist(allData{nSubj}(nRun).data.EstimatedContrast(conindx),nbins);
-                %                 title(sprintf('Contrast Level: %.2f',targetContrasts(nCon)))
-                %                 allData{nSubj}(nRun).ContrastEstimates(nSubj,nCon) = mean(allData{nSubj}(nRun).data.EstimatedContrast(conindx));
-                %                 xlabel('Contrast');
-                %                 ylabel('Instances');
             end
         end
     end
 end
 
 %% fitting
+% log transform the fits?
+
 estMeans = nan(numel(targetContrasts),numel(probeOffsets),numel(subjects));
 estWidths = nan(numel(targetContrasts),numel(probeOffsets),numel(subjects));
+
 for nSubj = 1:length(subjects)
     for nOffset = 1:length(probeOffsets)
         for nCon = 1:length(targetContrasts)
@@ -110,9 +99,36 @@ plotLabels.contrasts  = {num2str(tmpContrasts(1)) num2str(tmpContrasts(2)) ...
 plotLabels.offsets = {num2str(probeOffsets(1)) num2str(probeOffsets(2)) num2str(probeOffsets(3)) ...
     num2str(probeOffsets(4)) num2str(probeOffsets(5))};
 
-figure, bar(100.*mean(estMeans,3)), title('Mean Contrast Estimates'), xlabel('% Contrast Level'), ylabel('% Contrast'),
-legend(plotLabels.offsets),
-xticklabels(plotLabels.contrasts),
+% Mean Contrast Estimate Fitting 
+y = 100.*mean(estMeans,3);
+err = 100.*std(estMeans,[],3)/sqrt(size(estMeans,3));
 
-figure, bar(100.*mean(estWidths,3)), title('Width Contrast Estimates'), xlabel('% Contrast Level'), ylabel('% Contrast'),
+figure('name','Mean Contrast Estimate'), bar(y), box off, hold on, xlabel('% Contrast Level'), ylabel('% Contrast (Mean)'),
+xticklabels(plotLabels.contrasts);
+
+ngroups = size(y, 1);
+nbars = size(y, 2);
+% Calculating the width for each bar group
+groupwidth = min(0.8, nbars/(nbars + 1.5));
+for i = 1:nbars
+    x = (1:ngroups) - groupwidth/2 + (2*i-1) * groupwidth / (2*nbars);
+    errorbar(x, y(:,i), err(:,i), 'k','LineStyle','none');
+end
+legend(plotLabels.offsets,'Location','NorthWest')
+hold off
+
+% Width of Contrast Estimate Fitting
+y = 100.*mean(estWidths,3);
+err = 100.*std(estWidths,[],3)/sqrt(size(estWidths,3));
+
+figure('name','Width Contrast Estimates'), bar(y), box off, hold on, xlabel('% Contrast Level'), ylabel('% Contrast (Width)'),
 xticklabels(plotLabels.contrasts)
+ngroups = size(y, 1);
+nbars = size(y, 2);
+% Calculating the width for each bar group
+groupwidth = min(0.8, nbars/(nbars + 1.5));
+for i = 1:nbars
+    x = (1:ngroups) - groupwidth/2 + (2*i-1) * groupwidth / (2*nbars);
+    errorbar(x, y(:,i), err(:,i), 'k','LineStyle','none');
+end
+hold off
