@@ -7,7 +7,7 @@ expDir=pwd;
 dataDir='data_master';
 plots = 0;
 
-subjects = [1 2 3];
+subjects = [1 2 3 4];
 
 allData = struct([]);
 
@@ -22,21 +22,20 @@ for nSubj = 1:numel(subjects)
     clear theData
 end
 cd(expDir)
-%% Data organization
+
+%% organization
 
 targetContrasts = allData{1}(1).p.centerContrasts;
 probeOffsets =  [0 round(10.^linspace(0,log10(allData{1}(1).p.probeLocWidth),allData{1}(1).p.numOffsetLoc-1))]';
 
 for nSubj = 1:numel(subjects)
-    for nRun = 1:length(allData{nSubj}) % Number of runs
+    for nRun = 1:length(allData{nSubj}) 
         probeOffsetTemp = allData{nSubj}(nRun).p.trialEvents(:,4) - allData{nSubj}(nRun).p.trialEvents(:,2);
         probeOffsetTemp(probeOffsetTemp > 180) = probeOffsetTemp(probeOffsetTemp > 180)-360;
         probeOffsetTemp(probeOffsetTemp < -180) = 360+probeOffsetTemp(probeOffsetTemp < -180);
-        probeOffsetTemp = abs(probeOffsetTemp);
-        
+        probeOffsetTemp = abs(probeOffsetTemp); 
         for nCon = 1:length(targetContrasts)
-            for nOffset = 1:length(probeOffsets)
-                
+            for nOffset = 1:length(probeOffsets) 
                 currIndx = allData{nSubj}(nRun).p.trialEvents(:,1) == targetContrasts(nCon) & probeOffsetTemp == probeOffsets(nOffset);
                 estContrasts(:,nOffset,nCon,nRun,nSubj) = allData{nSubj}(nRun).data.EstimatedContrast(currIndx);
                 subjectData.(['Subject_' num2str(subjects(nSubj))]).(['Offset_' num2str(nOffset)]).(['Contrast_' num2str(nCon)])(:,nRun)= estContrasts(:,nOffset,nCon,nRun,nSubj);
@@ -93,13 +92,13 @@ end
 %% plotting
 
 tmpContrasts = round(100.*targetContrasts);
+
 plotLabels.contrasts  = {num2str(tmpContrasts(1)) num2str(tmpContrasts(2)) ...
-    num2str(tmpContrasts(3)) num2str(tmpContrasts(4))};
-
+    num2str(tmpContrasts(3)) num2str(tmpContrasts(4))}; % strings for axes labels
 plotLabels.offsets = {num2str(probeOffsets(1)) num2str(probeOffsets(2)) num2str(probeOffsets(3)) ...
-    num2str(probeOffsets(4)) num2str(probeOffsets(5))};
+    num2str(probeOffsets(4)) num2str(probeOffsets(5))}; % strings for legend
 
-% Mean Contrast Estimate Fitting 
+% Mean Contrast Estimate Fitting Bar Plot
 y = 100.*mean(estMeans,3);
 err = 100.*std(estMeans,[],3)/sqrt(size(estMeans,3));
 
@@ -117,7 +116,7 @@ end
 legend(plotLabels.offsets,'Location','NorthWest')
 hold off
 
-% Width of Contrast Estimate Fitting
+% Width of Contrast Estimate Fitting Bar Plot
 y = 100.*mean(estWidths,3);
 err = 100.*std(estWidths,[],3)/sqrt(size(estWidths,3));
 
