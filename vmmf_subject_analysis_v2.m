@@ -5,7 +5,7 @@ clear all; close all; clc;
 scrsz = get(groot,'ScreenSize');
 expDir=pwd;
 dataDir='data_master';
-plots = 0;
+plots = 1;
 
 subjects = [1 2 3 4];
 
@@ -99,8 +99,9 @@ plotLabels.offsets = {num2str(probeOffsets(1)) num2str(probeOffsets(2)) num2str(
     num2str(probeOffsets(4)) num2str(probeOffsets(5))}; % strings for legend
 
 % Mean Contrast Estimate Fitting Bar Plot
-y = 100.*mean(estMeans,3);
-err = 100.*std(estMeans,[],3)/sqrt(size(estMeans,3));
+tmp_estMeans = estMeans;
+y = 100.*mean(tmp_estMeans,3);
+err = 100.*std(tmp_estMeans,[],3)/sqrt(size(tmp_estMeans,3));
 
 figure('name','Mean Contrast Estimate'), bar(y), box off, hold on, xlabel('% Contrast Level'), ylabel('% Contrast (Mean)'),
 xticklabels(plotLabels.contrasts);
@@ -117,8 +118,9 @@ legend(plotLabels.offsets,'Location','NorthWest')
 hold off
 
 % Width of Contrast Estimate Fitting Bar Plot
-y = 100.*mean(estWidths,3);
-err = 100.*std(estWidths,[],3)/sqrt(size(estWidths,3));
+tmp_estWidths = estWidths;
+y = 100.*mean(tmp_estWidths,3);
+err = 100.*std(tmp_estWidths,[],3)/sqrt(size(tmp_estWidths,3));
 
 figure('name','Width Contrast Estimates'), bar(y), box off, hold on, xlabel('% Contrast Level'), ylabel('% Contrast (Width)'),
 xticklabels(plotLabels.contrasts)
@@ -131,3 +133,10 @@ for i = 1:nbars
     errorbar(x, y(:,i), err(:,i), 'k','LineStyle','none');
 end
 hold off
+
+% Actual vs. Perceived Contrast Plot
+y1=100.*mean(estMeans(:,1,:),3);
+y2=100.*mean(estMeans(:,5,:),3);
+x=100.*targetContrasts;
+figure('name','Actual v Percevied Contrast'), loglog(x,y1), hold on, loglog(x,y2), loglog(x,x,'--k');
+box off, legend({'0' '45'},'Location','NorthWest'), xlabel('Actual Contrast (%)'), ylabel('Perceived Contrast (%)')
