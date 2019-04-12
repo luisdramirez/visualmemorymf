@@ -54,15 +54,17 @@ for nSubj = 1:length(subjects)
     for nOffset = 1:length(probeOffsets)
         for nCon = 1:length(targetContrasts)
             currData = subjectData.(['Subject_' num2str(subjects(nSubj))]).(['Offset_' num2str(nOffset)]).(['Contrast_' num2str(nCon)])(:);
-            edges = 0:0.05:1;
+            currData = real(log10(currData));
+            edges = log10(0:0.05:1); %log of edges --> N in logspace
             [N(nCon,:),x] = histcounts(currData,edges);
             N(nCon,:) = N(nCon,:)./max(N(nCon,:));
-            xvalues = (x(1:end-1)+x(2:end))/2;
+            %N = log10(N);
+            xvalues = log10((x(1:end-1)+x(2:end)))/2;
         end
         
         global numContrasts
         numContrasts =  numel(targetContrasts);
-        startValues = [targetContrasts repmat(0.1, [1 numel(targetContrasts)])];
+        startValues = log10([(targetContrasts) (repmat(0.1, [1 numel(targetContrasts)]))]);
         options = optimset('MaxFunEvals', 5000.*numel(startValues), 'MaxIter', 5000.*numel(startValues));
         
         [est_params_tmp, r2] = fminsearch('mygauss_allContrasts', startValues, options, N, xvalues);
@@ -88,6 +90,10 @@ for nSubj = 1:length(subjects)
         end
     end
 end
+
+%transform the estMeans and estWidths back from logspace
+estMeans = 10.^estMeans;
+estWidths = 10.^estWidths;
 
 %% plotting
 
