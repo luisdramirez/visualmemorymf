@@ -5,7 +5,7 @@ clear all; close all; clc;
 scrsz = get(groot,'ScreenSize');
 expDir=pwd;
 dataDir='data_master';
-plots = 1;
+plots = 0; logtransform = 1;
 
 subjects = [1 2 3 4];
 
@@ -29,13 +29,13 @@ targetContrasts = allData{1}(1).p.centerContrasts;
 probeOffsets =  [0 round(10.^linspace(0,log10(allData{1}(1).p.probeLocWidth),allData{1}(1).p.numOffsetLoc-1))]';
 
 for nSubj = 1:numel(subjects)
-    for nRun = 1:length(allData{nSubj}) 
+    for nRun = 1:length(allData{nSubj})
         probeOffsetTemp = allData{nSubj}(nRun).p.trialEvents(:,4) - allData{nSubj}(nRun).p.trialEvents(:,2);
         probeOffsetTemp(probeOffsetTemp > 180) = probeOffsetTemp(probeOffsetTemp > 180)-360;
         probeOffsetTemp(probeOffsetTemp < -180) = 360+probeOffsetTemp(probeOffsetTemp < -180);
-        probeOffsetTemp = abs(probeOffsetTemp); 
+        probeOffsetTemp = abs(probeOffsetTemp);
         for nCon = 1:length(targetContrasts)
-            for nOffset = 1:length(probeOffsets) 
+            for nOffset = 1:length(probeOffsets)
                 currIndx = allData{nSubj}(nRun).p.trialEvents(:,1) == targetContrasts(nCon) & probeOffsetTemp == probeOffsets(nOffset);
                 estContrasts(:,nOffset,nCon,nRun,nSubj) = allData{nSubj}(nRun).data.EstimatedContrast(currIndx);
                 subjectData.(['Subject_' num2str(subjects(nSubj))]).(['Offset_' num2str(nOffset)]).(['Contrast_' num2str(nCon)])(:,nRun)= estContrasts(:,nOffset,nCon,nRun,nSubj);
@@ -54,25 +54,25 @@ for nSubj = 1:length(subjects)
     for nOffset = 1:length(probeOffsets)
         for nCon = 1:length(targetContrasts)
             currData = subjectData.(['Subject_' num2str(subjects(nSubj))]).(['Offset_' num2str(nOffset)]).(['Contrast_' num2str(nCon)])(:);
-            currData = real(log10(currData));
-            edges = log10(0:0.05:1); %log of edges --> N in logspace
+            edges = 0:0.05:1;
             [N(nCon,:),x] = histcounts(currData,edges);
             N(nCon,:) = N(nCon,:)./max(N(nCon,:));
-            %N = log10(N);
-            xvalues = log10((x(1:end-1)+x(2:end)))/2;
+            xvalues =(x(1:end-1)+x(2:end))/2;
         end
         
         global numContrasts
         numContrasts =  numel(targetContrasts);
-        startValues = log10([(targetContrasts) (repmat(0.1, [1 numel(targetContrasts)]))]);
+        startValues = [(targetContrasts) (repmat(0.1, [1 numel(targetContrasts)]))];
         options = optimset('MaxFunEvals', 5000.*numel(startValues), 'MaxIter', 5000.*numel(startValues));
         
         [est_params_tmp, r2] = fminsearch('mygauss_allContrasts', startValues, options, N, xvalues);
         tmp = reshape(est_params_tmp, [numContrasts 2])';
         est_params = [tmp(1,:); ones(1,numContrasts); tmp(2,:)];
         
-        estMeans(:,nOffset,nSubj) = est_params(1,:);
-        estWidths(:,nOffset,nSubj) = est_params(3,:);
+            estMeans(:,nOffset,nSubj) = est_params(1,:);
+            estWidths(:,nOffset,nSubj) = est_params(3,:);
+        
+        
         if plots
             figure('Position',[50 50 scrsz(3) scrsz(3)/2], 'color', [1 1 1], 'name', ['Offset_' num2str(probeOffsets(nOffset))])
             for nCon = 1:numel(targetContrasts)
@@ -83,17 +83,13 @@ for nSubj = 1:length(subjects)
                 bar(xvalues, N(nCon,:));
                 hold on
                 plot(x_fit, y_est, 'r', 'LineWidth', 2)
-                box off; title(['S' num2str(nSubj) ' | ' 'Offset=' num2str(probeOffsets(nOffset)) ' | ' num2str(round(100*targetContrasts(nCon))) '% Contrast']);
+                box off; title(['S' num2str(nSubj) ' | ' 'Offset=' num2str(probeOffsets(nOffset)) 'deg | ' num2str(round(100*targetContrasts(nCon))) '% Contrast']);
                 xlabel('Contrast (%)'); ylabel('Normalized count of perceived contrast');
                 axis square
             end
         end
     end
 end
-
-%transform the estMeans and estWidths back from logspace
-estMeans = 10.^estMeans;
-estWidths = 10.^estWidths;
 
 %% plotting
 
@@ -104,10 +100,13 @@ plotLabels.contrasts  = {num2str(tmpContrasts(1)) num2str(tmpContrasts(2)) ...
 plotLabels.offsets = {num2str(probeOffsets(1)) num2str(probeOffsets(2)) num2str(probeOffsets(3)) ...
     num2str(probeOffsets(4)) num2str(probeOffsets(5))}; % strings for legend
 
-% Mean Contrast Estimate Fitting Bar Plot
-tmp_estMeans = estMeans;
-y = 100.*mean(tmp_estMeans,3);
-err = 100.*std(tmp_estMeans,[],3)/sqrt(size(tmp_estMeans,3));
+%%% Mean Contrast Estimate Fitting Bar Plot
+y = 100.*mean(estMeans,3);
+err = 100.*std(estMeans,[],3)/sqrt(size(estMeans,3));
+if logtransform
+    y= log(y);
+    err = log(err);
+end
 
 figure('name','Mean Contrast Estimate'), bar(y), box off, hold on, xlabel('% Contrast Level'), ylabel('% Contrast (Mean)'),
 xticklabels(plotLabels.contrasts);
@@ -123,11 +122,15 @@ end
 legend(plotLabels.offsets,'Location','NorthWest')
 hold off
 
-% Width of Contrast Estimate Fitting Bar Plot
-tmp_estWidths = estWidths;
-y = 100.*mean(tmp_estWidths,3);
-err = 100.*std(tmp_estWidths,[],3)/sqrt(size(tmp_estWidths,3));
+%%% Width of Contrast Estimate Fitting Bar Plot
 
+y = 100.*mean(estWidths,3);
+err = 100.*std(estWidths,[],3)/sqrt(size(estWidths,3));
+
+if logtransform
+    y = log(y);
+    err = log(err);
+end
 figure('name','Width Contrast Estimates'), bar(y), box off, hold on, xlabel('% Contrast Level'), ylabel('% Contrast (Width)'),
 xticklabels(plotLabels.contrasts)
 ngroups = size(y, 1);
@@ -140,9 +143,19 @@ for i = 1:nbars
 end
 hold off
 
-% Actual vs. Perceived Contrast Plot
-y1=100.*mean(estMeans(:,1,:),3);
-y2=100.*mean(estMeans(:,5,:),3);
-x=100.*targetContrasts;
-figure('name','Actual v Percevied Contrast'), loglog(x,y1), hold on, loglog(x,y2), loglog(x,x,'--k');
-box off, legend({'0' '45'},'Location','NorthWest'), xlabel('Actual Contrast (%)'), ylabel('Perceived Contrast (%)')
+%%% Actual vs. Perceived Contrast Plot
+
+if logtransform
+    y1=mean(estMeans(:,1,:),3);
+    y2=mean(estMeans(:,5,:),3);
+    x=targetContrasts;
+    figure('name','Actual v Percevied Contrast'), loglog(x,y1), hold on, loglog(x,y2), loglog(x,x,'--k');
+    box off, legend({'0' '45'},'Location','NorthWest'), xlabel('log(Actual Contrast)'), ylabel('log(Perceived Contrast)')
+else
+    y1=100.*mean(estMeans(:,1,:),3);
+    y2=100.*mean(estMeans(:,5,:),3);
+    x=100.*targetContrasts;
+    figure('name','Actual v Percevied Contrast'), loglog(x,y1), hold on, loglog(x,y2), loglog(x,x,'--k');
+    
+    box off, legend({'0' '45'},'Location','NorthWest'), xlabel('Actual Contrast (%)'), ylabel('Perceived Contrast (%)')
+end
