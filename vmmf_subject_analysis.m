@@ -53,6 +53,7 @@ contrastEstimates = [];
 index_probeSelective = [];
 locationErrorMatSuper = [];
 conditionMatSuper = [];
+locationAveragesByCond = zeros(3,length(subjects));
 
 % Organize Contrast and Location  Estimates
 for currSubj = 1:numel(subjectProfile.SubjectName)
@@ -110,11 +111,16 @@ for currSubj = 1:numel(subjectProfile.SubjectName)
         contrastEstimates = [contrastEstimates; subjectProfile.TheData{currSubj}(currRun).data.EstimatedContrast(:)];
     end
     
+    % Save out average location error Per Condition Per Subject
+    for i = 1:3
+        locationAveragesByCond(i,currSubj) = mean(mean(abs(locationErrorMat(conditionMat==i))));
+    end
+    
     % Save out organized data structure
     subjectProfile.OrganizedData{currSubj} = ContrastData;
  
     % Save out mean location error
-    subjectProfile.LocationError(currSubj) = mean(mean(locationErrorMat));
+    subjectProfile.LocationError(currSubj) = mean(mean(abs(locationErrorMat)));
     % Save out current subject location mat onto super location error data matrix
     locationErrorMatSuper = [locationErrorMatSuper; locationErrorMat];
     
@@ -173,7 +179,7 @@ for currSubj = 1:numel(subjectProfile.SubjectName)
     end
 end
 
-%% NOTES!
+%% Location Task Bar Graph
 %take absolute value of the location errors
 locationErrorMatSuper = abs(locationErrorMatSuper);
 %then find the average and error for anywhere in the matrix of location
@@ -184,12 +190,15 @@ locationErrorOrgBaseline(:,1) = locationErrorMatSuper(conditionMatSuper == 3); %
 % Bar graph this:
 figure, set(gcf,'Name','Location Task Bar Graph');
 bar(1:3, [mean(locationErrorOrgByCond(:,1)) mean(locationErrorOrgByCond(:,2)) mean(locationErrorOrgBaseline(:,1))]);
-legend('Perception','Working Memory','Baseline')
+%legend({'Perception','Working Memory','Baseline'})
 hold on
 % Errorbars:
 errorbar(1:3,[mean(locationErrorOrgByCond(:,1)) mean(locationErrorOrgByCond(:,2)) mean(locationErrorOrgBaseline(:,1))]...
-    , [std(locationErrorOrgByCond(:,1))/sqrt(length(locationErrorOrgByCond(:,1))) mean(locationErrorOrgByCond(:,2))/sqrt(length(locationErrorOrgByCond(:,2)))...
-    mean(locationErrorOrgBaseline(:,1))/sqrt(length(locationErrorOrgBaseline(:,1)))],'.')
+    , [std(locationErrorOrgByCond(:,1))/sqrt(length(locationErrorOrgByCond(:,1))) std(locationErrorOrgByCond(:,2))/sqrt(length(locationErrorOrgByCond(:,2)))...
+    std(locationErrorOrgBaseline(:,1))/sqrt(length(locationErrorOrgBaseline(:,1)))],'k.')
+% Mean for each subject each condition dots:
+hold on
+plot(locationAveragesByCond,'k.','MarkerSize',15)
 
 
 %% Probe Effect Analysis
