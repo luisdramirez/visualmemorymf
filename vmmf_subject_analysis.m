@@ -121,13 +121,8 @@ for currSubj = 1:numel(subjectProfile.SubjectName)
  
     % Save out mean location error
     subjectProfile.LocationError(currSubj) = mean(mean(abs(locationErrorMat)));
-    % Save out current subject location mat onto super location error data matrix
-    locationErrorMatSuper = [locationErrorMatSuper; locationErrorMat];
-    
-    % Save out current subject condition matrix onto super condition
-    % matrix
-    conditionMatSuper = [conditionMatSuper; conditionMat];
    
+  
     %Save out mean contrast estimates
     for currField = 1:numel(dataFields)
         for currContrast = 1:numel(centerContrast)
@@ -179,26 +174,6 @@ for currSubj = 1:numel(subjectProfile.SubjectName)
     end
 end
 
-%% Location Task Bar Graph
-%take absolute value of the location errors
-locationErrorMatSuper = abs(locationErrorMatSuper);
-%then find the average and error for anywhere in the matrix of location
-%errors corresponding to the right condition. 
-locationErrorOrgByCond(:,1) = locationErrorMatSuper(conditionMatSuper == 1); % Perception Condition
-locationErrorOrgByCond(:,2) = locationErrorMatSuper(conditionMatSuper == 2); % Working Memory Condition
-locationErrorOrgBaseline(:,1) = locationErrorMatSuper(conditionMatSuper == 3); % Baseline Condition
-% Bar graph this:
-figure, set(gcf,'Name','Location Task Bar Graph');
-bar(1:3, [mean(locationErrorOrgByCond(:,1)) mean(locationErrorOrgByCond(:,2)) mean(locationErrorOrgBaseline(:,1))]);
-%legend({'Perception','Working Memory','Baseline'})
-hold on
-% Errorbars:
-errorbar(1:3,[mean(locationErrorOrgByCond(:,1)) mean(locationErrorOrgByCond(:,2)) mean(locationErrorOrgBaseline(:,1))]...
-    , [std(locationErrorOrgByCond(:,1))/sqrt(length(locationErrorOrgByCond(:,1))) std(locationErrorOrgByCond(:,2))/sqrt(length(locationErrorOrgByCond(:,2)))...
-    std(locationErrorOrgBaseline(:,1))/sqrt(length(locationErrorOrgBaseline(:,1)))],'k.')
-% Mean for each subject each condition dots:
-hold on
-plot(locationAveragesByCond,'k.','MarkerSize',15)
 
 
 %% Probe Effect Analysis
@@ -348,9 +323,9 @@ plot(locationAveragesByCond,'k.','MarkerSize',15)
 %     end
 %     
 %     % fit all subjects data simultaneous
-%     % mean, amplitude, sigma
-%     startValues = [centerContrast' repmat(0.1, [1 numel(centerContrast)])];
-%     options = optimset('MaxFunEvals', 5000.*numel(startValues), 'MaxIter', 5000.*numel(startValues));
+    % mean, amplitude, sigma
+    startValues = [centerContrast' repmat(0.1, [1 numel(centerContrast)])];
+   % options = optimset('MaxFunEvals', 5000.*numel(startValues), 'MaxIter', 5000.*numel(startValues));
 %     
 %     [est_params_tmp, r2_bl] = fminsearch('mygauss_allContrasts', startValues, options, N_bl_con, xvalues_con);
 %     tmp = reshape(est_params_tmp, [5 2])';
@@ -373,90 +348,90 @@ plot(locationAveragesByCond,'k.','MarkerSize',15)
 %     end
 % end
 % 
-% % %% Contrast Model Fitting
-% experiments = {'Perception Condition','Visual Working Memory'};
-% %Model Fit Setup
-% surroundContrast = theData(1).p.surroundContrast; %Surround grating has 100% contrast level, =1
-% C50 = .6;
-% Wi = 0;
-% Wi_var = 0;
-% b = 0;
-% n = 2;
-% for e = 1:numel(experiments)
-%     for subjCount = 1:numel(subjectProfile.SubjectName)
-%         % Baselines are NOT currently separated. These are the baseline
-%         % estimates for working memory and perception combined.
-%         baselineMat(subjCount,:) = subjectProfile.ContrastEstimate(subjCount,:,baselineIndex);
-%         if e == 1 %Perception Experiment %
-%             variableMat(subjCount,:) = subjectProfile.ContrastEstimate(subjCount,:,perceptionIndex);
-%         elseif e == 2  % Working Memory Experiment %
-%             variableMat(subjCount,:) = subjectProfile.ContrastEstimate(subjCount,:,workingMemoryIndex);
-%         end
-%
-%         % Fit individual data with Normalization model
-%         options = optimset('MaxFunEvals', 10^6, 'MaxIter', 10^6);
-%         % Use formula from Xing&Heeger 2001 to use baseline data to constrain alpha and n, and look for the inhibitory weight
-%                 % to explain the suppressive influence of the surround
-%                     % Wi: suppression weight
-%                     % C50: inflection point
-%                     % n: nonlinear transducer, determining steepness
-%
-%             indv_r2 = zeros(2,numel(subjectProfile.SubjectName),2);
-%             startValuesModelFitting = [C50 n Wi_var];
-%             Data = {centerContrast, baselineMat(subjCount,:), variableMat(subjCount,:), surroundContrast};
-%             [est_params(e,subjCount,:), r2(e,subjCount)] = fminsearch('fitNormalizationModel_contrastMatch', startValues, options, Data);
-%
-%
-%             % Fit Y data based off of estimated parameters
-%             Y_base = (centerContrast.^est_params(e,subjCount,2)) ./ ...
-%                 ((est_params(e,subjCount,1).^est_params(e,subjCount,2)) + (centerContrast.^est_params(e,subjCount,2)));
-%
-%             Y_var = (centerContrast.^est_params(e,subjCount,2)) ./ ...
-%                 ((est_params(e,subjCount,1).^est_params(e,subjCount,2)) + (centerContrast.^est_params(e,subjCount,2)) + (est_params(e,subjCount,3))*(surroundContrast.^est_params(e,subjCount,2)));
-%
-%             % R^2 values for baseline and variable condition
-%             r2_BL = 1 - (sum((baselineMat(subjCount,:) - Y_base).^2) / sum((baselineMat(subjCount,:) - mean(baselineMat(subjCount,:))).^2));
-%             r2_V = 1 - (sum((variableMat(subjCount,:) - Y_var).^2) / sum((variableMat(subjCount,:) - mean(variableMat(subjCount,:))).^2));
-%             indvR2(e,subjCount,:) = [r2_BL r2_V];
-%
-%             if normalizationModelPlots
-%                  %Difference in perceived contrast compared to center contrast
-%
-%                 C_fit = 0.1:0.01:0.8;
-%                 Y_var = (C_fit.^est_params(e,subjCount,2)) ./ ...
-%                 ((est_params(e,subjCount,1).^est_params(e,subjCount,2)) + (C_fit.^est_params(e,subjCount,2)) + (est_params(e,subjCount,3)*(surroundContrast.^est_params(e,subjCount,2))));
-%
-%                 %Display Fits
-%                 figure;
-%                 subplot(2,(numel(subjectProfile.SubjectName)/2), subjCount)
-%                 hold all
-%                 colormap lines
-%                 if e == 1
-%                     loglog(centerContrast,variableMat(subjCount,:),'Linewidth',1.25)
-%                     loglog(centerContrast,baselineMat(subjCount,:),'Linewidth',1.25)
-%                 elseif e == 2
-%                     loglog(centerContrast,variableMat(subjCount,:),'Linewidth',1.25)
-%                     loglog(centerContrast,baselineMat(subjCount,:),'Linewidth',1.25)
-%                 end
-%                 loglog(C_Test,Y_base,'Linewidth',2)
-%                 loglog(C_fit, Y_var,'Linewidth',2)
-%                 hold all;
-%                 xlim([0.1 0.8]), ylim([0.1 0.8]); box off
-%                 ylabel('Perceived Contrast')
-%                 xlabel('Center Contrast');
-%                 plot([0.09 0.8], [0.09, 0.8], 'k:');
-%                 if e == 1
-%                     legend({'Perception Est.','Baseline Est.','Baseline Fit','Perception Fit'},'Location','northwest')
-%                 elseif e == 2
-%                     legend({'Working Memory Est.','Baseline Est.','Baseline Fit','Working Mem Fit'},'Location','northwest')
-%                 end
-%                 title(['Subject ' num2str(subjCount)]);
-%                 axis square;
-%                 hold all;
-%                 set(gca,'YScale','log','XScale','log')
-%             end
-%     end
-% end
+% %% Contrast Model Fitting
+experiments = {'Perception Condition','Visual Working Memory'};
+%Model Fit Setup
+surroundContrast = theData(1).p.surroundContrast; %Surround grating has 100% contrast level, =1
+C50 = .6;
+Wi = 0;
+Wi_var = 0;
+b = 0;
+n = 2;
+for e = 1:numel(experiments)
+    for subjCount = 1:numel(subjectProfile.SubjectName)
+        % Baselines are NOT currently separated. These are the baseline
+        % estimates for working memory and perception combined.
+        baselineMat(subjCount,:) = subjectProfile.ContrastEstimate(subjCount,:,baselineIndex);
+        if e == 1 %Perception Experiment %
+            variableMat(subjCount,:) = subjectProfile.ContrastEstimate(subjCount,:,perceptionIndex);
+        elseif e == 2  % Working Memory Experiment %
+            variableMat(subjCount,:) = subjectProfile.ContrastEstimate(subjCount,:,workingMemoryIndex);
+        end
+
+        % Fit individual data with Normalization model
+        options = optimset('MaxFunEvals', 10^9, 'MaxIter', 10^9);
+        % Use formula from Xing&Heeger 2001 to use baseline data to constrain alpha and n, and look for the inhibitory weight
+                % to explain the suppressive influence of the surround
+                    % Wi: suppression weight
+                    % C50: inflection point
+                    % n: nonlinear transducer, determining steepness
+
+            indv_r2 = zeros(2,numel(subjectProfile.SubjectName),2);
+            startValuesModelFitting = [C50 n Wi_var];
+            Data = {centerContrast, baselineMat(subjCount,:), variableMat(subjCount,:), surroundContrast};
+            [est_params(e,subjCount,:), r2(e,subjCount)] = fminsearch('fitNormalizationModel_contrastMatch', startValues, options, Data);
+
+
+            % Fit Y data based off of estimated parameters
+            Y_base = (centerContrast.^est_params(e,subjCount,2)) ./ ...
+                ((est_params(e,subjCount,1).^est_params(e,subjCount,2)) + (centerContrast.^est_params(e,subjCount,2)));
+
+            Y_var = (centerContrast.^est_params(e,subjCount,2)) ./ ...
+                ((est_params(e,subjCount,1).^est_params(e,subjCount,2)) + (centerContrast.^est_params(e,subjCount,2)) + (est_params(e,subjCount,3))*(surroundContrast.^est_params(e,subjCount,2)));
+
+            % R^2 values for baseline and variable condition
+            r2_BL = 1 - (sum((baselineMat(subjCount,:) - Y_base).^2) / sum((baselineMat(subjCount,:) - mean(baselineMat(subjCount,:))).^2));
+            r2_V = 1 - (sum((variableMat(subjCount,:) - Y_var).^2) / sum((variableMat(subjCount,:) - mean(variableMat(subjCount,:))).^2));
+            indvR2(e,subjCount,:) = [r2_BL r2_V];
+
+            if normalizationModelPlots
+                 %Difference in perceived contrast compared to center contrast
+
+                C_fit = 0.1:0.01:0.8;
+                Y_var = (C_fit.^est_params(e,subjCount,2)) ./ ...
+                ((est_params(e,subjCount,1).^est_params(e,subjCount,2)) + (C_fit.^est_params(e,subjCount,2)) + (est_params(e,subjCount,3)*(surroundContrast.^est_params(e,subjCount,2))));
+
+                %Display Fits
+                figure;
+                subplot(2,(numel(subjectProfile.SubjectName)/2), subjCount)
+                hold all
+                colormap lines
+                if e == 1
+                    loglog(centerContrast,variableMat(subjCount,:),'Linewidth',1.25)
+                    loglog(centerContrast,baselineMat(subjCount,:),'Linewidth',1.25)
+                elseif e == 2
+                    loglog(centerContrast,variableMat(subjCount,:),'Linewidth',1.25)
+                    loglog(centerContrast,baselineMat(subjCount,:),'Linewidth',1.25)
+                end
+                loglog(C_Test,Y_base,'Linewidth',2)
+                loglog(C_fit, Y_var,'Linewidth',2)
+                hold all;
+                xlim([0.1 0.8]), ylim([0.1 0.8]); box off
+                ylabel('Perceived Contrast')
+                xlabel('Center Contrast');
+                plot([0.09 0.8], [0.09, 0.8], 'k:');
+                if e == 1
+                    legend({'Perception Est.','Baseline Est.','Baseline Fit','Perception Fit'},'Location','northwest')
+                elseif e == 2
+                    legend({'Working Memory Est.','Baseline Est.','Baseline Fit','Working Mem Fit'},'Location','northwest')
+                end
+                title(['Subject ' num2str(subjCount)]);
+                axis square;
+                hold all;
+                set(gca,'YScale','log','XScale','log')
+            end
+    end
+end
 
 %% Supression Index
 % Perception: first page.
@@ -478,7 +453,6 @@ suppressionIndex.Order1(1:numel(subjectProfile.SubjectName),:,2) = ((subjectProf
 suppressionIndex.Collapsed_PS(1:numel(subjectProfile.SubjectName),:,2) = ((ContrastEstimate_PS(:,:,2)) - (ContrastEstimate_PS(:,:,3))) ...
     ./((ContrastEstimate_PS(:,:,2)) + (ContrastEstimate_PS(:,:,3)));
 
-%% Location Analysis
 
 %% Super Subject Plots
 if superPlots
@@ -608,49 +582,49 @@ if groupPlots
     axis square;
     legend({'Perception Condition','Working Memory Condition'})
     
-%     % Split between orders%
-%     figure('Color', [1 1 1]);
-%     
-%     subplot(1,2,1)
-%     set(gcf, 'Name', sprintf('Suppression Index: Perception vs. Working Memory'));
-%     hold all;
-%     %Perception
-%     errorbar(centerContrast', nanmean(suppressionIndex.Order0(:,:,1),1), nanstd(suppressionIndex.Order0(:,:,1),1)...
-%         /sqrt(size(visualmemory_subjectsRan,2)), 'r','LineWidth',3)
-%     %Working Memory
-%     errorbar(centerContrast', nanmean(suppressionIndex.Order0(:,:,2),1), nanstd(suppressionIndex.Order0(:,:,2),1)...
-%         /sqrt(size(visualmemory_subjectsRan,2)), 'b','LineWidth',3); hold all;
-%     plot(repmat(centerContrast', [size(visualmemory_subjectsRan,2) 1]), (suppressionIndex.Order0(:,:,1)),'r.','MarkerSize',10);
-%     plot(repmat(centerContrast', [size(visualmemory_subjectsRan,2) 1]), (suppressionIndex.Order0(:,:,2)),'b.','MarkerSize',10);
-%     hold all
-%     plot([0.09 0.8],[0 0],':k')
-%     ylabel('Suppression Index (surround-nosurround)/(surround+nosurround)');
-%     xlabel('Contrast (%)');
-%     xlim([0.09 0.8]);
-%     ylim([-0.3 0.3]);
-%     title('Order 0: Contrast, then Location');
-%     axis square;
-%     legend({'Perception Condition','Working Memory Condition'})
-%     
-%     subplot(1,2,2)
-%     hold all;
-%     %Perception
-%     errorbar(centerContrast', mean(suppressionIndex.Order1(:,:,1),1), std(suppressionIndex.Order1(:,:,1),1)...
-%         /sqrt(size(visualmemory_subjectsRan,2)), 'r','LineWidth',3);
-%     %Working Memory
-%     errorbar(centerContrast', mean(suppressionIndex.Order1(:,:,2),1), std(suppressionIndex.Order1(:,:,2),1)...
-%         /sqrt(size(visualmemory_subjectsRan,2)), 'b','LineWidth',3);
-%     plot(repmat(centerContrast', [size(visualmemory_subjectsRan,2) 1]), (suppressionIndex.Order1(:,:,1)),'r.','MarkerSize',10);
-%     plot(repmat(centerContrast', [size(visualmemory_subjectsRan,2) 1]), (suppressionIndex.Order1(:,:,2)),'b.','MarkerSize',10);
-%     hold all
-%     plot([0.09 0.8],[0 0],':k')
-%     ylabel('Suppression Index (surround-nosurround)/(surround+nosurround)');
-%     xlabel('Contrast (%)');
-%     xlim([0.09 0.8]);
-%     ylim([-0.5 0.5]);
-%     title('Order 1: Location, then Contrast');
-%     axis square;
-%     legend({'Perception Condition','Working Memory Condition'})
+    % Split between orders%
+    figure('Color', [1 1 1]);
+    
+    subplot(1,2,1)
+    set(gcf, 'Name', sprintf('Suppression Index: Perception vs. Working Memory'));
+    hold all;
+    %Perception
+    errorbar(centerContrast', nanmean(suppressionIndex.Order0(:,:,1),1), nanstd(suppressionIndex.Order0(:,:,1),1)...
+        /sqrt(size(visualmemory_subjectsRan,2)), 'r','LineWidth',3)
+    %Working Memory
+    errorbar(centerContrast', nanmean(suppressionIndex.Order0(:,:,2),1), nanstd(suppressionIndex.Order0(:,:,2),1)...
+        /sqrt(size(visualmemory_subjectsRan,2)), 'b','LineWidth',3); hold all;
+    plot(repmat(centerContrast', [size(visualmemory_subjectsRan,2) 1]), (suppressionIndex.Order0(:,:,1)),'r.','MarkerSize',10);
+    plot(repmat(centerContrast', [size(visualmemory_subjectsRan,2) 1]), (suppressionIndex.Order0(:,:,2)),'b.','MarkerSize',10);
+    hold all
+    plot([0.09 0.8],[0 0],':k')
+    ylabel('Suppression Index (surround-nosurround)/(surround+nosurround)');
+    xlabel('Contrast (%)');
+    xlim([0.09 0.8]);
+    ylim([-0.3 0.3]);
+    title('Order 0: Contrast, then Location');
+    axis square;
+    legend({'Perception Condition','Working Memory Condition'})
+    
+    subplot(1,2,2)
+    hold all;
+    %Perception
+    errorbar(centerContrast', mean(suppressionIndex.Order1(:,:,1),1), std(suppressionIndex.Order1(:,:,1),1)...
+        /sqrt(size(visualmemory_subjectsRan,2)), 'r','LineWidth',3);
+    %Working Memory
+    errorbar(centerContrast', mean(suppressionIndex.Order1(:,:,2),1), std(suppressionIndex.Order1(:,:,2),1)...
+        /sqrt(size(visualmemory_subjectsRan,2)), 'b','LineWidth',3);
+    plot(repmat(centerContrast', [size(visualmemory_subjectsRan,2) 1]), (suppressionIndex.Order1(:,:,1)),'r.','MarkerSize',10);
+    plot(repmat(centerContrast', [size(visualmemory_subjectsRan,2) 1]), (suppressionIndex.Order1(:,:,2)),'b.','MarkerSize',10);
+    hold all
+    plot([0.09 0.8],[0 0],':k')
+    ylabel('Suppression Index (surround-nosurround)/(surround+nosurround)');
+    xlabel('Contrast (%)');
+    xlim([0.09 0.8]);
+    ylim([-0.5 0.5]);
+    title('Order 1: Location, then Contrast');
+    axis square;
+    legend({'Perception Condition','Working Memory Condition'})
 end
 
 %% Group Plots
@@ -731,28 +705,28 @@ if groupPlots
 %     title(['Center vs. Perceived Contrast, without 0.75 or 0.1 Probe Trials'])
 %     hold off
     
-%     %Suppression Index%
-%     %Collapsed over both orders
-%     hold off
-%     figure('Color', [1 1 1]);
-%     set(gcf, 'Name', sprintf('Suppression Index: Perception vs. Working Memory'));
-%     hold all;
-%     %Perception
-%     errorbar(centerContrast', mean(suppressionIndex.Collapsed(:,:,1),1), std(suppressionIndex.Collapsed(:,:,1),1)...
-%         /sqrt(size(visualmemory_subjectsRan,2)), 'r','LineWidth',3);
-%     %Working Memory
-%     errorbar(centerContrast', mean(suppressionIndex.Collapsed(:,:,2),1), std(suppressionIndex.Collapsed(:,:,2),1)...
-%         /sqrt(size(visualmemory_subjectsRan,2)), 'b','LineWidth',3);
-%     plot(repmat(centerContrast', [numel(subjectProfile.SubjectName) 1]), (suppressionIndex.Collapsed(:,:,1)),'r.','MarkerSize',10);
-%     plot(repmat(centerContrast', [numel(subjectProfile.SubjectName) 1]), (suppressionIndex.Collapsed(:,:,2)),'b.','MarkerSize',10);
-%     hold on
-%     plot([0.09 0.8],[0 0],':k')
-%     ylabel('Suppression Index (surround-nosurround)/(surround+nosurround)');
-%     xlabel('Contrast (%)');
-%     xlim([0.09 0.8]);
-%     ylim([-0.3 0.3]);
-%     axis square;
-%     legend({'Perception Condition','Working Memory Condition'})
+    %Suppression Index%
+    %Collapsed over both orders
+    hold off
+    figure('Color', [1 1 1]);
+    set(gcf, 'Name', sprintf('Suppression Index: Perception vs. Working Memory'));
+    hold all;
+    %Perception
+    errorbar(centerContrast', mean(suppressionIndex.Collapsed(:,:,1),1), std(suppressionIndex.Collapsed(:,:,1),1)...
+        /sqrt(size(visualmemory_subjectsRan,2)), 'r','LineWidth',3);
+    %Working Memory
+    errorbar(centerContrast', mean(suppressionIndex.Collapsed(:,:,2),1), std(suppressionIndex.Collapsed(:,:,2),1)...
+        /sqrt(size(visualmemory_subjectsRan,2)), 'b','LineWidth',3);
+    plot(repmat(centerContrast', [numel(subjectProfile.SubjectName) 1]), (suppressionIndex.Collapsed(:,:,1)),'r.','MarkerSize',10);
+    plot(repmat(centerContrast', [numel(subjectProfile.SubjectName) 1]), (suppressionIndex.Collapsed(:,:,2)),'b.','MarkerSize',10);
+    hold on
+    plot([0.09 0.8],[0 0],':k')
+    ylabel('Suppression Index (surround-nosurround)/(surround+nosurround)');
+    xlabel('Contrast (%)');
+    xlim([0.09 0.8]);
+    ylim([-0.3 0.3]);
+    axis square;
+    legend({'Perception Condition','Working Memory Condition'})
     
 %     % Split between orders%
 %     figure('Color', [1 1 1]);
@@ -798,7 +772,7 @@ if groupPlots
 %     axis square;
 %     legend({'Perception Condition','Working Memory Condition'})
     
-    % Suppression index: excluding trials with 0.1 or 0.75 contrasts %
+% %    Suppression index: excluding trials with 0.1 or 0.75 contrasts %
 %     hold off
 %     figure('Color', [1 1 1]);
 %     set(gcf, 'Name', sprintf('Suppression Index: Perception vs. Working Memory, without 0.1 or 0.75 contrast probes'));
