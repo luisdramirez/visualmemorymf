@@ -4,9 +4,9 @@ clear all; close all; clc;
 scrsz = get(groot,'ScreenSize');
 
 subjPlots = 0;
-groupPlots = 1;
-superPlots = 1;
-normalizationModelPlots = 0;
+groupPlots = 0;
+superPlots = 0;
+normalizationModelPlots = 1;
 
 perceptionIndex = 1;
 workingMemoryIndex = 2;
@@ -357,6 +357,7 @@ Wi = 0;
 Wi_var = 0;
 b = 0;
 n = 2;
+C_Test = centerContrast;
 for e = 1:numel(experiments)
     for subjCount = 1:numel(subjectProfile.SubjectName)
         % Baselines are NOT currently separated. These are the baseline
@@ -369,17 +370,18 @@ for e = 1:numel(experiments)
         end
 
         % Fit individual data with Normalization model
-        options = optimset('MaxFunEvals', 10^9, 'MaxIter', 10^9);
+        options = optimset('MaxFunEvals', 10^6, 'MaxIter', 10^6);
         % Use formula from Xing&Heeger 2001 to use baseline data to constrain alpha and n, and look for the inhibitory weight
                 % to explain the suppressive influence of the surround
-                    % Wi: suppression weight
+                    % Wi: suppression weight --> surround induced
+                         % normalization
                     % C50: inflection point
                     % n: nonlinear transducer, determining steepness
 
             indv_r2 = zeros(2,numel(subjectProfile.SubjectName),2);
             startValuesModelFitting = [C50 n Wi_var];
             Data = {centerContrast, baselineMat(subjCount,:), variableMat(subjCount,:), surroundContrast};
-            [est_params(e,subjCount,:), r2(e,subjCount)] = fminsearch('fitNormalizationModel_contrastMatch', startValues, options, Data);
+            [est_params(e,subjCount,:), r2(e,subjCount)] = fminsearch('fitNormalizationModel_contrastMatch', startValuesModelFitting, options, Data);
 
 
             % Fit Y data based off of estimated parameters
@@ -402,7 +404,7 @@ for e = 1:numel(experiments)
                 ((est_params(e,subjCount,1).^est_params(e,subjCount,2)) + (C_fit.^est_params(e,subjCount,2)) + (est_params(e,subjCount,3)*(surroundContrast.^est_params(e,subjCount,2))));
 
                 %Display Fits
-                figure;
+                
                 subplot(2,(numel(subjectProfile.SubjectName)/2), subjCount)
                 hold all
                 colormap lines
@@ -559,6 +561,33 @@ if groupPlots
     %     title(['Center vs. Perceived Contrast Order 2'])
     %     hold off
     
+    % Wi est - both perception and working memory conditions --> Surround induced normalization %
+    
+        % with ALL data
+        bar([0 1.0], mean(est_params(:,:,3),2), 0.3); % page 3 is surround induced noramlization parameter
+        hold all
+        handles = get(gca, 'Children');
+        set(handles(1), 'FaceColor', [0 0 1], 'EdgeColor', 'none'); 
+        errorbar([0 1], mean(est_params(:,:,3),2)',std(est_params(:,:,3),[], 2)'/sqrt(subjCount), 'k.')
+        plot(repmat([0 1.0], [length(subjects) 1]), est_params(:,:,3)', 'ok');
+        box off; xlim([-0.5 1.5]); set(gca, 'Xtick', [0 1], 'XtickLabel', {'Perc' 'vWM'})
+        title(sprintf('Surround Induced Normalization\n Parameter'))
+        
+        % excluding subject 5 - temporarily
+        allbutvec = [1:4 6:10];
+        for i = 1:length(allbutvec)
+            est_params2(:,i,:) = est_params(:,i,:);
+        end
+        bar([0 1.0], mean(est_params2(:,:,3),2), 0.3); % page 3 is surround induced noramlization parameter
+        hold all
+        handles = get(gca, 'Children');
+        set(handles(1), 'FaceColor', [0 0 1], 'EdgeColor', 'none'); 
+        errorbar([0 1], mean(est_params2(:,:,3),2)',std(est_params2(:,:,3),[], 2)'/sqrt(subjCount), 'k.')
+        plot(repmat([0 1.0], [length(subjects)-1 1]), est_params2(:,:,3)', 'ok');
+        box off; xlim([-0.5 1.5]); set(gca, 'Xtick', [0 1], 'XtickLabel', {'Perc' 'vWM'})
+        title(sprintf('Surround Induced Normalization\n Parameter - No 5'))
+        ylim([-0.5 0.5])
+
     %Suppression Index%
     %Collapsed over both orders
     hold off
@@ -793,4 +822,21 @@ if groupPlots
 %     ylim([-0.3 0.3]);
 %     axis square;
 %     legend({'Perception Condition','Working Memory Condition'})
+end
+
+
+
+%% sanity check
+if groupPlots
+figure;
+    for i = 1:length(subjects)
+        subplot(2,5,i)
+        loglog(centerContrast,subjectProfile.ContrastEstimate(i,:,1))
+        hold all
+        loglog(centerContrast,subjectProfile.ContrastEstimate(i,:,2))
+        loglog(centerContrast,subjectProfile.ContrastEstimate(i,:,3))
+        legend({'Perc','WM','BL'})
+        xlim([0.1 0.75]); ylim([0.1 0.75])
+        plot([0.1 0.75],[0.1 0.75],'k--')
+    end
 end

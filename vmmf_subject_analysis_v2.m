@@ -145,6 +145,20 @@ plotLabels.offsets = {num2str(probeOffsets(1)) num2str(probeOffsets(2)) num2str(
 y = 100.*mean(estMeans,3);
 err = 100.*std(estMeans,[],3)/sqrt(size(estMeans,3));
 
+figure('name','Mean Contrast Estimate (Subj. Avg.)')
+for i = 1:nOffset
+    errorbar(targetContrasts*100 , y(:,i), err(:,i))
+    set(gca, 'YScale', 'log', 'XScale', 'log')
+    hold on
+end
+plot([16.55 75],[16.55 75],'k--')
+set(gca, 'YScale', 'log', 'XScale', 'log')
+xticklabels(16.5,27,45,75);
+xlabel('Target Contrast (%)')
+ylabel('Percieved Contrast (%)')
+legend({0,1,4,13,45})
+hold off
+
 figure('name','Mean Contrast Estimate (Subject Average)')
 bar(y)
 box off, hold on, xlabel('% Contrast Level'), ylabel('% Contrast (Mean)')
