@@ -4,7 +4,7 @@ clear all; close all; clc;
 scrsz = get(groot,'ScreenSize');
 
 subjPlots = 0;
-groupPlots = 0;
+groupPlots = 1;
 superPlots = 0;
 normalizationModelPlots = 1;
 
@@ -14,7 +14,7 @@ baselineIndex = 3;
 
 expDir=pwd;
 dataDir='data_master';
-subjects = 1:10;
+subjects = 1:9;
 % Load in data
 cd(dataDir)
 load('visualmemory_subjectsRan')
@@ -405,7 +405,7 @@ for e = 1:numel(experiments)
 
                 %Display Fits
                 
-                subplot(2,(numel(subjectProfile.SubjectName)/2), subjCount)
+                subplot(2,round(numel(subjectProfile.SubjectName)/2), subjCount)
                 hold all
                 colormap lines
                 if e == 1
@@ -562,7 +562,7 @@ if groupPlots
     %     hold off
     
     % Wi est - both perception and working memory conditions --> Surround induced normalization %
-    
+    normparams = mean(est_params(:,:,3),2);
         % with ALL data
         bar([0 1.0], mean(est_params(:,:,3),2), 0.3); % page 3 is surround induced noramlization parameter
         hold all
@@ -573,20 +573,30 @@ if groupPlots
         box off; xlim([-0.5 1.5]); set(gca, 'Xtick', [0 1], 'XtickLabel', {'Perc' 'vWM'})
         title(sprintf('Surround Induced Normalization\n Parameter'))
         
-        % excluding subject 5 - temporarily
-        allbutvec = [1:4 6:10];
-        for i = 1:length(allbutvec)
-            est_params2(:,i,:) = est_params(:,i,:);
-        end
-        bar([0 1.0], mean(est_params2(:,:,3),2), 0.3); % page 3 is surround induced noramlization parameter
+           % with ALL data
+        bar([0 1.0], mean(est_params(:,:,3),2), 0.3); % page 3 is surround induced noramlization parameter
         hold all
         handles = get(gca, 'Children');
         set(handles(1), 'FaceColor', [0 0 1], 'EdgeColor', 'none'); 
-        errorbar([0 1], mean(est_params2(:,:,3),2)',std(est_params2(:,:,3),[], 2)'/sqrt(subjCount), 'k.')
-        plot(repmat([0 1.0], [length(subjects)-1 1]), est_params2(:,:,3)', 'ok');
+        errorbar([0 1], mean(est_params(:,:,3),2)',std(est_params(:,:,3),[], 2)'/sqrt(subjCount), 'k.')
+        plot(repmat([0 1.0], [length(subjects) 1]), est_params(:,:,3)', 'ok');
         box off; xlim([-0.5 1.5]); set(gca, 'Xtick', [0 1], 'XtickLabel', {'Perc' 'vWM'})
-        title(sprintf('Surround Induced Normalization\n Parameter - No 5'))
-        ylim([-0.5 0.5])
+        title(sprintf('Surround Induced Normalization\n Parameter'))
+        
+%         % excluding subject 5 - temporarily
+%         allbutvec = [1:4 6:10];
+%         for i = 1:length(allbutvec)
+%             est_params2(:,i,:) = est_params(:,i,:);
+%         end
+%         bar([0 1.0], mean(est_params2(:,:,3),2), 0.3); % page 3 is surround induced noramlization parameter
+%         hold all
+%         handles = get(gca, 'Children');
+%         set(handles(1), 'FaceColor', [0 0 1], 'EdgeColor', 'none'); 
+%         errorbar([0 1], mean(est_params2(:,:,3),2)',std(est_params2(:,:,3),[], 2)'/sqrt(subjCount), 'k.')
+%         plot(repmat([0 1.0], [length(subjects) 1]), est_params2(:,:,3)', 'ok');
+%         box off; xlim([-0.5 1.5]); set(gca, 'Xtick', [0 1], 'XtickLabel', {'Perc' 'vWM'})
+%         title(sprintf('Surround Induced Normalization\n Parameter - No 5'))
+%         ylim([-0.5 0.5])
 
     %Suppression Index%
     %Collapsed over both orders

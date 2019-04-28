@@ -147,16 +147,16 @@ err = 100.*std(estMeans,[],3)/sqrt(size(estMeans,3));
 
 figure('name','Mean Contrast Estimate (Subj. Avg.)')
 for i = 1:nOffset
-    errorbar(targetContrasts*100 , y(:,i), err(:,i))
+    errorbar(targetContrasts*100 , y(:,i), err(:,i),'LineWidth',3)
     set(gca, 'YScale', 'log', 'XScale', 'log')
     hold on
 end
-plot([16.55 75],[16.55 75],'k--')
+legend({'0','1','4','13','45'})
+plot([16.55 75],[16.55 75],'k--','LineWidth',3)
 set(gca, 'YScale', 'log', 'XScale', 'log')
-xticklabels(16.5,27,45,75);
 xlabel('Target Contrast (%)')
 ylabel('Percieved Contrast (%)')
-legend({0,1,4,13,45})
+%xticklabels({'16.5','27','45','75'});
 hold off
 
 figure('name','Mean Contrast Estimate (Subject Average)')
