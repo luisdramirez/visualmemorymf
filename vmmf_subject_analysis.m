@@ -14,7 +14,7 @@ baselineIndex = 3;
 
 expDir=pwd;
 dataDir='data_master';
-subjects = 1:10;
+subjects = [1:9];
 % Load in data
 cd(dataDir)
 load('visualmemory_subjectsRan')
@@ -121,12 +121,6 @@ for currSubj = 1:numel(subjectProfile.SubjectName)
  
     % Save out mean location error
     subjectProfile.LocationError(currSubj) = mean(mean(abs(locationErrorMat)));
-    % Save out current subject location mat onto super location error data matrix
-    locationErrorMatSuper = [locationErrorMatSuper; locationErrorMat];
-    
-    % Save out current subject condition matrix onto super condition
-    % matrix
-    conditionMatSuper = [conditionMatSuper; conditionMat];
    
     %Save out mean contrast estimates
     for currField = 1:numel(dataFields)
@@ -178,28 +172,6 @@ for currSubj = 1:numel(subjectProfile.SubjectName)
         hold off
     end
 end
-
-%% Location Task Bar Graph
-%take absolute value of the location errors
-locationErrorMatSuper = abs(locationErrorMatSuper);
-%then find the average and error for anywhere in the matrix of location
-%errors corresponding to the right condition. 
-locationErrorOrgByCond(:,1) = locationErrorMatSuper(conditionMatSuper == 1); % Perception Condition
-locationErrorOrgByCond(:,2) = locationErrorMatSuper(conditionMatSuper == 2); % Working Memory Condition
-locationErrorOrgBaseline(:,1) = locationErrorMatSuper(conditionMatSuper == 3); % Baseline Condition
-% Bar graph this:
-figure, set(gcf,'Name','Location Task Bar Graph');
-bar(1:3, [mean(locationErrorOrgByCond(:,1)) mean(locationErrorOrgByCond(:,2)) mean(locationErrorOrgBaseline(:,1))]);
-%legend({'Perception','Working Memory','Baseline'})
-hold on
-% Errorbars:
-errorbar(1:3,[mean(locationErrorOrgByCond(:,1)) mean(locationErrorOrgByCond(:,2)) mean(locationErrorOrgBaseline(:,1))]...
-    , [std(locationErrorOrgByCond(:,1))/sqrt(length(locationErrorOrgByCond(:,1))) std(locationErrorOrgByCond(:,2))/sqrt(length(locationErrorOrgByCond(:,2)))...
-    std(locationErrorOrgBaseline(:,1))/sqrt(length(locationErrorOrgBaseline(:,1)))],'k.')
-% Mean for each subject each condition dots:
-hold on
-plot(locationAveragesByCond,'k.','MarkerSize',15)
-
 
 %% Probe Effect Analysis
 % % Take estimates within and outside a given range and compare the two
@@ -478,8 +450,6 @@ suppressionIndex.Order1(1:numel(subjectProfile.SubjectName),:,2) = ((subjectProf
 suppressionIndex.Collapsed_PS(1:numel(subjectProfile.SubjectName),:,2) = ((ContrastEstimate_PS(:,:,2)) - (ContrastEstimate_PS(:,:,3))) ...
     ./((ContrastEstimate_PS(:,:,2)) + (ContrastEstimate_PS(:,:,3)));
 
-%% Location Analysis
-
 %% Super Subject Plots
 if superPlots
 %         % Total Location Error for baseline condition
@@ -548,6 +518,16 @@ if groupPlots
     title(['Center vs. Perceived Contrast'])
     box off
     hold off
+    
+    % Location Error by Condition
+    figure
+    bar(mean(locationAveragesByCond,2))
+    set(gca,'TickDir','out')
+    hold on
+    errorbar(1:3,mean(locationAveragesByCond,2), std(locationAveragesByCond,[],2)/sqrt(size(locationAveragesByCond,2)),'k','LineStyle','None' )
+    xticklabels({'Perception' 'WM' 'Baseline'})
+    box off
+    
     %
     %     % Order 1 Contrast Estimates
     %     figure
@@ -593,12 +573,12 @@ if groupPlots
     hold all;
     %Perception
     errorbar(centerContrast', mean(suppressionIndex.Collapsed(:,:,1),1), std(suppressionIndex.Collapsed(:,:,1),1)...
-        /sqrt(size(visualmemory_subjectsRan,2)), 'r','LineWidth',3);
+        /sqrt(length(subjects)), 'r','LineWidth',3);
     %Working Memory
     errorbar(centerContrast', mean(suppressionIndex.Collapsed(:,:,2),1), std(suppressionIndex.Collapsed(:,:,2),1)...
-        /sqrt(size(visualmemory_subjectsRan,2)), 'b','LineWidth',3);
-    plot(repmat(centerContrast', [size(visualmemory_subjectsRan,2) 1]), (suppressionIndex.Collapsed(:,:,1)),'r.','MarkerSize',10);
-    plot(repmat(centerContrast', [size(visualmemory_subjectsRan,2) 1]), (suppressionIndex.Collapsed(:,:,2)),'b.','MarkerSize',10);
+        /sqrt(length(subjects)), 'b','LineWidth',3);
+    plot(repmat(centerContrast', [length(subjects) 1]), (suppressionIndex.Collapsed(:,:,1)),'r.','MarkerSize',10);
+    plot(repmat(centerContrast', [length(subjects) 1]), (suppressionIndex.Collapsed(:,:,2)),'b.','MarkerSize',10);
     hold on
     plot([0.09 0.8],[0 0],':k')
     ylabel('Suppression Index (surround-nosurround)/(surround+nosurround)');
