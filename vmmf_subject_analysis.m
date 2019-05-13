@@ -5,8 +5,8 @@ scrsz = get(groot,'ScreenSize');
 
 subjPlots = 0;
 groupPlots = 1;
-superPlots = 0;
-normalizationModelPlots = 1;
+superPlots = 1;
+normalizationModelPlots = 0;
 
 perceptionIndex = 1;
 workingMemoryIndex = 2;
@@ -482,20 +482,50 @@ if superPlots
 %         legend({'Loc-Con','Con-Loc'})
 %         xlabel('Location Error'); ylabel('Frequency')
 
-    baselineLocationErr = mean(abs(allLocationError(Conditions == 3))); 
-    baselineLocationErr_STE = std(abs(allLocationError(Conditions == 3)))/sqrt(length(allLocationError(Conditions == 3)));
-    wmLocationErr = mean(abs(allLocationError(Conditions == 2)));
-    wmLocationErr_STE = std(abs(allLocationError(Conditions == 2)))/sqrt(length(allLocationError(Conditions == 2)));
-    percLocationErr = mean(abs(allLocationError(Conditions == 1)));
-    percLocationErr_STE = std(abs(allLocationError(Conditions == 1)))/sqrt(length(allLocationError(Conditions == 1)));
+    baselineLocationErr1 = mean(abs(allLocationError(Conditions == 3))); 
+    baselineLocationErr_STE1 = std(abs(allLocationError(Conditions == 3)))/sqrt(length(allLocationError(Conditions == 3)));
+    wmLocationErr1 = mean(abs(allLocationError(Conditions == 2)));
+    wmLocationErr_STE1 = std(abs(allLocationError(Conditions == 2)))/sqrt(length(allLocationError(Conditions == 2)));
+    percLocationErr1 = mean(abs(allLocationError(Conditions == 1)));
+    percLocationErr_STE1 = std(abs(allLocationError(Conditions == 1)))/sqrt(length(allLocationError(Conditions == 1)));
     
-    figure
-    bar([baselineLocationErr percLocationErr wmLocationErr])
+    for nCon = 1:length(centerContrast)
+        baselineLocationErr2(nCon,:) = mean(abs(allLocationError(Conditions == 3 & Contrasts == centerContrast(nCon))));
+        baselineLocationErr_STE2(nCon,:)  = std(abs(allLocationError(Conditions == 3 & Contrasts == centerContrast(nCon))))/...
+            sqrt(length(allLocationError(Conditions == 3 & Contrasts == centerContrast(nCon))));
+        wmLocationErr2(nCon,:)  = mean(abs(allLocationError(Conditions == 2 & Contrasts == centerContrast(nCon))));
+        wmLocationErr_STE2(nCon,:)  = std(abs(allLocationError(Conditions == 2 & Contrasts == centerContrast(nCon))))/...
+            sqrt(length(allLocationError(Conditions == 2 & Contrasts == centerContrast(nCon))));
+        percLocationErr2(nCon,:)  = mean(abs(allLocationError(Conditions == 1 & Contrasts == centerContrast(nCon))));
+        percLocationErr_STE2(nCon,:)  = std(abs(allLocationError(Conditions == 1 & Contrasts == centerContrast(nCon))))/...
+            sqrt(length(allLocationError(Conditions == 1)));
+    end
+    
+    figure('name','Super Avg. Loc. Err. by condition')
+    bar([baselineLocationErr1 percLocationErr1 wmLocationErr1])
     set(gca,'TickDir','out')
     hold on
-    errorbar(1:3,[baselineLocationErr percLocationErr wmLocationErr], [baselineLocationErr_STE percLocationErr_STE wmLocationErr_STE],'k','LineStyle','None' )
+    errorbar(1:3,[baselineLocationErr1 percLocationErr1 wmLocationErr1], [baselineLocationErr_STE1 percLocationErr_STE1 wmLocationErr_STE1],'k','LineStyle','None' )
     xticklabels({'Baseline' 'Perception' 'WM'})
     box off
+   
+    figure('name','Super Avg. Loc. Err. by contrast & condition')
+    y = [baselineLocationErr2 percLocationErr2 wmLocationErr2];
+    err = [baselineLocationErr_STE2 percLocationErr_STE2 wmLocationErr_STE2];
+    bar(y)
+    hold on
+    ngroups = size(y, 1);
+    nbars = size(y, 2);
+    % Calculating the width for each bar group to plot error
+    groupwidth = min(0.8, nbars/(nbars + 1.5));
+    for i = 1:nbars
+        x = (1:ngroups) - groupwidth/2 + (2*i-1) * groupwidth / (2*nbars);
+        errorbar(x, y(:,i), err(:,i), 'k','LineStyle','none');
+    end
+    xlabel('Target Contrasts (%)'); ylabel('Location Error (deg)')
+    xticks(1:5);xticklabels({'10%' '17%' '27%' '45%' '75%'})
+    set(gca,'TickDir','out'); box off;
+    legend({'Baseline' 'Perception' 'WM'})
 end
 
 %% Group Plots
@@ -530,6 +560,7 @@ if groupPlots
     errorbar(1:3,mean(locationAveragesByCond,2), std(locationAveragesByCond,[],2)/sqrt(size(locationAveragesByCond,2)),'k','LineStyle','None' )
     xticklabels({'Perception' 'WM' 'Baseline'})
     box off
+    hold off
     
     %
     %     % Order 1 Contrast Estimates
@@ -628,49 +659,49 @@ if groupPlots
     axis square;
     legend({'Perception Condition','Working Memory Condition'})
     
-    % Split between orders%
-    figure('Color', [1 1 1]);
-    
-    subplot(1,2,1)
-    set(gcf, 'Name', sprintf('Suppression Index: Perception vs. Working Memory'));
-    hold all;
-    %Perception
-    errorbar(centerContrast', nanmean(suppressionIndex.Order0(:,:,1),1), nanstd(suppressionIndex.Order0(:,:,1),1)...
-        /sqrt(size(visualmemory_subjectsRan,2)), 'r','LineWidth',3)
-    %Working Memory
-    errorbar(centerContrast', nanmean(suppressionIndex.Order0(:,:,2),1), nanstd(suppressionIndex.Order0(:,:,2),1)...
-        /sqrt(size(visualmemory_subjectsRan,2)), 'b','LineWidth',3); hold all;
-    plot(repmat(centerContrast', [size(visualmemory_subjectsRan,2) 1]), (suppressionIndex.Order0(:,:,1)),'r.','MarkerSize',10);
-    plot(repmat(centerContrast', [size(visualmemory_subjectsRan,2) 1]), (suppressionIndex.Order0(:,:,2)),'b.','MarkerSize',10);
-    hold all
-    plot([0.09 0.8],[0 0],':k')
-    ylabel('Suppression Index (surround-nosurround)/(surround+nosurround)');
-    xlabel('Contrast (%)');
-    xlim([0.09 0.8]);
-    ylim([-0.3 0.3]);
-    title('Order 0: Contrast, then Location');
-    axis square;
-    legend({'Perception Condition','Working Memory Condition'})
-    
-    subplot(1,2,2)
-    hold all;
-    %Perception
-    errorbar(centerContrast', mean(suppressionIndex.Order1(:,:,1),1), std(suppressionIndex.Order1(:,:,1),1)...
-        /sqrt(size(visualmemory_subjectsRan,2)), 'r','LineWidth',3);
-    %Working Memory
-    errorbar(centerContrast', mean(suppressionIndex.Order1(:,:,2),1), std(suppressionIndex.Order1(:,:,2),1)...
-        /sqrt(size(visualmemory_subjectsRan,2)), 'b','LineWidth',3);
-    plot(repmat(centerContrast', [size(visualmemory_subjectsRan,2) 1]), (suppressionIndex.Order1(:,:,1)),'r.','MarkerSize',10);
-    plot(repmat(centerContrast', [size(visualmemory_subjectsRan,2) 1]), (suppressionIndex.Order1(:,:,2)),'b.','MarkerSize',10);
-    hold all
-    plot([0.09 0.8],[0 0],':k')
-    ylabel('Suppression Index (surround-nosurround)/(surround+nosurround)');
-    xlabel('Contrast (%)');
-    xlim([0.09 0.8]);
-    ylim([-0.5 0.5]);
-    title('Order 1: Location, then Contrast');
-    axis square;
-    legend({'Perception Condition','Working Memory Condition'})
+%     % Split between orders%
+%     figure('Color', [1 1 1]);
+%     
+%     subplot(1,2,1)
+%     set(gcf, 'Name', sprintf('Suppression Index: Perception vs. Working Memory'));
+%     hold all;
+%     %Perception
+%     errorbar(centerContrast', nanmean(suppressionIndex.Order0(:,:,1),1), nanstd(suppressionIndex.Order0(:,:,1),1)...
+%         /sqrt(length(subjects)), 'r','LineWidth',3)
+%     %Working Memory
+%     errorbar(centerContrast', nanmean(suppressionIndex.Order0(:,:,2),1), nanstd(suppressionIndex.Order0(:,:,2),1)...
+%         /sqrt(length(subjects)), 'b','LineWidth',3); hold all;
+%     plot(repmat(centerContrast', [length(subjects) 1]), (suppressionIndex.Order0(:,:,1)),'r.','MarkerSize',10);
+%     plot(repmat(centerContrast', [length(subjects) 1]), (suppressionIndex.Order0(:,:,2)),'b.','MarkerSize',10);
+%     hold all
+%     plot([0.09 0.8],[0 0],':k')
+%     ylabel('Suppression Index (surround-nosurround)/(surround+nosurround)');
+%     xlabel('Contrast (%)');
+%     xlim([0.09 0.8]);
+%     ylim([-0.3 0.3]);
+%     title('Order 0: Contrast, then Location');
+%     axis square;
+%     legend({'Perception Condition','Working Memory Condition'})
+%     
+%     subplot(1,2,2)
+%     hold all;
+%     %Perception
+%     errorbar(centerContrast', mean(suppressionIndex.Order1(:,:,1),1), std(suppressionIndex.Order1(:,:,1),1)...
+%         /sqrt(size(visualmemory_subjectsRan,2)), 'r','LineWidth',3);
+%     %Working Memory
+%     errorbar(centerContrast', mean(suppressionIndex.Order1(:,:,2),1), std(suppressionIndex.Order1(:,:,2),1)...
+%         /sqrt(length(subjects)), 'b','LineWidth',3);
+%     plot(repmat(centerContrast', [length(subjects) 1]), (suppressionIndex.Order1(:,:,1)),'r.','MarkerSize',10);
+%     plot(repmat(centerContrast', [length(subjects) 1]), (suppressionIndex.Order1(:,:,2)),'b.','MarkerSize',10);
+%     hold all
+%     plot([0.09 0.8],[0 0],':k')
+%     ylabel('Suppression Index (surround-nosurround)/(surround+nosurround)');
+%     xlabel('Contrast (%)');
+%     xlim([0.09 0.8]);
+%     ylim([-0.5 0.5]);
+%     title('Order 1: Location, then Contrast');
+%     axis square;
+%     legend({'Perception Condition','Working Memory Condition'})
 end
 
 %% Group Plots
@@ -844,16 +875,16 @@ end
 
 
 %% sanity check
-if groupPlots
-figure;
-    for i = 1:length(subjects)
-        subplot(2,5,i)
-        loglog(centerContrast,subjectProfile.ContrastEstimate(i,:,1))
-        hold all
-        loglog(centerContrast,subjectProfile.ContrastEstimate(i,:,2))
-        loglog(centerContrast,subjectProfile.ContrastEstimate(i,:,3))
-        legend({'Perc','WM','BL'})
-        xlim([0.1 0.75]); ylim([0.1 0.75])
-        plot([0.1 0.75],[0.1 0.75],'k--')
-    end
-end
+% if groupPlots
+% figure;
+%     for i = 1:length(subjects)
+%         subplot(2,5,i)
+%         loglog(centerContrast,subjectProfile.ContrastEstimate(i,:,1))
+%         hold all
+%         loglog(centerContrast,subjectProfile.ContrastEstimate(i,:,2))
+%         loglog(centerContrast,subjectProfile.ContrastEstimate(i,:,3))
+%         legend({'Perc','WM','BL'})
+%         xlim([0.1 0.75]); ylim([0.1 0.75])
+%         plot([0.1 0.75],[0.1 0.75],'k--')
+%     end
+% end
