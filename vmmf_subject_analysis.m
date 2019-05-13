@@ -651,8 +651,10 @@ if groupPlots
     xlabel('Contrast (%)');
     xlim([0.09 0.8]);
     ylim([-0.45 0.45]);
+    xticks(C_Test)
     axis square;
     legend({'Perception Condition','Working Memory Condition'})
+    set(gca,'XScale','log')
     
    
     
@@ -802,6 +804,7 @@ if groupPlots
     ylim([-0.3 0.3]);
     axis square;
     legend({'Perception Condition','Working Memory Condition'})
+    set(gca,'XScale','log')
     
 %     % Split between orders%
 %     figure('Color', [1 1 1]);
