@@ -4,9 +4,9 @@ clear all; close all; clc;
 scrsz = get(groot,'ScreenSize');
 
 subjPlots = 0;
-groupPlots = 1;
-superPlots = 1;
-normalizationModelPlots = 0;
+groupPlots = 0;
+superPlots = 0;
+normalizationModelPlots = 1;
 
 perceptionIndex = 1;
 workingMemoryIndex = 2;
@@ -453,6 +453,32 @@ suppressionIndex.Order1(1:numel(subjectProfile.SubjectName),:,2) = ((subjectProf
 suppressionIndex.Collapsed_PS(1:numel(subjectProfile.SubjectName),:,2) = ((ContrastEstimate_PS(:,:,2)) - (ContrastEstimate_PS(:,:,3))) ...
     ./((ContrastEstimate_PS(:,:,2)) + (ContrastEstimate_PS(:,:,3)));
 
+
+%% T-test 
+
+% Suppression Index
+% Two sample t-test, if h = 1 then the two populations come from unequal
+% means. 5% significance level used (default). Tests the means for each
+% contrast estimation (collapsed over subjects).
+
+% Perciption and working memory
+[hSI,pSI,ciSI,statsSI] = ttest2(mean(suppressionIndex.Collapsed(:,:,1),1),...
+    mean(suppressionIndex.Collapsed(:,:,2),1));
+
+%Perception and [0 0 0 0 0] suppression
+[hSI_P,pSI_P,ciSI_P,statsSI_P] = ttest2(mean(suppressionIndex.Collapsed(:,:,1),1),[ 0 0 0 0 0]);
+
+%Working Memory and [0 0 0 0 0] suppression
+[hSI_WM,pSI_WM,ciSI_WM,statsSI_WM] = ttest2([0 0 0 0 0],mean(suppressionIndex.Collapsed(:,:,2),1));
+
+% Wi est - surround induced normalization parameter
+% two sampled t est, testing for significance between perception and
+% working memory conditions based off of hypothesis of an equal mean
+[h_NP,p_NP,ci_NP,stats_NP] = ttest2(est_params(1,:,3),est_params(2,:,3));
+
+
+
+
 %% Super Subject Plots
 if superPlots
 %         % Total Location Error for baseline condition
@@ -656,8 +682,13 @@ if groupPlots
     xlabel('Contrast (%)');
     xlim([0.09 0.8]);
     ylim([-0.45 0.45]);
+    xticks(C_Test)
     axis square;
     legend({'Perception Condition','Working Memory Condition'})
+    set(gca,'XScale','log')
+    
+   
+    
     
 %     % Split between orders%
 %     figure('Color', [1 1 1]);
@@ -804,6 +835,7 @@ if groupPlots
     ylim([-0.3 0.3]);
     axis square;
     legend({'Perception Condition','Working Memory Condition'})
+    set(gca,'XScale','log')
     
 %     % Split between orders%
 %     figure('Color', [1 1 1]);
