@@ -4,7 +4,7 @@ clear all; close all; clc;
 scrsz = get(groot,'ScreenSize');
 
 subjPlots = 0;
-groupPlots = 0;
+groupPlots = 1;
 superPlots = 0;
 normalizationModelPlots = 1;
 
@@ -392,7 +392,7 @@ for e = 1:numel(experiments)
             % R^2 values for baseline and variable condition
             r2_BL = 1 - (sum((baselineMat(subjCount,:) - Y_base).^2) / sum((baselineMat(subjCount,:) - mean(baselineMat(subjCount,:))).^2));
             r2_V = 1 - (sum((variableMat(subjCount,:) - Y_var).^2) / sum((variableMat(subjCount,:) - mean(variableMat(subjCount,:))).^2));
-            indvR2(e,subjCount,:) = [r2_BL r2_V];
+            ind_r2(e,subjCount,:) = [r2_BL r2_V]';
 
             if normalizationModelPlots
                  %Difference in perceived contrast compared to center contrast
@@ -669,27 +669,25 @@ if groupPlots
     set(gcf, 'Name', sprintf('Suppression Index: Perception vs. Working Memory'));
     hold all;
     %Perception
-    errorbar(centerContrast', mean(suppressionIndex.Collapsed(:,:,1),1), std(suppressionIndex.Collapsed(:,:,1),1)...
+    errorbar(100.*centerContrast', mean(suppressionIndex.Collapsed(:,:,1),1), std(suppressionIndex.Collapsed(:,:,1),1)...
         /sqrt(length(subjects)), 'r','LineWidth',3);
     %Working Memory
-    errorbar(centerContrast', mean(suppressionIndex.Collapsed(:,:,2),1), std(suppressionIndex.Collapsed(:,:,2),1)...
+    errorbar(100.*centerContrast', mean(suppressionIndex.Collapsed(:,:,2),1), std(suppressionIndex.Collapsed(:,:,2),1)...
         /sqrt(length(subjects)), 'b','LineWidth',3);
-    plot(repmat(centerContrast', [length(subjects) 1]), (suppressionIndex.Collapsed(:,:,1)),'r.','MarkerSize',10);
-    plot(repmat(centerContrast', [length(subjects) 1]), (suppressionIndex.Collapsed(:,:,2)),'b.','MarkerSize',10);
+    plot(repmat(100.*centerContrast', [length(subjects) 1]), (suppressionIndex.Collapsed(:,:,1)),'r.','MarkerSize',10);
+    plot(repmat(100.*centerContrast', [length(subjects) 1]), (suppressionIndex.Collapsed(:,:,2)),'b.','MarkerSize',10);
     hold on
-    plot([0.09 0.8],[0 0],':k')
+    plot(100*[0.09 0.8],[0 0],':k')
     ylabel('Suppression Index (surround-nosurround)/(surround+nosurround)');
     xlabel('Contrast (%)');
-    xlim([0.09 0.8]);
-    ylim([-0.45 0.45]);
-    xticks(C_Test)
+    xlim(100*[0.09 0.8]);
+    ylim([-0.5 0.5]);
+    xticks(round(100*C_Test))
     axis square;
     legend({'Perception Condition','Working Memory Condition'})
-    set(gca,'XScale','log')
+    set(gca,'XScale','log','TickDir','out')
     
-   
-    
-    
+
 %     % Split between orders%
 %     figure('Color', [1 1 1]);
 %     
@@ -813,29 +811,31 @@ if groupPlots
 %     title(['Center vs. Perceived Contrast, without 0.75 or 0.1 Probe Trials'])
 %     hold off
     
-    %Suppression Index%
-    %Collapsed over both orders
-    hold off
-    figure('Color', [1 1 1]);
-    set(gcf, 'Name', sprintf('Suppression Index: Perception vs. Working Memory'));
-    hold all;
-    %Perception
-    errorbar(centerContrast', mean(suppressionIndex.Collapsed(:,:,1),1), std(suppressionIndex.Collapsed(:,:,1),1)...
-        /sqrt(size(visualmemory_subjectsRan,2)), 'r','LineWidth',3);
-    %Working Memory
-    errorbar(centerContrast', mean(suppressionIndex.Collapsed(:,:,2),1), std(suppressionIndex.Collapsed(:,:,2),1)...
-        /sqrt(size(visualmemory_subjectsRan,2)), 'b','LineWidth',3);
-    plot(repmat(centerContrast', [numel(subjectProfile.SubjectName) 1]), (suppressionIndex.Collapsed(:,:,1)),'r.','MarkerSize',10);
-    plot(repmat(centerContrast', [numel(subjectProfile.SubjectName) 1]), (suppressionIndex.Collapsed(:,:,2)),'b.','MarkerSize',10);
-    hold on
-    plot([0.09 0.8],[0 0],':k')
-    ylabel('Suppression Index (surround-nosurround)/(surround+nosurround)');
-    xlabel('Contrast (%)');
-    xlim([0.09 0.8]);
-    ylim([-0.3 0.3]);
-    axis square;
-    legend({'Perception Condition','Working Memory Condition'})
-    set(gca,'XScale','log')
+%     %Suppression Index%
+%     %Collapsed over both orders
+%     hold off
+%     figure('Color', [1 1 1]);
+%     set(gcf, 'Name', sprintf('Suppression Index: Perception vs. Working Memory'));
+%     hold all;
+%     %Perception
+%     errorbar(centerContrast', mean(suppressionIndex.Collapsed(:,:,1),1), std(suppressionIndex.Collapsed(:,:,1),1)...
+%         /sqrt(size(visualmemory_subjectsRan,2)), 'r','LineWidth',3);
+%     %Working Memory
+%     errorbar(centerContrast', mean(suppressionIndex.Collapsed(:,:,2),1), std(suppressionIndex.Collapsed(:,:,2),1)...
+%         /sqrt(size(visualmemory_subjectsRan,2)), 'b','LineWidth',3);
+%     plot(repmat(centerContrast', [numel(subjectProfile.SubjectName) 1]), (suppressionIndex.Collapsed(:,:,1)),'r.','MarkerSize',10);
+%     plot(repmat(centerContrast', [numel(subjectProfile.SubjectName) 1]), (suppressionIndex.Collapsed(:,:,2)),'b.','MarkerSize',10);
+%     hold on
+%     plot([0.09 0.8],[0 0],':k')
+%     ylabel('Suppression Index (surround-nosurround)/(surround+nosurround)');
+%     xlabel('Contrast (%)');
+%     xlim([0.09 0.8]);
+%     ylim([-0.3 0.3]);
+%     axis square;
+%     legend({'Perception Condition','Working Memory Condition'})
+%     set(gca,'XScale','log')
+%     xticks(plotContrasts); 
+%     xticklabels({plotContrasts});
     
 %     % Split between orders%
 %     figure('Color', [1 1 1]);
@@ -903,9 +903,6 @@ if groupPlots
 %     axis square;
 %     legend({'Perception Condition','Working Memory Condition'})
 end
-
-
-
 %% sanity check
 % if groupPlots
 % figure;

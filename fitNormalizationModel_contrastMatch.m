@@ -39,3 +39,4 @@ r2_t = 1 - (sum((C_match - Rt).^2) / sum((C_match - mean(C_match)).^2));
 % r2 = sum((Rt - C_match).^2);
 
 r2=-sum([r2_t r2_m]);
+
