@@ -3,6 +3,8 @@
 clear all; close all; clc;
 scrsz = get(groot,'ScreenSize');
 
+disp('hello ilona')
+
 subjPlots = 0;
 groupPlots = 1;
 superPlots = 0;
