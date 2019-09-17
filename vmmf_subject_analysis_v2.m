@@ -1,7 +1,7 @@
 %%% vmmf_subject_analysis_v2.m
 
 %% Setup wd & load data
-clear all; close all; clc;
+clear variables; close all; clc;
 scrsz = get(groot,'ScreenSize');
 expDir=pwd;
 dataDir='data_master';
