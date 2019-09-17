@@ -1,9 +1,7 @@
 %%% vmmf_subject_analysis.m
 %% Prepare data and working directories
-clear all; close all; clc;
+clear variables; close all; clc;
 scrsz = get(groot,'ScreenSize');
-
-disp('hello ilona')
 
 subjPlots = 0;
 groupPlots = 1;
