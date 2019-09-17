@@ -83,16 +83,22 @@ for currSubj = 1:numel(subjectProfile.SubjectName)
         for currField = 1:numel(dataFields)
             for currContrast = 1:numel(centerContrast)
                 relevantTrials = subjectProfile.TheData{currSubj}(currRun).p.trialEvents(:,1) == currField & subjectProfile.TheData{currSubj}(currRun).p.trialEvents(:,3) == centerContrast(currContrast);
-                ContrastData(currContrast).(dataFields{currField})(currRun,1) = mean(subjectProfile.TheData{currSubj}(currRun).data.EstimatedContrast(relevantTrials)); %Contrast Estimate
-                ContrastData(currContrast).(dataFields{currField})(currRun,2) = currOrder; % order of current run
+                if sum(relevantTrials) > 0
+                ContrastData(currContrast).(dataFields{currField}) = ...
+                    [ContrastData(currContrast).(dataFields{currField}); ...
+                    [subjectProfile.TheData{currSubj}(currRun).data.EstimatedContrast(relevantTrials)' currOrder*ones(sum(relevantTrials),1)]];
+                end
                 
                 %Take probe selective contrast data - probes not equal to
                 %0.1 or 0.75
                 relevantTrials_probeSelective = subjectProfile.TheData{currSubj}(currRun).p.trialEvents(:,1) == currField ...
                     & subjectProfile.TheData{currSubj}(currRun).p.trialEvents(:,3) == centerContrast(currContrast) & subjectProfile.TheData{currSubj}(currRun).p.trialEvents(:,5) ~= 0.75 ...
                     & subjectProfile.TheData{currSubj}(currRun).p.trialEvents(:,5) ~= 0.1; %Takes same data, minus trials that include 0.1 or 0.75 contrast
-                ContrastData_PS(currContrast).(dataFields{currField})(currRun,1) = mean(subjectProfile.TheData{currSubj}(currRun).data.EstimatedContrast(relevantTrials_probeSelective)); %Contrast Estimate
-                ContrastData_PS(currContrast).(dataFields{currField})(currRun,2) = currOrder; % order of current run
+                if sum(relevantTrials_probeSelective) > 0
+                ContrastData_PS(currContrast).(dataFields{currField}) = ...
+                    [ContrastData_PS(currContrast).(dataFields{currField}); ...
+                    [subjectProfile.TheData{currSubj}(currRun).data.EstimatedContrast(relevantTrials_probeSelective)' currOrder*ones(sum(relevantTrials_probeSelective),1)]];
+                end
             end
         end
         
