@@ -11,8 +11,8 @@ Wi_est = free_params(3);
 
 % fixed parameters
 C_Test = fixed_params{1};
-C_baseline = fixed_params{2};
-y_data = fixed_params{3};
+C_baseline = fixed_params{2}';
+y_data = fixed_params{3}';
 surroundContrast = fixed_params{4};
 
 % Suppression ratio - takes into account the baseline before fitting
