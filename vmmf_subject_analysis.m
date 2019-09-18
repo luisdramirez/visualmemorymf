@@ -179,6 +179,19 @@ for currSubj = 1:numel(subjectProfile.SubjectName)
     end
 end
 
+%%
+% Individual subject contrast estimate distrubution fits
+
+for ns = subjects
+    figure
+    for nc = 1:length(centerContrast)
+    subplot(1,length(centerContrast),nc)
+    % subjectProfile.OrganizedData (9x1; every subject)
+     % subjectProfile.OrganizedData{1} (5x1; every contrast)
+     % each field (condition) will have all trials for that specific condition
+     
+    end
+end
 %% Probe Effect Analysis
 % % Take estimates within and outside a given range and compare the two
 % % distribution

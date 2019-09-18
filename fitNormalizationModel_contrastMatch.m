@@ -6,14 +6,14 @@ function [r2] = fitNormalizationModel_contrastMatch(free_params, fixed_params)
 
 % free parameter
 c50_est = free_params(1);
-n_est = free_params(2);
-Wi_est = free_params(3);
+n_est = free_params(2); % Slope
+Wi_est = free_params(3); %Suppression weight
 
 % fixed parameters
-C_Test = fixed_params{1};
-C_baseline = fixed_params{2}';
-y_data = fixed_params{3}';
-surroundContrast = fixed_params{4};
+C_Test = fixed_params{1}; % True center contrast
+C_baseline = fixed_params{2}'; % Baseline center contrast estimates
+y_data = fixed_params{3}'; % Variable center contrast estimates
+surroundContrast = fixed_params{4}; % Surround grating contrast
 
 % Suppression ratio - takes into account the baseline before fitting
 C_match = y_data; % - C_baseline;
@@ -22,7 +22,6 @@ C_true = C_Test; %- C_baseline;
 % compute response to matching data - no surround condition to get estimates of alpha and n 
 % Rm = (C_Test.^n_est) ./ (1 + a_est .* (C_Test.^n_est));
 Rm = (C_Test.^n_est) ./ ((c50_est.^n_est) + (C_Test.^n_est));
-
 
 r2_m = 1 - (sum((C_baseline - Rm).^2) / sum((C_baseline - mean(C_baseline)).^2));
 
