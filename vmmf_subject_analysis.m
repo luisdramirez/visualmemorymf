@@ -57,8 +57,9 @@ locationAveragesByCond = zeros(3,length(subjects));
 
 % Organize Contrast and Location  Estimates
 for currSubj = 1:numel(subjectProfile.SubjectName)
-    ContrastData = struct('Perception',{[] [] [] [] []},'WorkingMemory',{[] [] [] [] []},'Baseline',{[] [] [] [] []}); % 5 slots for each contrast
-    ContrastData_PS = struct('Perception',{[] [] [] [] []},'WorkingMemory',{[] [] [] [] []},'Baseline',{[] [] [] [] []}); % 5 slots for each contrast
+    structSize = cell(1,5);
+    ContrastData = struct('Perception',structSize,'WorkingMemory',structSize,'P_Baseline',structSize,'W_Baseline',structSize); % 5 slots for each contrast
+    ContrastData_PS = struct('Perception',structSize,'WorkingMemory',structSize,'P_Baseline',structSize,'W_Baseline',structSize); % 5 slots for each contrast
     dataFields = fieldnames(ContrastData); %Store contrastData field names
     
     % Initialize location error and condition tracking matrices
