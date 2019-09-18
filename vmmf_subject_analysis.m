@@ -128,7 +128,6 @@ for currSubj = 1:numel(subjectProfile.SubjectName)
     % Save out mean location error
     subjectProfile.LocationError(currSubj) = mean(mean(abs(locationErrorMat)));
    
-  
     %Save out mean contrast estimates
     for currField = 1:numel(dataFields)
         for currContrast = 1:numel(centerContrast)
