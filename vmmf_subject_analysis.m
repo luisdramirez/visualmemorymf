@@ -396,8 +396,8 @@ for e = 1:numel(experiments)
                 ((est_params(e,subjCount,1).^est_params(e,subjCount,2)) + (centerContrast.^est_params(e,subjCount,2)) + (est_params(e,subjCount,3))*(surroundContrast.^est_params(e,subjCount,2)));
 
             % R^2 values for baseline and variable condition
-            r2_BL = 1 - (sum((baselineMat(subjCount,:) - Y_base).^2) / sum((baselineMat(subjCount,:) - mean(baselineMat(subjCount,:))).^2));
-            r2_V = 1 - (sum((variableMat(subjCount,:) - Y_var).^2) / sum((variableMat(subjCount,:) - mean(variableMat(subjCount,:))).^2));
+            r2_BL = 1 - (sum((baselineMat(subjCount,:) - Y_base').^2) / sum((baselineMat(subjCount,:) - mean(baselineMat(subjCount,:))).^2));
+            r2_V = 1 - (sum((variableMat(subjCount,:) - Y_var').^2) / sum((variableMat(subjCount,:) - mean(variableMat(subjCount,:))).^2));
             ind_r2(e,subjCount,:) = [r2_BL r2_V]';
 
             if normalizationModelPlots
@@ -438,6 +438,45 @@ for e = 1:numel(experiments)
             end
     end
 end
+
+figure('color', [1 1 1])
+subplot(1,4,1)
+errorbar(1:2, [mean(est_params(1,:,1)) mean(est_params(2,:,1))], [std(est_params(1,:,1)) std(est_params(2,:,1))]/sqrt(size(est_params,2)), 'ok', ...
+    'MarkerSize', 20, 'MarkerFaceColor', [0 0 0], 'CapSize', 0, 'LineWidth', 3)
+hold all,
+h = scatter(ones(size(est_params,2),1), est_params(1,:,1), 120, jet(size(est_params,2)), 'filled');
+scatter(2*ones(size(est_params,2),1), est_params(2,:,1), 120, jet(size(est_params,2)), 'filled')
+title('C50 est'), xlim([0 3]), ylim([0 1]); set(gca, 'XTick', 1:2, 'XTickLabel', {'Simultaneous' 'Sequential'}, 'XTickLabelRotation', 45)
+box  off;
+
+subplot(1,4,2)
+errorbar(1:2, [mean(est_params(1,:,2)) mean(est_params(2,:,2))], [std(est_params(1,:,2)) std(est_params(2,:,2))]/sqrt(size(est_params,2)), 'ok', ...
+    'MarkerSize', 20, 'MarkerFaceColor', [0 0 0], 'CapSize', 0, 'LineWidth', 3)
+hold all,
+h = scatter(ones(size(est_params,2),1), est_params(1,:,2), 120, jet(size(est_params,2)), 'filled');
+scatter(2*ones(size(est_params,2),1), est_params(2,:,2), 120, jet(size(est_params,2)), 'filled')
+title('Slope est'), xlim([0 3]), ylim([0 2]); set(gca, 'XTick', 1:2, 'XTickLabel', {'Simultaneous' 'Sequential'}, 'XTickLabelRotation', 45)
+box  off;
+
+subplot(1,4,3)
+errorbar(1:2, [mean(est_params(1,:,3)) mean(est_params(2,:,3))], [std(est_params(1,:,3)) std(est_params(2,:,3))]/sqrt(size(est_params,2)), 'ok', ...
+    'MarkerSize', 20, 'MarkerFaceColor', [0 0 0], 'CapSize', 0, 'LineWidth', 3)
+hold all,
+h = scatter(ones(size(est_params,2),1), est_params(1,:,3), 120, jet(size(est_params,2)), 'filled');
+scatter(2*ones(size(est_params,2),1), est_params(2,:,3), 120, jet(size(est_params,2)), 'filled')
+plot([0 3], [0 0], 'k:')
+title('Wi est'), xlim([0 3]), ylim([-0.3 0.5]); set(gca, 'XTick', 1:2, 'XTickLabel', {'Simultaneous' 'Sequential'}, 'XTickLabelRotation', 45)
+box  off;
+
+subplot(1,4,4)
+errorbar(1:2, [mean(ind_r2(1,:,1)) mean(est_params(2,:,3))], [std(est_params(1,:,3)) std(est_params(2,:,3))]/sqrt(size(est_params,2)), 'ok', ...
+    'MarkerSize', 20, 'MarkerFaceColor', [0 0 0], 'CapSize', 0, 'LineWidth', 3)
+hold all,
+h = scatter(ones(size(est_params,2),1), est_params(1,:,3), 120, jet(size(est_params,2)), 'filled');
+scatter(2*ones(size(est_params,2),1), est_params(2,:,3), 120, jet(size(est_params,2)), 'filled')
+plot([0 3], [0 0], 'k:')
+title('Wi est'), xlim([0 3]), ylim([-0.3 0.5]); set(gca, 'XTick', 1:2, 'XTickLabel', {'Simultaneous' 'Sequential'}, 'XTickLabelRotation', 45)
+box  off;
 
 %% Supression Index
 % Perception: first page.
