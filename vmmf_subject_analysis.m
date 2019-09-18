@@ -3,8 +3,8 @@
 clear variables; close all; clc;
 scrsz = get(groot,'ScreenSize');
 
-subjPlots = 0;
-groupPlots = 1;
+subjPlots = 1;
+groupPlots = 0;
 superPlots = 0;
 normalizationModelPlots = 1;
 
@@ -160,7 +160,7 @@ for currSubj = 1:numel(subjectProfile.SubjectName)
         hold off
         
         % Center contrast vs perceived contrast
-        plotContrasts = 100*round(centerContrast,2);
+        plotContrasts = round(centerContrast,2);
         figure
         cvp = loglog(plotContrasts, squeeze(subjectProfile.ContrastEstimate(currSubj,:,:)));
         hold on
