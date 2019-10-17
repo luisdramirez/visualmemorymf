@@ -206,37 +206,82 @@ set(gcf, 'Position',scrsz);
 
 %%
 % Individual subject contrast estimate distrubution fits
-plot_indx = 0:5:length(subjects)*length(centerContrast);
-    figure
 
-for ns = subjects
-    maxf = 0;
+plot_indx = 0:5:length(subjects)*length(centerContrast);
+figure
+for ns = 1:numel(subjects)
     for nc = 1:length(centerContrast)
         subplot(length(subjects),length(centerContrast),plot_indx(ns)+nc)
-        
+%                 subplot(1,length(centerContrast),nc)
+
         hold on        
-        for nf = 1:length(dataFields)
-%             [tmp_f, tmp_x] = ksdensity(subjectProfile.OrganizedData{ns}(nc).(dataFields{nf})(:,1));
-%             plot(tmp_x,tmp_f)
+        for nf = 1:numel(dataFields)
+
             tmp_hist = histogram(subjectProfile.OrganizedData{ns}(nc).(dataFields{nf})(:,1),'Normalization','pdf');
-            tmp_hist.BinEdges = logspace(log10(.1),log10(1),50);
+            tmp_hist.BinEdges = logspace(log10(.01),log10(1),40);
             set(gca, 'XScale','log','XTick',0:0.1:1)
             xlim([0 1])
-%             if max(tmp_f) > maxf
-%                 maxf = max(tmp_f);
-%             end
+            ydata = tmp_hist.Values;
+            xdata = logspace(log10(.01),log10(1),79);
+                startValues = [log10(centerContrast(nc)) 0.1 1];
+                options = optimset('MaxFunEvals', 5000.*numel(startValues), 'MaxIter', 5000.*numel(startValues));
+                
+                [est_params_tmp(nf).params(ns,nc,:), est_params_tmp(nf).sse(ns,nc)] = fminsearch('mygauss', startValues, options, ydata, log10(xdata(2:2:end)));
+                est_y = est_params_tmp(nf).params(ns,nc,3)*exp(-(log10(xdata)-est_params_tmp(nf).params(ns,nc,1)).^2/(2*(est_params_tmp(nf).params(ns,nc,2)^2)));
+                plot(xdata,est_y)
         end
         line([centerContrast(nc) centerContrast(nc)],[0 1],'Color','r')
         set(gca,'TickDir','out'); box off;
         hold off
     end
-
-    
 end
         title(['C = ' num2str(plotContrasts(nc))])
 
-    legend('Sim.','Seq.','Sim. BL','Seq. BL','Contrast')
+%     legend('Sim.','Seq.','Sim. BL','Seq. BL','Contrast')
     suptitle(['Contrast Estimates S' num2str(ns)])
+    subjcolor = num2cell(jet(numel(subjects)),2);
+    condColor = [{[1 0 0]}; {[0 0 1]}];
+    figure('color', [1 1 1])
+    subplot(1,3,1)
+    h = errorbar([1:3:15; 1.5:3:16]', [mean(10.^est_params_tmp(1).params(:,:,1)); mean(10.^est_params_tmp(2).params(:,:,1))]',  ...
+        ([std(10.^est_params_tmp(1).params(:,:,1)); std(10.^est_params_tmp(2).params(:,:,1))]./sqrt(numel(subjects)))', 'ok', 'Capsize', 0, 'LineStyle', 'None','LineWidth',2,'MarkerSize',8);
+    set(h, {'color'}, condColor, {'MarkerFaceColor'}, condColor)
+    hold on
+    
+    for ns = 1:length(subjects)
+        plot([1:3:15; 1.5:3:16],[10.^est_params_tmp(1).params(ns,:,1); 10.^est_params_tmp(2).params(ns,:,1)],'Color',subjcolor{ns},'Marker','.','MarkerSize',8,'MarkerEdgeColor',subjcolor{ns})
+    end
+%     plot(repmat([1:3:15],numel(subjects),1),10.^est_params_tmp(1).params(:,:,1),'LineStyle','none','Marker','.','MarkerSize',8,'MarkerEdgeColor','k')
+%     plot(repmat([1.5:3:16],numel(subjects),1),10.^est_params_tmp(2).params(:,:,1),'LineStyle','none','Marker','.','MarkerSize',8,'MarkerEdgeColor','k')
+
+    xlim([0 16]); title('Mean estimates'); box off
+    set(gca, 'XTick', [1.25:3:15], 'XTickLabel', plotContrasts, 'TickDir', 'out')
+    
+    subplot(1,3,2)
+     h = errorbar([1:3:15; 1.5:3:16]', [mean(est_params_tmp(1).params(:,:,2)); mean(est_params_tmp(2).params(:,:,2))]',  ...
+        ([std(est_params_tmp(1).params(:,:,2)); std(est_params_tmp(2).params(:,:,2))]./sqrt(numel(subjects)))', 'ok', 'Capsize', 0, 'LineStyle', 'None','LineWidth',2,'MarkerSize',8);
+    set(h, {'color'}, condColor, {'MarkerFaceColor'}, condColor)
+    hold on
+        for ns = 1:length(subjects)
+        plot([1:3:15; 1.5:3:16],[est_params_tmp(1).params(ns,:,2); est_params_tmp(2).params(ns,:,2)],'Color',subjcolor{ns},'Marker','.','MarkerSize',8,'MarkerEdgeColor',subjcolor{ns})
+    end
+%     plot(repmat([1:3:15],numel(subjects),1),est_params_tmp(1).params(:,:,2),'LineStyle','none','Marker','.','MarkerSize',8,'MarkerEdgeColor','k')
+%     plot(repmat([1.5:3:16],numel(subjects),1),est_params_tmp(2).params(:,:,2),'LineStyle','none','Marker','.','MarkerSize',8,'MarkerEdgeColor','k')
+    xlim([0 16]); title('Width estimates'); box off
+    set(gca, 'XTick', [1.25:3:15], 'XTickLabel', plotContrasts, 'TickDir', 'out')
+    
+        subplot(1,3,3)
+     h = errorbar([1:3:15; 1.5:3:16]', [mean(est_params_tmp(1).sse(:,:)); mean(est_params_tmp(2).sse(:,:))]',  ...
+        ([std(est_params_tmp(1).sse(:,:)); std(est_params_tmp(2).sse(:,:))]./sqrt(numel(subjects)))', 'ok', 'Capsize', 0, 'LineStyle', 'None','LineWidth',2,'MarkerSize',8);
+    set(h, {'color'}, condColor, {'MarkerFaceColor'}, condColor)
+    hold on
+        for ns = 1:length(subjects)
+        plot([1:3:15; 1.5:3:16],[est_params_tmp(1).sse(ns,:); est_params_tmp(2).sse(ns,:)],'Color',subjcolor{ns},'Marker','.','MarkerSize',8,'MarkerEdgeColor',subjcolor{ns})
+    end
+%     plot(repmat([1:3:15],numel(subjects),1),est_params_tmp(1).sse(:,:),'LineStyle','none','Marker','.','MarkerSize',8,'MarkerEdgeColor','k')
+%     plot(repmat([1.5:3:16],numel(subjects),1),est_params_tmp(2).sse(:,:),'LineStyle','none','Marker','.','MarkerSize',8,'MarkerEdgeColor','k')
+    xlim([0 16]); title('SSE'); box off
+    set(gca, 'XTick', [1.25:3:15], 'XTickLabel', plotContrasts, 'TickDir', 'out')
 %% Probe Effect Analysis
 % % Take estimates within and outside a given range and compare the two
 % % distribution
