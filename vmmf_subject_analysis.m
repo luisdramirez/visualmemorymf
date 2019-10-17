@@ -206,31 +206,37 @@ set(gcf, 'Position',scrsz);
 
 %%
 % Individual subject contrast estimate distrubution fits
+plot_indx = 0:5:length(subjects)*length(centerContrast);
+    figure
 
 for ns = subjects
-    figure
     maxf = 0;
     for nc = 1:length(centerContrast)
-        subplot(1,length(centerContrast),nc)
+        subplot(length(subjects),length(centerContrast),plot_indx(ns)+nc)
+        
         hold on        
         for nf = 1:length(dataFields)
 %             [tmp_f, tmp_x] = ksdensity(subjectProfile.OrganizedData{ns}(nc).(dataFields{nf})(:,1));
 %             plot(tmp_x,tmp_f)
-            histogram(subjectProfile.OrganizedData{ns}(nc).(dataFields{nf})(:,1),nbins,'Normalization','probability','BinWidth',0.025)
+            tmp_hist = histogram(subjectProfile.OrganizedData{ns}(nc).(dataFields{nf})(:,1),'Normalization','pdf');
+            tmp_hist.BinEdges = logspace(log10(.1),log10(1),50);
+            set(gca, 'XScale','log','XTick',0:0.1:1)
             xlim([0 1])
 %             if max(tmp_f) > maxf
 %                 maxf = max(tmp_f);
 %             end
         end
         line([centerContrast(nc) centerContrast(nc)],[0 1],'Color','r')
-        title(['C = ' num2str(plotContrasts(nc))])
         set(gca,'TickDir','out'); box off;
         hold off
     end
-    legend('Sim.','Seq.','Sim. BL','Seq. BL','Contrast')
-    suptitle(['Contrast Estimates S' num2str(ns)])
+
     
 end
+        title(['C = ' num2str(plotContrasts(nc))])
+
+    legend('Sim.','Seq.','Sim. BL','Seq. BL','Contrast')
+    suptitle(['Contrast Estimates S' num2str(ns)])
 %% Probe Effect Analysis
 % % Take estimates within and outside a given range and compare the two
 % % distribution
