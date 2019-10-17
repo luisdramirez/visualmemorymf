@@ -22,7 +22,7 @@ subjectProfile=struct('SubjectName',[] ,'Order', [], 'Condition', [], 'TheData',
 
 subjectProfile.SubjectName = nan(1,length(subjects)); % initialize subject names
 subjectProfile.SubjectName = subjects;
-subjectProfile.Order = nan(1,length(subjects)); % initialize order
+subjectProfile.Order = nan(1,length(subjects)); % initialize report order
 subjectProfile.TheData = cell(1,length(subjects)); % intialize theData holders
 subjectProfile.OrganizedData = cell(1,length(subjects)); % initialized organize data
 subjectProfile.LocationError = nan(1,length(subjects)); % initialize location error (Average location error for each subject)
@@ -55,11 +55,21 @@ locationErrorMatSuper = [];
 conditionMatSuper = [];
 locationAveragesByCond = zeros(3,length(subjects));
 
+subplotDIMs = subjects(~(rem(length(subjects), subjects)));
+
+if mod(length(subplotDIMs),2) ~= 0
+    subplotX = median(subplotDIMs);
+    subplotY=subplotX;
+else
+    subplotX = subplotDIMs(length(subplotDIMs)/2);
+    subplotY = subplotDIMs(length(subplotDIMs)/2+1);
+end
+
 % Organize Contrast and Location  Estimates
 for currSubj = 1:numel(subjectProfile.SubjectName)
     structSize = cell(1,5);
     ContrastData = struct('Perception',structSize,'WorkingMemory',structSize,'P_Baseline',structSize,'W_Baseline',structSize); % 5 slots for each contrast
-    ContrastData_PS = struct('Perception',structSize,'WorkingMemory',structSize,'P_Baseline',structSize,'W_Baseline',structSize); % 5 slots for each contrast
+    ContrastData_PS = struct('Perception',structSize,'WorkingMemory',structSize,'P_Baseline',structSize,'W_Baseline',structSize); % 5 slots for each contrast; PS = probe selective.
     dataFields = fieldnames(ContrastData); %Store contrastData field names
     
     % Initialize location error and condition tracking matrices
@@ -81,7 +91,12 @@ for currSubj = 1:numel(subjectProfile.SubjectName)
         % Memory, Baseline) and get the mean estimate for a contrast level
         for currField = 1:numel(dataFields)
             for currContrast = 1:numel(centerContrast)
-                relevantTrials = subjectProfile.TheData{currSubj}(currRun).p.trialEvents(:,1) == currField & subjectProfile.TheData{currSubj}(currRun).p.trialEvents(:,3) == centerContrast(currContrast);
+                if currField < 3 % this is a simple.temporary fix to bypass the fact that there is no "condition 4" to distinguish P_Baseline from W_Baseline
+                    currCond = currField;
+                else
+                    currCond = 3; % once the "W_Basline" field is reached, still use '3' as the current condition rather then currField (which would be 4 when this is accessed)
+                end
+                relevantTrials = subjectProfile.TheData{currSubj}(currRun).p.trialEvents(:,1) == currCond & subjectProfile.TheData{currSubj}(currRun).p.trialEvents(:,3) == centerContrast(currContrast);
                 if sum(relevantTrials) > 0
                 ContrastData(currContrast).(dataFields{currField}) = ...
                     [ContrastData(currContrast).(dataFields{currField}); ...
@@ -90,7 +105,7 @@ for currSubj = 1:numel(subjectProfile.SubjectName)
                 
                 %Take probe selective contrast data - probes not equal to
                 %0.1 or 0.75
-                relevantTrials_probeSelective = subjectProfile.TheData{currSubj}(currRun).p.trialEvents(:,1) == currField ...
+                relevantTrials_probeSelective = subjectProfile.TheData{currSubj}(currRun).p.trialEvents(:,1) == currCond ...
                     & subjectProfile.TheData{currSubj}(currRun).p.trialEvents(:,3) == centerContrast(currContrast) & subjectProfile.TheData{currSubj}(currRun).p.trialEvents(:,5) ~= 0.75 ...
                     & subjectProfile.TheData{currSubj}(currRun).p.trialEvents(:,5) ~= 0.1; %Takes same data, minus trials that include 0.1 or 0.75 contrast
                 if sum(relevantTrials_probeSelective) > 0
@@ -145,53 +160,76 @@ for currSubj = 1:numel(subjectProfile.SubjectName)
     allLocationError= [allLocationError; locationErrorMat(:)];
     Conditions = [Conditions; conditionMat(:)];
     
+    %set(cvp, {'Color'}, {[0 0 1]; [1 0 0]; [0 0 0]});
     % Individual Subject Plots
+    nbins = 100;
     if subjPlots
-        % Location report distributions
-        figure
-        nbins = 100;
-        histogram(locationErrorMat(:,1:4),nbins)
+        % Location report distributions (comparing orders here)
+        figure(1)
+        subplot(subplotX,subplotY,currSubj)
+        histogram(locationErrorMat(:,1:4),nbins,'Normalization','count','BinWidth',5)
         if numel(subjectProfile.TheData{currSubj}) > 4
             hold on
-            histogram(locationErrorMat(:,5:8),nbins)
+            histogram(locationErrorMat(:,5:8),nbins,'Normalization','count','BinWidth',5) % plot second order
         end
-        title(['Location Error S' num2str(currSubj)])
+        box off; set(gca, 'TickDir','out','ColorOrder',[1 0 0; 0 0 1]); xlim([-180 180]);
+        title(['S' num2str(currSubj)]); 
         legend(num2str(subjectProfile.Order(currSubj)), num2str(~subjectProfile.Order(currSubj)))
-        hold off
         
         % Center contrast vs perceived contrast
         plotContrasts = round(centerContrast,2);
-        figure
-        cvp = loglog(plotContrasts, squeeze(subjectProfile.ContrastEstimate(currSubj,:,:)));
+        figure(2)
+        subplot(subplotX,subplotY,currSubj)
+        loglog(plotContrasts, squeeze(subjectProfile.ContrastEstimate(currSubj,:,1:2)));
         hold on
+        loglog(plotContrasts, squeeze(subjectProfile.ContrastEstimate(currSubj,:,3:4)),'--');
         %         errorbar(plotContrasts,squeeze(subjectProfile.ContrastEstimate(currSubj,:,:)),)
-        loglog(plotContrasts,plotContrasts,'--k')
-        set(cvp, {'color'}, {[0 0 1]; [1 0 0]; [0 0 0]});
-        set(cvp,'LineWidth',2)
+        loglog(plotContrasts,plotContrasts,'k')
         xticks(plotContrasts); yticks(plotContrasts);
         xticklabels({plotContrasts}); yticklabels({plotContrasts});
-        xlabel('Center Contrast'); ylabel('Perceived Contrast');
-        set(gca,'TickDir','out','XTick',plotContrasts,'YTick',plotContrasts,...
+        set(gca,'ColorOrder',[0 0 1; 1 0 0; 0 0 0.5; 0.5 0 0],'TickDir','out','XTick',plotContrasts,'YTick',plotContrasts,...
             'XTickLabel',plotContrasts,'YTickLabel',plotContrasts,...
-            'TickDir','out');
-        legend('Perception','Working Memory','Baseline')
-        title(['Center vs. Perceived Contrasts S' num2str(currSubj)])
-        hold off
+            'TickDir','out'); box off; xlim([min(plotContrasts) max(plotContrasts)]);
+        title(['S' num2str(currSubj)])
     end
 end
+
+figure(1)
+xlabel('Location Error'); ylabel('Count'); 
+set(gcf, 'Position',scrsz); suptitle('Location Error')
+
+figure(2)
+legend('Sim.','Seq.','Sim. BL','Seq. BL','Location','NorthWest')
+suptitle('Presented v. Perceived Contrast')
+xlabel('Center Contrast'); ylabel('Perceived Contrast')
+set(gcf, 'Position',scrsz);
 
 %%
 % Individual subject contrast estimate distrubution fits
 
 for ns = subjects
     figure
+    maxf = 0;
     for nc = 1:length(centerContrast)
-    subplot(1,length(centerContrast),nc)
-    % subjectProfile.OrganizedData (9x1; every subject)
-     % subjectProfile.OrganizedData{1} (5x1; every contrast)
-     % each field (condition) will have all trials for that specific condition
-     
+        subplot(1,length(centerContrast),nc)
+        hold on        
+        for nf = 1:length(dataFields)
+%             [tmp_f, tmp_x] = ksdensity(subjectProfile.OrganizedData{ns}(nc).(dataFields{nf})(:,1));
+%             plot(tmp_x,tmp_f)
+            histogram(subjectProfile.OrganizedData{ns}(nc).(dataFields{nf})(:,1),nbins,'Normalization','probability','BinWidth',0.025)
+            xlim([0 1])
+%             if max(tmp_f) > maxf
+%                 maxf = max(tmp_f);
+%             end
+        end
+        line([centerContrast(nc) centerContrast(nc)],[0 1],'Color','r')
+        title(['C = ' num2str(plotContrasts(nc))])
+        set(gca,'TickDir','out'); box off;
+        hold off
     end
+    legend('Sim.','Seq.','Sim. BL','Seq. BL','Contrast')
+    suptitle(['Contrast Estimates S' num2str(ns)])
+    
 end
 %% Probe Effect Analysis
 % % Take estimates within and outside a given range and compare the two
